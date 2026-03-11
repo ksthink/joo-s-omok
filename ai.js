@@ -1,3 +1,65 @@
+let patternWeights = null;
+const BASE_WEIGHTS = {
+    "OOOOO": 100000,
+    "_OOOO_": 50000,
+    "OOOO_": 10000,
+    "_OOOO": 10000,
+    "XOOOO_": 10000,
+    "_OOOOX": 10000,
+    "_OOO_": 5000,
+    "OOO__": 1000,
+    "__OOO": 1000,
+    "_O_OO_": 1000,
+    "_OO_O_": 1000,
+    "OO_O_": 1000,
+    "_O_OO": 1000,
+    "OO__": 100,
+    "__OO": 100,
+    "_O_O_": 100,
+    "_OO_": 100,
+    "O__": 10,
+    "__O": 10,
+    "_O_": 10
+};
+
+async function loadPatternWeights() {
+    try {
+        const response = await fetch('/api/weights');
+        const data = await response.json();
+        if (data && data.patterns) {
+            patternWeights = {};
+            for (const [pattern, info] of Object.entries(data.patterns)) {
+                patternWeights[pattern] = info.weight;
+            }
+        }
+    } catch (e) {
+        patternWeights = null;
+    }
+}
+
+function getPatternWeight(pattern) {
+    if (patternWeights && patternWeights[pattern] !== undefined) {
+        return patternWeights[pattern];
+    }
+    return BASE_WEIGHTS[pattern] || 0;
+}
+
+function evaluateLine(line) {
+    const patterns = [
+        'OOOOO', '_OOOO_', 'OOOO_', '_OOOO', 'XOOOO_', '_OOOOX',
+        '_OOO_', 'OOO__', '__OOO', '_O_OO_', '_OO_O_', 'OO_O_', '_O_OO',
+        'OO__', '__OO', '_O_O_', '_OO_', 'O__', '__O', '_O_'
+    ];
+    
+    let score = 0;
+    for (const pattern of patterns) {
+        if (line.includes(pattern)) {
+            score += getPatternWeight(pattern);
+        }
+    }
+    return score;
+}
+
 // ─── Zobrist Hashing ───────────────────────────────────────────────────────────
 const ZOBRIST_TABLE = Array.from({length: 15}, () =>
     Array.from({length: 15}, () => [
@@ -397,35 +459,4 @@ function getLine(row, col, dr, dc, player, board) {
     }
 
     return line;
-}
-
-function evaluateLine(line) {
-    const patterns = [
-        { pattern: 'OOOOO',   score: 100000 },
-        { pattern: '_OOOO_',  score: 50000  },
-        { pattern: 'OOOO_',   score: 10000  },
-        { pattern: '_OOOO',   score: 10000  },
-        { pattern: 'XOOOO_',  score: 10000  },
-        { pattern: '_OOOOX',  score: 10000  },
-        { pattern: '_OOO_',   score: 5000   },
-        { pattern: 'OOO__',   score: 1000   },
-        { pattern: '__OOO',   score: 1000   },
-        { pattern: '_O_OO_',  score: 1000   },
-        { pattern: '_OO_O_',  score: 1000   },
-        { pattern: 'OO_O_',   score: 1000   },
-        { pattern: '_O_OO',   score: 1000   },
-        { pattern: 'OO__',    score: 100    },
-        { pattern: '__OO',    score: 100    },
-        { pattern: '_O_O_',   score: 100    },
-        { pattern: '_OO_',    score: 100    },
-        { pattern: 'O__',     score: 10     },
-        { pattern: '__O',     score: 10     },
-        { pattern: '_O_',     score: 10     }
-    ];
-
-    let score = 0;
-    for (const { pattern, score: patternScore } of patterns) {
-        if (line.includes(pattern)) score += patternScore;
-    }
-    return score;
 }

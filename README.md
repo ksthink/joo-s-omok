@@ -69,9 +69,10 @@ omok/
 ├── index.html      # 게임 메인 HTML
 ├── style.css       # 레트로 스타일 CSS
 ├── game.js         # 게임 로직
-├── ai.js           # AI 알고리즘 (MiniMax)
+├── ai.js           # AI 알고리즘 (MiniMax + 학습)
 ├── server.py       # Flask 백엔드 서버
 ├── game.db         # SQLite 데이터베이스
+├── weights.json    # 동적 패턴 가중치
 ├── font.woff2      # 커스텀 한글 폰트
 ├── stone.wav       # 돌 놓기 효과음
 └── README.md       # 프로젝트 문서
@@ -102,10 +103,13 @@ omok/
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/leaderboard` | 랭킹 목록 조회 (상위 20명) |
+| GET | `/api/leaderboard` | 랭킹 목록 조회 (상위 10명) |
 | POST | `/api/leaderboard` | 점수 저장 |
+| POST | `/api/game-record` | 기보 저장 + AI 학습 |
+| GET | `/api/weights` | 패턴 가중치 조회 |
+| POST | `/api/weights/reset` | 가중치 초기화 |
 
-### POST 요청 예시
+### POST /api/leaderboard 요청 예시
 
 ```json
 {
@@ -117,12 +121,42 @@ omok/
 }
 ```
 
+### POST /api/game-record 요청 예시
+
+```json
+{
+  "moves": [{"row": 7, "col": 7, "player": 1}, ...],
+  "winner": 1,
+  "gameMode": "challenge",
+  "level": 3
+}
+```
+
 ## AI 알고리즘
 
 - **MiniMax**: 모든 가능한 수를 탐색하여 최적의 수 선택
 - **Alpha-Beta 가지치기**: 불필요한 탐색 제거로 성능 향상
 - **평가 함수**: 5목, 열린4, 열린3 등 패턴 기반 점수화
-- **탐색 깊이**: 난이도에 따라 1~3 깊이 조절
+- **탐색 깊이**: 난이도에 따라 1~8 깊이 조절
+- **Zobrist Hashing**: 보드 상태 빠른 해싱
+- **Transposition Table**: 중복 탐색 방지
+
+## AI 학습 시스템
+
+AI는 플레이어의 승리 기보를 학습하여 점점 강해집니다.
+
+### 학습 방식
+- **평가 함수 튜닝**: 플레이어 승리 기보에서 패턴을 분석하여 가중치 조정
+- **즉시 학습**: 매 게임 종료 후 즉시 학습 적용
+
+### 안전장치
+- **최소 데이터 요구**: 패턴이 30회 이상 등장해야 학습 적용
+- **학습률 제한**: 10%만 반영하여 급격한 변화 방지
+- **이상치 필터링**: 돌 수 < 5개 또는 > 100개인 게임 제외
+
+### 가중치 범위
+- 기본값의 50% ~ 200% 범위 내로 제한
+- 과도한 강화/약화 방지
 
 ## 브라우저 지원
 

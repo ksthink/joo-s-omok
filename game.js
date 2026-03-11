@@ -20,6 +20,8 @@ let levelStones = 0;
 let timerInterval = null;
 let elapsedSeconds = 0;
 let introAnimationId = null;
+let lastMove = null;
+let moveHistory = [];
 
 const LEVEL_CONFIG = {
     1:  { timeLimit: 200,  baseScore: 100  },
@@ -84,6 +86,8 @@ function initBoard() {
     gameOver = false;
     levelStones = 0;
     levelStartTime = Date.now();
+    lastMove = null;
+    moveHistory = [];
     
     const turnEl = document.getElementById('turn');
     if (turnEl) turnEl.textContent = '당신의 차례 (흑)';
@@ -123,13 +127,14 @@ function drawBoard() {
     for (let i = 0; i < BOARD_SIZE; i++) {
         for (let j = 0; j < BOARD_SIZE; j++) {
             if (board[i][j] !== EMPTY) {
-                drawStone(i, j, board[i][j]);
+                const isLast = lastMove && lastMove.row === i && lastMove.col === j;
+                drawStone(i, j, board[i][j], isLast);
             }
         }
     }
 }
 
-function drawStone(row, col, player) {
+function drawStone(row, col, player, isLast = false) {
     const x = CELL_SIZE / 2 + col * CELL_SIZE;
     const y = CELL_SIZE / 2 + row * CELL_SIZE;
     const radius = CELL_SIZE / 2 - 2;
@@ -154,6 +159,14 @@ function drawStone(row, col, player) {
     ctx.fill();
     ctx.lineWidth = 1.5;
     ctx.stroke();
+    
+    if (isLast) {
+        ctx.beginPath();
+        ctx.arc(x, y, radius + 2, 0, Math.PI * 2);
+        ctx.strokeStyle = player === PLAYER ? '#ffffff' : '#000000';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+    }
 }
 
 function drawIntroStone(ctx, x, y, radius, player) {
@@ -288,23 +301,12 @@ function isValidMove(row, col) {
 }
 
 function playStoneSound() {
-    console.log('playStoneSound called, stoneAudio:', stoneAudio);
-    if (!stoneAudio) {
-        console.log('stoneAudio is null!');
-        return;
-    }
+    if (!stoneAudio) return;
     
     try {
-        console.log('Attempting to play audio...');
         stoneAudio.currentTime = 0;
-        stoneAudio.play().then(() => {
-            console.log('Audio played successfully');
-        }).catch((err) => {
-            console.log('Audio play failed:', err);
-        });
-    } catch (e) {
-        console.log('Audio error:', e);
-    }
+        stoneAudio.play().catch(() => {});
+    } catch (e) {}
 }
 
 function calculateLevelScore() {
@@ -383,6 +385,8 @@ function isBoardFull() {
 
 function makeMove(row, col, player) {
     board[row][col] = player;
+    lastMove = { row, col };
+    moveHistory.push({ row, col, player });
     if (player === PLAYER) {
         levelStones++;
         totalStones++;
@@ -399,6 +403,7 @@ function makeMove(row, col, player) {
     if (checkWin(row, col, player)) {
         gameOver = true;
         stopTimer();
+        saveGameRecord(player);
         
         if (player === PLAYER) {
             if (gameMode === 'challenge') {
@@ -428,6 +433,7 @@ function makeMove(row, col, player) {
     if (isBoardFull()) {
         gameOver = true;
         stopTimer();
+        saveGameRecord(0);
         showFinalResult(false, true);
         return true;
     }
@@ -517,6 +523,10 @@ function startPracticeGame() {
     elapsedSeconds = 0;
     totalStones = 0;
     
+    if (typeof loadPatternWeights === 'function') {
+        loadPatternWeights();
+    }
+    
     document.getElementById('modeLabel').textContent = '연습 모드';
     document.getElementById('levelLabel').classList.add('hidden');
     document.getElementById('scoreDisplay').textContent = '-';
@@ -533,6 +543,10 @@ function startChallengeGame() {
     totalStones = 0;
     elapsedSeconds = 0;
     timerInterval = null;
+    
+    if (typeof loadPatternWeights === 'function') {
+        loadPatternWeights();
+    }
     
     document.getElementById('modeLabel').textContent = '챌린지 모드';
     document.getElementById('levelLabel').classList.remove('hidden');
@@ -684,6 +698,28 @@ function bindEvents() {
         calculateCanvasSize();
         drawBoard();
     });
+}
+
+function saveGameRecord(winner) {
+    const data = {
+        moves: moveHistory,
+        winner: winner,
+        gameMode: gameMode,
+        level: currentLevel
+    };
+    
+    fetch('/api/game-record', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(result => {
+        if (result.learned) {
+            console.log('AI learned from', result.patterns_count, 'patterns');
+        }
+    })
+    .catch(err => console.error('Error saving game record:', err));
 }
 
 document.addEventListener('DOMContentLoaded', init);

@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "last_updated": "2026-03-11T03:01:24.827463",
+  "patterns": {
+    "OOOOO": {
+      "weight": 100000.0,
+      "wins": 2,
+      "total": 2
+    },
+    "_OOOO_": {
+      "weight": 50000.0,
+      "wins": 2,
+      "total": 2
+    },
+    "OOOO_": {
+      "weight": 10000.0,
+      "wins": 2,
+      "total": 2
+    },
+    "_OOOO": {
+      "weight": 10000.0,
+      "wins": 2,
+      "total": 2
+    },
+    "XOOOO_": {
+      "weight": 10000.0,
+      "wins": 1,
+      "total": 1
+    },
+    "_OOOOX": {
+      "weight": 10000.0,
+      "wins": 1,
+      "total": 1
+    },
+    "_OOO_": {
+      "weight": 5000.0,
+      "wins": 2,
+      "total": 2
+    },
+    "OOO__": {
+      "weight": 1000.0,
+      "wins": 2,
+      "total": 2
+    },
+    "__OOO": {
+      "weight": 1000.0,
+      "wins": 2,
+      "total": 2
+    },
+    "_O_OO_": {
+      "weight": 1000.0,
+      "wins": 0,
+      "total": 0
+    },
+    "_OO_O_": {
+      "weight": 1000.0,
+      "wins": 0,
+      "total": 0
+    },
+    "OO_O_": {
+      "weight": 1000.0,
+      "wins": 0,
+      "total": 0
+    },
+    "_O_OO": {
+      "weight": 1000.0,
+      "wins": 0,
+      "total": 0
+    },
+    "OO__": {
+      "weight": 100.0,
+      "wins": 2,
+      "total": 2
+    },
+    "__OO": {
+      "weight": 100.0,
+      "wins": 2,
+      "total": 2
+    },
+    "_O_O_": {
+      "weight": 100.0,
+      "wins": 0,
+      "total": 0
+    },
+    "_OO_": {
+      "weight": 100.0,
+      "wins": 2,
+      "total": 2
+    },
+    "O__": {
+      "weight": 10.0,
+      "wins": 2,
+      "total": 2
+    },
+    "__O": {
+      "weight": 10.0,
+      "wins": 2,
+      "total": 2
+    },
+    "_O_": {
+      "weight": 10.0,
+      "wins": 2,
+      "total": 2
+    }
+  }
+}
