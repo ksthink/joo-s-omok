@@ -22,16 +22,16 @@ let elapsedSeconds = 0;
 let introAnimationId = null;
 
 const LEVEL_CONFIG = {
-    1: { depth: 1, baseScore: 100 },
-    2: { depth: 1, baseScore: 150 },
-    3: { depth: 1, baseScore: 200 },
-    4: { depth: 2, baseScore: 300 },
-    5: { depth: 2, baseScore: 400 },
-    6: { depth: 2, baseScore: 500 },
-    7: { depth: 2, baseScore: 650 },
-    8: { depth: 3, baseScore: 850 },
-    9: { depth: 3, baseScore: 1100 },
-    10: { depth: 3, baseScore: 1500 }
+    1:  { timeLimit: 200,  baseScore: 100  },
+    2:  { timeLimit: 300,  baseScore: 150  },
+    3:  { timeLimit: 400,  baseScore: 200  },
+    4:  { timeLimit: 500,  baseScore: 300  },
+    5:  { timeLimit: 700,  baseScore: 400  },
+    6:  { timeLimit: 900,  baseScore: 500  },
+    7:  { timeLimit: 1200, baseScore: 650  },
+    8:  { timeLimit: 1500, baseScore: 850  },
+    9:  { timeLimit: 1800, baseScore: 1100 },
+    10: { timeLimit: 2200, baseScore: 1500 },
 };
 
 let canvas, ctx;
@@ -441,8 +441,8 @@ function aiTurn() {
     document.getElementById('turn').textContent = 'AI 생각 중...';
     
     setTimeout(() => {
-        const depth = gameMode === 'challenge' ? LEVEL_CONFIG[currentLevel].depth : 2;
-        const move = getAIMove(board, depth);
+        const timeLimit = gameMode === 'challenge' ? LEVEL_CONFIG[currentLevel].timeLimit : 700;
+        const move = getAIMove(board, timeLimit);
         
         if (move) {
             makeMove(move.row, move.col, AI);
