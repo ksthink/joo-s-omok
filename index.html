@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>주군의 한수</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <audio id="stoneSound" preload="auto">
+        <source src="stone.wav" type="audio/wav">
+    </audio>
+    <div class="app">
+        <div id="mainScreen" class="screen">
+            <div class="intro-container">
+                <header>
+                    <h1>주군의 한수</h1>
+                    <p class="intro-subtitle">오목 천재 주군을 이겨라!</p>
+                </header>
+                
+                <div class="intro-board-wrapper">
+                    <canvas id="introBoard"></canvas>
+                </div>
+                
+                <div class="intro-buttons">
+                    <button id="practiceBtn" class="intro-btn">연습</button>
+                    <button id="challengeBtn" class="intro-btn">챌린지</button>
+                    <button id="rankBtn" class="intro-btn">랭크</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="idScreen" class="screen hidden">
+            <div class="container">
+                <header>
+                    <h1>챌린지</h1>
+                    <p class="subtitle">10단계 도전</p>
+                </header>
+
+                <div class="id-form">
+                    <label for="playerId">아이디 입력</label>
+                    <input type="text" id="playerId" maxlength="10" placeholder="최대 10자">
+                    <div class="form-buttons">
+                        <button id="startChallengeBtn" class="btn primary">시작</button>
+                        <button id="backFromIdBtn" class="btn">뒤로</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="gameScreen" class="screen hidden">
+            <div class="container">
+                <header>
+                    <h1>주군의 한수</h1>
+                    <div class="game-info">
+                        <span id="modeLabel" class="mode-label">연습 모드</span>
+                        <span id="levelLabel" class="level-label hidden">1단계 / 10</span>
+                    </div>
+                </header>
+
+                <div class="game-stats">
+                    <div class="stat">
+                        <span class="stat-label">점수</span>
+                        <span id="scoreDisplay" class="stat-value">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">시간</span>
+                        <span id="timeDisplay" class="stat-value">00:00</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">돌</span>
+                        <span id="stoneDisplay" class="stat-value">0</span>
+                    </div>
+                </div>
+
+                <div class="status">
+                    <span id="turn">당신의 차례 (흑)</span>
+                </div>
+
+                <div class="board-container">
+                    <canvas id="board"></canvas>
+                </div>
+
+                <div class="game-buttons">
+                    <button id="surrenderBtn" class="btn">항복</button>
+                    <button id="exitGameBtn" class="btn">나가기</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="rankScreen" class="screen hidden">
+            <div class="container wide">
+                <header>
+                    <h1>랭킹</h1>
+                    <p class="subtitle">상위 20명</p>
+                </header>
+
+                <div class="rank-list" id="rankList">
+                </div>
+
+                <div class="back-button">
+                    <button id="backFromRankBtn" class="btn">뒤로</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="resultModal" class="modal">
+            <div class="modal-content">
+                <div id="resultTitle" class="result-title"></div>
+                <div id="resultDetails" class="result-details"></div>
+                <div class="modal-buttons">
+                    <button id="retryBtn" class="btn primary hidden">재도전</button>
+                    <button id="saveResultBtn" class="btn primary hidden">저장</button>
+                    <button id="homeBtn" class="btn">첫화면</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="nextLevelModal" class="modal">
+            <div class="modal-content">
+                <div class="result-title win">단계 클리어!</div>
+                <div id="levelScore" class="level-score"></div>
+                <div class="modal-buttons">
+                    <button id="nextLevelBtn" class="btn primary">다음 단계</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="ai.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
