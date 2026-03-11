@@ -1,106 +1,234 @@
 {
-  "version": 1,
-  "last_updated": "2026-03-11T03:01:24.827463",
+  "version": 2,
+  "last_updated": "2026-03-11T15:14:07.856874",
+  "learning_config": {
+    "min_games_threshold": 15,
+    "ema_old_weight": 0.85,
+    "ema_new_weight": 0.15,
+    "min_weight_ratio": 0.3,
+    "max_weight_ratio": 3.0,
+    "win_multiplier": 1.5
+  },
   "patterns": {
     "OOOOO": {
       "weight": 100000.0,
-      "wins": 2,
-      "total": 2
+      "attack_weight": 100000.0,
+      "defense_weight": 100000.0,
+      "wins": 12,
+      "total": 12,
+      "attack_wins": 0,
+      "attack_total": 0,
+      "defense_wins": 2,
+      "defense_total": 2
     },
     "_OOOO_": {
       "weight": 50000.0,
-      "wins": 2,
-      "total": 2
+      "attack_weight": 50000.0,
+      "defense_weight": 50000.0,
+      "wins": 11,
+      "total": 13,
+      "attack_wins": 0,
+      "attack_total": 2,
+      "defense_wins": 2,
+      "defense_total": 2
     },
     "OOOO_": {
       "weight": 10000.0,
-      "wins": 2,
-      "total": 2
+      "attack_weight": 10000.0,
+      "defense_weight": 10000.0,
+      "wins": 11,
+      "total": 13,
+      "attack_wins": 0,
+      "attack_total": 2,
+      "defense_wins": 2,
+      "defense_total": 2
     },
     "_OOOO": {
       "weight": 10000.0,
-      "wins": 2,
-      "total": 2
+      "attack_weight": 10000.0,
+      "defense_weight": 10000.0,
+      "wins": 12,
+      "total": 14,
+      "attack_wins": 0,
+      "attack_total": 2,
+      "defense_wins": 2,
+      "defense_total": 2
     },
     "XOOOO_": {
       "weight": 10000.0,
-      "wins": 1,
-      "total": 1
+      "attack_weight": 10000.0,
+      "defense_weight": 10000.0,
+      "wins": 2,
+      "total": 2,
+      "attack_wins": 0,
+      "attack_total": 0,
+      "defense_wins": 0,
+      "defense_total": 0
     },
     "_OOOOX": {
       "weight": 10000.0,
-      "wins": 1,
-      "total": 1
+      "attack_weight": 10000.0,
+      "defense_weight": 10000.0,
+      "wins": 3,
+      "total": 3,
+      "attack_wins": 0,
+      "attack_total": 0,
+      "defense_wins": 0,
+      "defense_total": 0
     },
     "_OOO_": {
       "weight": 5000.0,
-      "wins": 2,
-      "total": 2
+      "attack_weight": 5000.0,
+      "defense_weight": 5000.0,
+      "wins": 11,
+      "total": 13,
+      "attack_wins": 0,
+      "attack_total": 2,
+      "defense_wins": 2,
+      "defense_total": 2
     },
     "OOO__": {
       "weight": 1000.0,
-      "wins": 2,
-      "total": 2
+      "attack_weight": 1000.0,
+      "defense_weight": 1000.0,
+      "wins": 12,
+      "total": 14,
+      "attack_wins": 0,
+      "attack_total": 2,
+      "defense_wins": 2,
+      "defense_total": 2
     },
     "__OOO": {
       "weight": 1000.0,
-      "wins": 2,
-      "total": 2
+      "attack_weight": 1000.0,
+      "defense_weight": 1000.0,
+      "wins": 10,
+      "total": 12,
+      "attack_wins": 0,
+      "attack_total": 2,
+      "defense_wins": 2,
+      "defense_total": 2
     },
     "_O_OO_": {
       "weight": 1000.0,
-      "wins": 0,
-      "total": 0
+      "attack_weight": 1000.0,
+      "defense_weight": 1000.0,
+      "wins": 1,
+      "total": 1,
+      "attack_wins": 0,
+      "attack_total": 0,
+      "defense_wins": 0,
+      "defense_total": 0
     },
     "_OO_O_": {
       "weight": 1000.0,
-      "wins": 0,
-      "total": 0
+      "attack_weight": 1000.0,
+      "defense_weight": 1000.0,
+      "wins": 3,
+      "total": 3,
+      "attack_wins": 0,
+      "attack_total": 0,
+      "defense_wins": 0,
+      "defense_total": 0
     },
     "OO_O_": {
       "weight": 1000.0,
-      "wins": 0,
-      "total": 0
+      "attack_weight": 1000.0,
+      "defense_weight": 1000.0,
+      "wins": 4,
+      "total": 4,
+      "attack_wins": 0,
+      "attack_total": 0,
+      "defense_wins": 0,
+      "defense_total": 0
     },
     "_O_OO": {
       "weight": 1000.0,
-      "wins": 0,
-      "total": 0
+      "attack_weight": 1000.0,
+      "defense_weight": 1000.0,
+      "wins": 2,
+      "total": 2,
+      "attack_wins": 0,
+      "attack_total": 0,
+      "defense_wins": 0,
+      "defense_total": 0
     },
     "OO__": {
       "weight": 100.0,
-      "wins": 2,
-      "total": 2
+      "attack_weight": 100.0,
+      "defense_weight": 100.0,
+      "wins": 12,
+      "total": 14,
+      "attack_wins": 0,
+      "attack_total": 2,
+      "defense_wins": 2,
+      "defense_total": 2
     },
     "__OO": {
       "weight": 100.0,
-      "wins": 2,
-      "total": 2
+      "attack_weight": 100.0,
+      "defense_weight": 100.0,
+      "wins": 12,
+      "total": 14,
+      "attack_wins": 0,
+      "attack_total": 2,
+      "defense_wins": 2,
+      "defense_total": 2
     },
     "_O_O_": {
       "weight": 100.0,
-      "wins": 0,
-      "total": 0
+      "attack_weight": 100.0,
+      "defense_weight": 100.0,
+      "wins": 8,
+      "total": 8,
+      "attack_wins": 0,
+      "attack_total": 0,
+      "defense_wins": 0,
+      "defense_total": 0
     },
     "_OO_": {
       "weight": 100.0,
-      "wins": 2,
-      "total": 2
+      "attack_weight": 100.0,
+      "defense_weight": 100.0,
+      "wins": 12,
+      "total": 14,
+      "attack_wins": 0,
+      "attack_total": 2,
+      "defense_wins": 2,
+      "defense_total": 2
     },
     "O__": {
       "weight": 10.0,
-      "wins": 2,
-      "total": 2
+      "attack_weight": 10.0,
+      "defense_weight": 10.0,
+      "wins": 12,
+      "total": 14,
+      "attack_wins": 0,
+      "attack_total": 2,
+      "defense_wins": 2,
+      "defense_total": 2
     },
     "__O": {
       "weight": 10.0,
-      "wins": 2,
-      "total": 2
+      "attack_weight": 10.0,
+      "defense_weight": 10.0,
+      "wins": 12,
+      "total": 14,
+      "attack_wins": 0,
+      "attack_total": 2,
+      "defense_wins": 2,
+      "defense_total": 2
     },
     "_O_": {
       "weight": 10.0,
-      "wins": 2,
-      "total": 2
+      "attack_weight": 10.0,
+      "defense_weight": 10.0,
+      "wins": 12,
+      "total": 14,
+      "attack_wins": 0,
+      "attack_total": 2,
+      "defense_wins": 2,
+      "defense_total": 2
     }
   }
 }

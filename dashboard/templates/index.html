@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>주군의 한수 - 학습 대시보드</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>주군의 한수</h1>
+            <p class="subtitle">AI 학습 대시보드</p>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab active" data-tab="stats">게임 통계</button>
+            <button class="tab" data-tab="patterns">패턴 학습</button>
+            <button class="tab" data-tab="composites">복합 위협</button>
+            <button class="tab" data-tab="progress">학습 진행</button>
+            <button class="tab" data-tab="leaderboard">리더보드</button>
+            <button class="tab" data-tab="replay">기보 재생</button>
+        </nav>
+
+        <!-- 게임 통계 -->
+        <section id="stats" class="tab-content active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">총 게임</div>
+                    <div class="stat-value" id="totalGames">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">플레이어 승률</div>
+                    <div class="stat-value" id="winRate">0%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">플레이어 승</div>
+                    <div class="stat-value win" id="playerWins">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">AI 승</div>
+                    <div class="stat-value lose" id="aiWins">0</div>
+                </div>
+            </div>
+
+            <div class="chart-section">
+                <h3>게임 모드 분포</h3>
+                <div class="mode-stats">
+                    <div class="mode-item">
+                        <span class="mode-label">연습 모드</span>
+                        <span class="mode-value" id="practiceGames">0</span>
+                    </div>
+                    <div class="mode-item">
+                        <span class="mode-label">챌린지 모드</span>
+                        <span class="mode-value" id="challengeGames">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-section">
+                <h3>일별 게임 현황</h3>
+                <div id="dailyStats" class="daily-stats"></div>
+            </div>
+        </section>
+
+        <!-- 패턴 학습 (Attack/Defense 분리) -->
+        <section id="patterns" class="tab-content">
+            <div class="pattern-info">
+                <p>패턴이 <strong id="patternThreshold">15</strong>회 이상 등장하면 학습이 시작됩니다. 공격(Attack)과 방어(Defense) 가중치가 분리 학습됩니다.</p>
+            </div>
+            <div class="table-scroll">
+                <table class="pattern-table">
+                    <thead>
+                        <tr>
+                            <th>패턴</th>
+                            <th>등장</th>
+                            <th>승률</th>
+                            <th>기본</th>
+                            <th>공격</th>
+                            <th>공격 변화</th>
+                            <th>방어</th>
+                            <th>방어 변화</th>
+                            <th>상태</th>
+                        </tr>
+                    </thead>
+                    <tbody id="patternTable">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 복합 위협 통계 -->
+        <section id="composites" class="tab-content">
+            <div class="pattern-info">
+                <p>쌍삼, 사삼, 쌍사 등 복합 위협 패턴의 발생 빈도와 승률입니다.</p>
+            </div>
+            <div id="compositeStats" class="composite-grid"></div>
+            <div id="compositeEmpty" class="empty-message" style="display:none;">아직 복합 위협 데이터가 없습니다</div>
+        </section>
+
+        <!-- 학습 진행 상황 -->
+        <section id="progress" class="tab-content">
+            <div class="pattern-info">
+                <p>각 패턴의 학습 문턱 도달 상황입니다. 공격/방어 별도 진행률을 표시합니다.</p>
+            </div>
+            <div id="progressList" class="progress-list"></div>
+        </section>
+
+        <!-- 리더보드 -->
+        <section id="leaderboard" class="tab-content">
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>순위</th>
+                        <th>이름</th>
+                        <th>점수</th>
+                        <th>단계</th>
+                        <th>돌 수</th>
+                        <th>날짜</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardTable">
+                </tbody>
+            </table>
+        </section>
+
+        <!-- 기보 재생 -->
+        <section id="replay" class="tab-content">
+            <div class="replay-controls">
+                <label for="gameSelect">게임 선택:</label>
+                <select id="gameSelect">
+                    <option value="">게임을 선택하세요</option>
+                </select>
+            </div>
+
+            <div class="replay-board-wrapper">
+                <canvas id="replayBoard" width="330" height="330"></canvas>
+            </div>
+
+            <div class="replay-info">
+                <span id="replayInfo">게임을 선택하세요</span>
+            </div>
+
+            <div class="replay-buttons">
+                <button id="btnFirst" class="replay-btn">처음</button>
+                <button id="btnPrev" class="replay-btn">이전</button>
+                <span id="moveCounter">0 / 0</span>
+                <button id="btnNext" class="replay-btn">다음</button>
+                <button id="btnLast" class="replay-btn">마지막</button>
+                <button id="btnAuto" class="replay-btn">자동재생</button>
+            </div>
+        </section>
+    </div>
+
+    <script src="/static/board-renderer.js"></script>
+    <script src="/static/script.js"></script>
+</body>
+</html>

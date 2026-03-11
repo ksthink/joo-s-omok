@@ -1,0 +1,616 @@
+@font-face {
+    font-family: 'GameFont';
+    src: url('font.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #0a0a0a;
+    color: #e0e0e0;
+    font-family: 'GameFont', sans-serif;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 10px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 20px 15px;
+    background-color: #0d0d0d;
+    border: 2px solid #303030;
+    box-shadow: 0 0 0 1px #1a1a1a, 0 0 0 2px #404040;
+}
+
+header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 3px;
+    margin-bottom: 5px;
+}
+
+.subtitle {
+    color: #505050;
+    font-size: 11px;
+    letter-spacing: 1px;
+}
+
+.tabs {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.tab {
+    font-family: 'GameFont', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    background-color: #1a1a1a;
+    color: #909090;
+    border: 1px solid #404040;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 1px;
+}
+
+.tab:hover {
+    background-color: #252525;
+    border-color: #606060;
+    color: #ffffff;
+}
+
+.tab.active {
+    background-color: #252525;
+    color: #ffffff;
+    border-color: #505050;
+}
+
+.tab-content {
+    display: none;
+    background-color: #0d0d0d;
+    border: 2px solid #303030;
+    padding: 15px;
+    box-shadow: 0 0 0 1px #1a1a1a, 0 0 0 2px #404040;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background-color: #151515;
+    border: 1px solid #252525;
+    padding: 15px 10px;
+    text-align: center;
+}
+
+.stat-label {
+    font-size: 10px;
+    color: #505050;
+    margin-bottom: 5px;
+    letter-spacing: 1px;
+}
+
+.stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.stat-value.win {
+    color: #ffffff;
+}
+
+.stat-value.lose {
+    color: #707070;
+}
+
+.chart-section {
+    margin-bottom: 20px;
+}
+
+.chart-section h3 {
+    font-size: 12px;
+    color: #606060;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #252525;
+    letter-spacing: 1px;
+}
+
+.mode-stats {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.mode-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.mode-label {
+    color: #707070;
+    font-size: 12px;
+}
+
+.mode-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.daily-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.daily-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background-color: #151515;
+    border: 1px solid #202020;
+}
+
+.daily-date {
+    width: 80px;
+    color: #909090;
+    font-size: 11px;
+}
+
+.daily-bar {
+    flex: 1;
+    height: 16px;
+    background-color: #252525;
+    position: relative;
+    min-width: 50px;
+}
+
+.daily-bar-fill {
+    height: 100%;
+    background-color: #ffffff;
+    transition: width 0.3s;
+}
+
+.daily-count {
+    width: 50px;
+    text-align: right;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.pattern-info {
+    padding: 10px;
+    background-color: #151515;
+    border: 1px solid #252525;
+    margin-bottom: 12px;
+    font-size: 11px;
+    color: #606060;
+    letter-spacing: 0.5px;
+}
+
+.pattern-table, .leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+}
+
+.pattern-table th, .pattern-table td,
+.leaderboard-table th, .leaderboard-table td {
+    padding: 10px 6px;
+    text-align: left;
+    border-bottom: 1px solid #202020;
+}
+
+.pattern-table th, .leaderboard-table th {
+    background-color: #151515;
+    color: #606060;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.pattern-table td, .leaderboard-table td {
+    color: #d0d0d0;
+}
+
+.pattern-table tr:hover, .leaderboard-table tr:hover {
+    background-color: #151515;
+}
+
+.pattern-table code {
+    background-color: #1a1a1a;
+    padding: 2px 6px;
+    font-family: monospace;
+    font-size: 10px;
+    color: #ffffff;
+}
+
+.status-learning {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.status-waiting {
+    color: #505050;
+}
+
+.weight-up {
+    color: #ffffff;
+}
+
+.weight-down {
+    color: #707070;
+}
+
+.weight-same {
+    color: #505050;
+}
+
+.rank-1 { color: #ffffff; font-weight: 700; }
+.rank-2 { color: #c0c0c0; font-weight: 700; }
+.rank-3 { color: #808080; font-weight: 700; }
+
+.replay-controls {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.replay-controls label {
+    color: #707070;
+    font-size: 11px;
+}
+
+.replay-controls select {
+    font-family: 'GameFont', sans-serif;
+    font-size: 12px;
+    background-color: #151515;
+    color: #ffffff;
+    border: 1px solid #404040;
+    padding: 8px 10px;
+    flex: 1;
+    min-width: 0;
+}
+
+.replay-controls select:focus {
+    outline: none;
+    border-color: #606060;
+}
+
+.replay-controls select option {
+    background-color: #151515;
+    color: #ffffff;
+}
+
+.replay-board-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+
+#replayBoard {
+    border: 2px solid #404040;
+    background-color: #2a2a2a;
+    max-width: 100%;
+    height: auto;
+}
+
+.replay-info {
+    text-align: center;
+    padding: 10px;
+    background-color: #151515;
+    border: 1px solid #252525;
+    margin-bottom: 12px;
+    font-size: 11px;
+    color: #808080;
+}
+
+.replay-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.replay-btn {
+    font-family: 'GameFont', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    background-color: #1a1a1a;
+    color: #909090;
+    border: 1px solid #404040;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 1px;
+}
+
+.replay-btn:hover {
+    background-color: #252525;
+    border-color: #606060;
+    color: #ffffff;
+}
+
+.replay-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+#moveCounter {
+    color: #707070;
+    font-size: 11px;
+    min-width: 50px;
+    text-align: center;
+}
+
+.empty-message {
+    text-align: center;
+    padding: 30px 20px;
+    color: #404040;
+    font-size: 12px;
+}
+
+/* ─── Table Scroll ─────────────────────────────────────────────────────────── */
+.table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ─── Composite Threats ────────────────────────────────────────────────────── */
+.composite-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.composite-card {
+    background-color: #151515;
+    border: 1px solid #252525;
+    padding: 15px;
+}
+
+.composite-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 10px;
+    letter-spacing: 0.5px;
+}
+
+.composite-stats-row {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.composite-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.composite-stat-label {
+    font-size: 10px;
+    color: #505050;
+    margin-bottom: 3px;
+}
+
+.composite-stat-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+/* ─── Learning Progress ────────────────────────────────────────────────────── */
+.progress-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.progress-item {
+    background-color: #151515;
+    border: 1px solid #252525;
+    padding: 12px;
+}
+
+.progress-item.progress-active {
+    border-color: #404040;
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.progress-header code {
+    background-color: #1a1a1a;
+    padding: 2px 6px;
+    font-family: monospace;
+    font-size: 11px;
+    color: #ffffff;
+}
+
+.progress-status {
+    font-size: 10px;
+    color: #606060;
+}
+
+.progress-active .progress-status {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.progress-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.progress-bar-label {
+    width: 30px;
+    font-size: 9px;
+    color: #505050;
+    text-align: right;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 10px;
+    background-color: #252525;
+    position: relative;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background-color: #404040;
+    transition: width 0.3s;
+}
+
+.progress-bar-fill.fill-active {
+    background-color: #ffffff;
+}
+
+.progress-bar-fill.fill-attack {
+    background-color: #c0c0c0;
+}
+
+.progress-bar-fill.fill-defense {
+    background-color: #707070;
+}
+
+.progress-pct {
+    width: 35px;
+    font-size: 10px;
+    color: #606060;
+    text-align: right;
+}
+
+@media (min-width: 600px) {
+    body {
+        padding: 20px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .stat-value {
+        font-size: 26px;
+    }
+    
+    .tab {
+        font-size: 13px;
+        padding: 10px 20px;
+    }
+    
+    .tab-content {
+        padding: 20px;
+    }
+    
+    .pattern-table, .leaderboard-table {
+        font-size: 12px;
+    }
+    
+    .pattern-table th, .pattern-table td,
+    .leaderboard-table th, .leaderboard-table td {
+        padding: 12px 10px;
+    }
+    
+    .daily-date {
+        width: 100px;
+    }
+}
+
+@media (min-width: 900px) {
+    .stats-grid {
+        gap: 15px;
+    }
+    
+    .stat-card {
+        padding: 20px 15px;
+    }
+    
+    .stat-label {
+        font-size: 11px;
+    }
+    
+    .stat-value {
+        font-size: 28px;
+    }
+    
+    .replay-controls select {
+        flex: none;
+        min-width: 300px;
+    }
+}
+
+@media (max-width: 400px) {
+    header {
+        padding: 15px 10px;
+    }
+    
+    header h1 {
+        font-size: 20px;
+        letter-spacing: 2px;
+    }
+    
+    .tab {
+        font-size: 11px;
+        padding: 8px 12px;
+    }
+    
+    .tab-content {
+        padding: 12px;
+    }
+    
+    .stat-value {
+        font-size: 20px;
+    }
+    
+    .pattern-table th, .pattern-table td,
+    .leaderboard-table th, .leaderboard-table td {
+        padding: 8px 4px;
+        font-size: 10px;
+    }
+    
+    .replay-btn {
+        font-size: 10px;
+        padding: 6px 10px;
+    }
+}

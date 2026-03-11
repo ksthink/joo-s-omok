@@ -1,0 +1,42 @@
+{
+  "patterns": {
+    "OOOOO": 100000,
+    "_OOOO_": 50000,
+    "OOOO_": 10000,
+    "_OOOO": 10000,
+    "XOOOO_": 10000,
+    "_OOOOX": 10000,
+    "_OOO_": 5000,
+    "OOO__": 1000,
+    "__OOO": 1000,
+    "_O_OO_": 1000,
+    "_OO_O_": 1000,
+    "OO_O_": 1000,
+    "_O_OO": 1000,
+    "OO__": 100,
+    "__OO": 100,
+    "_O_O_": 100,
+    "_OO_": 100,
+    "O__": 10,
+    "__O": 10,
+    "_O_": 10
+  },
+  "composite_patterns": {
+    "double_open_three": 30000,
+    "four_three": 40000,
+    "double_four": 90000
+  },
+  "learning": {
+    "min_games_threshold": 15,
+    "ema_old_weight": 0.85,
+    "ema_new_weight": 0.15,
+    "min_weight_ratio": 0.3,
+    "max_weight_ratio": 3.0,
+    "win_multiplier": 1.5
+  },
+  "phases": {
+    "opening": { "max_move": 10 },
+    "midgame": { "max_move": 30 },
+    "endgame": { "max_move": 225 }
+  }
+}

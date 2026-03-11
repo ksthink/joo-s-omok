@@ -22,6 +22,7 @@ let elapsedSeconds = 0;
 let introAnimationId = null;
 let lastMove = null;
 let moveHistory = [];
+let touchHandled = false; // prevent double-fire on mobile
 
 const LEVEL_CONFIG = {
     1:  { timeLimit: 200,  baseScore: 100  },
@@ -39,15 +40,22 @@ const LEVEL_CONFIG = {
 let canvas, ctx;
 let stoneAudio = null;
 
+// ─── XSS Prevention ────────────────────────────────────────────────────────────
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
 function init() {
     canvas = document.getElementById('board');
     ctx = canvas.getContext('2d');
-    
+
     stoneAudio = document.getElementById('stoneSound');
     if (stoneAudio) {
         stoneAudio.load();
     }
-    
+
     calculateCanvasSize();
     initBoard();
     bindEvents();
@@ -65,7 +73,7 @@ function calculateCanvasSize() {
 function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
     document.getElementById(screenId + 'Screen').classList.remove('hidden');
-    
+
     if (screenId === 'main') {
         stopIntroAnimation();
         setTimeout(() => startIntroAnimation(), 50);
@@ -88,42 +96,41 @@ function initBoard() {
     levelStartTime = Date.now();
     lastMove = null;
     moveHistory = [];
-    
+
     const turnEl = document.getElementById('turn');
     if (turnEl) turnEl.textContent = '당신의 차례 (흑)';
-    
+
     drawBoard();
 }
 
 function drawBoard() {
-    ctx.fillStyle = '#2a2a2a';
-    ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-    
-    ctx.strokeStyle = '#404040';
-    ctx.lineWidth = 1;
-    
-    const offset = CELL_SIZE / 2;
-    
-    for (let i = 0; i < BOARD_SIZE; i++) {
-        ctx.beginPath();
-        ctx.moveTo(offset, offset + i * CELL_SIZE);
-        ctx.lineTo(CANVAS_SIZE - offset, offset + i * CELL_SIZE);
-        ctx.stroke();
-        
-        ctx.beginPath();
-        ctx.moveTo(offset + i * CELL_SIZE, offset);
-        ctx.lineTo(offset + i * CELL_SIZE, CANVAS_SIZE - offset);
-        ctx.stroke();
+    if (typeof BoardRenderer !== 'undefined') {
+        BoardRenderer.drawBoard(ctx, CELL_SIZE, BOARD_SIZE);
+    } else {
+        ctx.fillStyle = '#2a2a2a';
+        ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+        ctx.strokeStyle = '#404040';
+        ctx.lineWidth = 1;
+        const offset = CELL_SIZE / 2;
+        for (let i = 0; i < BOARD_SIZE; i++) {
+            ctx.beginPath();
+            ctx.moveTo(offset, offset + i * CELL_SIZE);
+            ctx.lineTo(CANVAS_SIZE - offset, offset + i * CELL_SIZE);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(offset + i * CELL_SIZE, offset);
+            ctx.lineTo(offset + i * CELL_SIZE, CANVAS_SIZE - offset);
+            ctx.stroke();
+        }
+        const starPoints = [[3,3],[3,7],[3,11],[7,3],[7,7],[7,11],[11,3],[11,7],[11,11]];
+        ctx.fillStyle = '#505050';
+        starPoints.forEach(([x, y]) => {
+            ctx.beginPath();
+            ctx.arc(offset + x * CELL_SIZE, offset + y * CELL_SIZE, 2, 0, Math.PI * 2);
+            ctx.fill();
+        });
     }
-    
-    const starPoints = [[3, 3], [3, 7], [3, 11], [7, 3], [7, 7], [7, 11], [11, 3], [11, 7], [11, 11]];
-    ctx.fillStyle = '#505050';
-    starPoints.forEach(([x, y]) => {
-        ctx.beginPath();
-        ctx.arc(offset + x * CELL_SIZE, offset + y * CELL_SIZE, 2, 0, Math.PI * 2);
-        ctx.fill();
-    });
-    
+
     for (let i = 0; i < BOARD_SIZE; i++) {
         for (let j = 0; j < BOARD_SIZE; j++) {
             if (board[i][j] !== EMPTY) {
@@ -135,44 +142,43 @@ function drawBoard() {
 }
 
 function drawStone(row, col, player, isLast = false) {
-    const x = CELL_SIZE / 2 + col * CELL_SIZE;
-    const y = CELL_SIZE / 2 + row * CELL_SIZE;
-    const radius = CELL_SIZE / 2 - 2;
-    
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, Math.PI * 2);
-    
-    if (player === PLAYER) {
-        const gradient = ctx.createRadialGradient(x - 2, y - 2, 0, x, y, radius);
-        gradient.addColorStop(0, '#1a1a1a');
-        gradient.addColorStop(1, '#000000');
-        ctx.fillStyle = gradient;
-        ctx.strokeStyle = '#808080';
+    if (typeof BoardRenderer !== 'undefined') {
+        BoardRenderer.drawStone(ctx, row, col, player, CELL_SIZE, isLast);
     } else {
-        const gradient = ctx.createRadialGradient(x - 2, y - 2, 0, x, y, radius);
-        gradient.addColorStop(0, '#ffffff');
-        gradient.addColorStop(1, '#c0c0c0');
-        ctx.fillStyle = gradient;
-        ctx.strokeStyle = '#909090';
-    }
-    
-    ctx.fill();
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-    
-    if (isLast) {
+        const x = CELL_SIZE / 2 + col * CELL_SIZE;
+        const y = CELL_SIZE / 2 + row * CELL_SIZE;
+        const radius = CELL_SIZE / 2 - 2;
         ctx.beginPath();
-        ctx.arc(x, y, radius + 2, 0, Math.PI * 2);
-        ctx.strokeStyle = player === PLAYER ? '#ffffff' : '#000000';
-        ctx.lineWidth = 3;
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        if (player === PLAYER) {
+            const gradient = ctx.createRadialGradient(x - 2, y - 2, 0, x, y, radius);
+            gradient.addColorStop(0, '#1a1a1a');
+            gradient.addColorStop(1, '#000000');
+            ctx.fillStyle = gradient;
+            ctx.strokeStyle = '#808080';
+        } else {
+            const gradient = ctx.createRadialGradient(x - 2, y - 2, 0, x, y, radius);
+            gradient.addColorStop(0, '#ffffff');
+            gradient.addColorStop(1, '#c0c0c0');
+            ctx.fillStyle = gradient;
+            ctx.strokeStyle = '#909090';
+        }
+        ctx.fill();
+        ctx.lineWidth = 1.5;
         ctx.stroke();
+        if (isLast) {
+            ctx.beginPath();
+            ctx.arc(x, y, radius + 2, 0, Math.PI * 2);
+            ctx.strokeStyle = player === PLAYER ? '#ffffff' : '#000000';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
     }
 }
 
 function drawIntroStone(ctx, x, y, radius, player) {
     ctx.beginPath();
     ctx.arc(x, y, radius, 0, Math.PI * 2);
-    
     if (player === PLAYER) {
         const gradient = ctx.createRadialGradient(x - 2, y - 2, 0, x, y, radius);
         gradient.addColorStop(0, '#1a1a1a');
@@ -186,7 +192,6 @@ function drawIntroStone(ctx, x, y, radius, player) {
         ctx.fillStyle = gradient;
         ctx.strokeStyle = '#909090';
     }
-    
     ctx.fill();
     ctx.lineWidth = 1.5;
     ctx.stroke();
@@ -195,61 +200,54 @@ function drawIntroStone(ctx, x, y, radius, player) {
 function startIntroAnimation() {
     const introCanvas = document.getElementById('introBoard');
     if (!introCanvas) return;
-    
+
     const introCtx = introCanvas.getContext('2d');
     const introCellSize = 28;
     const introBoardSize = 9;
     const introCanvasSize = introBoardSize * introCellSize;
-    
+
     introCanvas.width = introCanvasSize;
     introCanvas.height = introCanvasSize;
-    
+
     const introStones = [];
     const patterns = [
         [4, 4], [3, 4], [4, 3], [5, 3], [3, 5],
         [4, 5], [5, 4], [6, 4], [5, 5], [6, 5],
         [2, 4], [2, 3], [3, 3], [6, 3], [7, 3]
     ];
-    
+
     let stoneIndex = 0;
     let lastTime = 0;
     const interval = 1000;
-    
+
     function drawIntroBoard() {
         introCtx.clearRect(0, 0, introCanvasSize, introCanvasSize);
-        
         introCtx.strokeStyle = '#404040';
         introCtx.lineWidth = 1;
-        
         const offset = introCellSize / 2;
-        
         for (let i = 0; i < introBoardSize; i++) {
             introCtx.beginPath();
             introCtx.moveTo(offset, offset + i * introCellSize);
             introCtx.lineTo(introCanvasSize - offset, offset + i * introCellSize);
             introCtx.stroke();
-            
             introCtx.beginPath();
             introCtx.moveTo(offset + i * introCellSize, offset);
             introCtx.lineTo(offset + i * introCellSize, introCanvasSize - offset);
             introCtx.stroke();
         }
-        
         introCtx.fillStyle = '#505050';
         introCtx.beginPath();
         introCtx.arc(offset + 4 * introCellSize, offset + 4 * introCellSize, 3, 0, Math.PI * 2);
         introCtx.fill();
-        
         introStones.forEach((stone) => {
             const x = offset + stone.col * introCellSize;
             const y = offset + stone.row * introCellSize;
             drawIntroStone(introCtx, x, y, introCellSize / 2 - 2, stone.player);
         });
     }
-    
+
     function animate(currentTime) {
         if (!lastTime) lastTime = currentTime;
-        
         if (currentTime - lastTime >= interval) {
             if (stoneIndex < patterns.length) {
                 introStones.push({
@@ -264,11 +262,10 @@ function startIntroAnimation() {
                 stoneIndex = 0;
             }
         }
-        
         drawIntroBoard();
         introAnimationId = requestAnimationFrame(animate);
     }
-    
+
     introAnimationId = requestAnimationFrame(animate);
 }
 
@@ -283,16 +280,16 @@ function getGridPosition(e) {
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
-    
+
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    
+
     const x = (clientX - rect.left) * scaleX;
     const y = (clientY - rect.top) * scaleY;
-    
+
     const col = Math.round((x - CELL_SIZE / 2) / CELL_SIZE);
     const row = Math.round((y - CELL_SIZE / 2) / CELL_SIZE);
-    
+
     return { row, col };
 }
 
@@ -302,7 +299,6 @@ function isValidMove(row, col) {
 
 function playStoneSound() {
     if (!stoneAudio) return;
-    
     try {
         stoneAudio.currentTime = 0;
         stoneAudio.play().catch(() => {});
@@ -312,18 +308,16 @@ function playStoneSound() {
 function calculateLevelScore() {
     const config = LEVEL_CONFIG[currentLevel];
     const baseScore = config.baseScore;
-    
     const timeElapsed = Math.floor((Date.now() - levelStartTime) / 1000);
     const timeBonus = Math.max(0, 60 - timeElapsed) * 2;
     const stoneBonus = Math.max(0, 30 - levelStones) * 3;
     const levelMultiplier = 1 + (currentLevel - 1) * 0.1;
-    
     const finalScore = Math.floor((baseScore + timeBonus + stoneBonus) * levelMultiplier);
-    
     return { base: baseScore, timeBonus, stoneBonus, total: finalScore };
 }
 
 function startTimer() {
+    stopTimer(); // Always clear existing timer first
     elapsedSeconds = 0;
     updateTimerDisplay();
     timerInterval = setInterval(() => {
@@ -342,7 +336,7 @@ function stopTimer() {
 function updateTimerDisplay() {
     const minutes = Math.floor(elapsedSeconds / 60);
     const seconds = elapsedSeconds % 60;
-    document.getElementById('timeDisplay').textContent = 
+    document.getElementById('timeDisplay').textContent =
         `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }
 
@@ -355,20 +349,16 @@ function updateScoreDisplay() {
 
 function checkWin(row, col, player) {
     const directions = [[0, 1], [1, 0], [1, 1], [1, -1]];
-    
     for (const [dr, dc] of directions) {
         let count = 1;
-        
         let r = row + dr, c = col + dc;
         while (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE && board[r][c] === player) {
             count++; r += dr; c += dc;
         }
-        
         r = row - dr; c = col - dc;
         while (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE && board[r][c] === player) {
             count++; r -= dr; c -= dc;
         }
-        
         if (count >= 5) return true;
     }
     return false;
@@ -391,28 +381,25 @@ function makeMove(row, col, player) {
         levelStones++;
         totalStones++;
         updateScoreDisplay();
-        
         if (!timerInterval) {
             startTimer();
         }
     }
-    
+
     playStoneSound();
     drawBoard();
-    
+
     if (checkWin(row, col, player)) {
         gameOver = true;
         stopTimer();
         saveGameRecord(player);
-        
         if (player === PLAYER) {
             if (gameMode === 'challenge') {
                 const scoreInfo = calculateLevelScore();
                 totalScore += scoreInfo.total;
                 updateScoreDisplay();
-                
                 if (currentLevel < 10) {
-                    document.getElementById('levelScore').innerHTML = 
+                    document.getElementById('levelScore').innerHTML =
                         `기본: ${scoreInfo.base}점<br>` +
                         `시간 보너스: +${scoreInfo.timeBonus}점<br>` +
                         `돌 보너스: +${scoreInfo.stoneBonus}점<br>` +
@@ -429,7 +416,7 @@ function makeMove(row, col, player) {
         }
         return true;
     }
-    
+
     if (isBoardFull()) {
         gameOver = true;
         stopTimer();
@@ -437,23 +424,19 @@ function makeMove(row, col, player) {
         showFinalResult(false, true);
         return true;
     }
-    
+
     return false;
 }
 
 function aiTurn() {
     if (gameOver) return;
-    
     document.getElementById('turn').textContent = 'AI 생각 중...';
-    
     setTimeout(() => {
         const timeLimit = gameMode === 'challenge' ? LEVEL_CONFIG[currentLevel].timeLimit : 700;
         const move = getAIMove(board, timeLimit);
-        
         if (move) {
             makeMove(move.row, move.col, AI);
         }
-        
         if (!gameOver) {
             currentPlayer = PLAYER;
             document.getElementById('turn').textContent = '당신의 차례 (흑)';
@@ -463,10 +446,8 @@ function aiTurn() {
 
 function handleClick(e) {
     if (gameOver || currentPlayer !== PLAYER) return;
-    
     e.preventDefault();
     const { row, col } = getGridPosition(e);
-    
     if (isValidMove(row, col)) {
         if (!makeMove(row, col, PLAYER)) {
             currentPlayer = AI;
@@ -475,12 +456,34 @@ function handleClick(e) {
     }
 }
 
+function handleTouch(e) {
+    if (gameOver || currentPlayer !== PLAYER) return;
+    e.preventDefault();
+    touchHandled = true;
+    const { row, col } = getGridPosition(e);
+    if (isValidMove(row, col)) {
+        if (!makeMove(row, col, PLAYER)) {
+            currentPlayer = AI;
+            aiTurn();
+        }
+    }
+}
+
+function handleClickSafe(e) {
+    // Skip if this click was already handled by touchstart
+    if (touchHandled) {
+        touchHandled = false;
+        return;
+    }
+    handleClick(e);
+}
+
 function showFinalResult(isWin, isDraw = false) {
     const resultTitle = document.getElementById('resultTitle');
     const resultDetails = document.getElementById('resultDetails');
     const retryBtn = document.getElementById('retryBtn');
     const saveBtn = document.getElementById('saveResultBtn');
-    
+
     if (isDraw) {
         resultTitle.textContent = '무승부';
         resultTitle.className = 'result-title draw';
@@ -496,10 +499,12 @@ function showFinalResult(isWin, isDraw = false) {
         resultTitle.textContent = '패배';
         resultTitle.className = 'result-title lose';
     }
-    
+
+    // XSS-safe rendering with escapeHtml
     if (gameMode === 'challenge') {
+        const safeName = escapeHtml(playerName || '익명');
         resultDetails.innerHTML = `
-            <div class="result-row"><span class="label">플레이어</span><span class="value">${playerName || '익명'}</span></div>
+            <div class="result-row"><span class="label">플레이어</span><span class="value">${safeName}</span></div>
             <div class="result-row"><span class="label">도달 단계</span><span class="value">${currentLevel}단계</span></div>
             <div class="result-row"><span class="label">총 점수</span><span class="value">${totalScore}점</span></div>
             <div class="result-row"><span class="label">총 돌 수</span><span class="value">${totalStones}개</span></div>
@@ -513,20 +518,20 @@ function showFinalResult(isWin, isDraw = false) {
         retryBtn.classList.remove('hidden');
         saveBtn.classList.add('hidden');
     }
-    
+
     document.getElementById('resultModal').classList.add('show');
 }
 
 function startPracticeGame() {
     gameMode = 'practice';
-    timerInterval = null;
+    stopTimer(); // Fix: always clear before nulling
     elapsedSeconds = 0;
     totalStones = 0;
-    
+
     if (typeof loadPatternWeights === 'function') {
         loadPatternWeights();
     }
-    
+
     document.getElementById('modeLabel').textContent = '연습 모드';
     document.getElementById('levelLabel').classList.add('hidden');
     document.getElementById('scoreDisplay').textContent = '-';
@@ -542,12 +547,12 @@ function startChallengeGame() {
     totalScore = 0;
     totalStones = 0;
     elapsedSeconds = 0;
-    timerInterval = null;
-    
+    stopTimer(); // Fix: always clear before nulling
+
     if (typeof loadPatternWeights === 'function') {
         loadPatternWeights();
     }
-    
+
     document.getElementById('modeLabel').textContent = '챌린지 모드';
     document.getElementById('levelLabel').classList.remove('hidden');
     document.getElementById('levelLabel').textContent = `${currentLevel}단계 / 10`;
@@ -573,11 +578,15 @@ function saveToLeaderboard() {
         stones: totalStones,
         date: new Date().toISOString().split('T')[0]
     };
-    
+
     fetch('/api/leaderboard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
+    })
+    .then(res => {
+        if (!res.ok) throw new Error('Server error');
+        return res.json();
     })
     .then(() => {
         document.getElementById('resultModal').classList.remove('show');
@@ -594,22 +603,26 @@ function saveToLeaderboard() {
 
 function renderLeaderboard() {
     fetch('/api/leaderboard')
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error('Server error');
+            return res.json();
+        })
         .then(leaderboard => {
             const rankList = document.getElementById('rankList');
-            
+
             if (!leaderboard || leaderboard.length === 0) {
                 rankList.innerHTML = '<div class="empty-rank">아직 기록이 없습니다</div>';
                 return;
             }
-            
+
+            // XSS-safe rendering
             rankList.innerHTML = leaderboard.map((entry, index) => `
                 <div class="rank-item ${index < 3 ? 'top3' : ''}">
                     <span class="rank-position">${index + 1}</span>
-                    <span class="rank-name">${entry.name}</span>
+                    <span class="rank-name">${escapeHtml(entry.name)}</span>
                     <span class="rank-score">${entry.score}</span>
                     <span class="rank-level">${entry.level}단계</span>
-                    <span class="rank-date">${entry.date}</span>
+                    <span class="rank-date">${escapeHtml(entry.date)}</span>
                 </div>
             `).join('');
         })
@@ -621,41 +634,41 @@ function renderLeaderboard() {
 
 function bindEvents() {
     document.getElementById('practiceBtn').addEventListener('click', startPracticeGame);
-    
+
     document.getElementById('challengeBtn').addEventListener('click', () => {
         showScreen('id');
         document.getElementById('playerId').value = '';
         document.getElementById('playerId').focus();
     });
-    
+
     document.getElementById('rankBtn').addEventListener('click', () => {
         renderLeaderboard();
         showScreen('rank');
     });
-    
+
     document.getElementById('startChallengeBtn').addEventListener('click', () => {
         playerName = document.getElementById('playerId').value.trim() || '익명';
         startChallengeGame();
     });
-    
+
     document.getElementById('backFromIdBtn').addEventListener('click', () => {
         showScreen('main');
     });
-    
+
     document.getElementById('backFromRankBtn').addEventListener('click', () => {
         showScreen('main');
     });
-    
+
     document.getElementById('surrenderBtn').addEventListener('click', () => {
+        gameOver = true;
+        stopTimer(); // Fix: always stop timer on surrender
         if (gameMode === 'challenge') {
-            gameOver = true;
-            stopTimer();
             showFinalResult(false);
         } else {
             showScreen('main');
         }
     });
-    
+
     document.getElementById('exitGameBtn').addEventListener('click', () => {
         gameOver = true;
         stopTimer();
@@ -665,11 +678,10 @@ function bindEvents() {
             showScreen('main');
         }
     });
-    
+
     document.getElementById('nextLevelBtn').addEventListener('click', nextLevel);
-    
     document.getElementById('saveResultBtn').addEventListener('click', saveToLeaderboard);
-    
+
     document.getElementById('retryBtn').addEventListener('click', () => {
         document.getElementById('resultModal').classList.remove('show');
         if (gameMode === 'practice') {
@@ -678,22 +690,23 @@ function bindEvents() {
             startChallengeGame();
         }
     });
-    
+
     document.getElementById('homeBtn').addEventListener('click', () => {
         document.getElementById('resultModal').classList.remove('show');
         stopTimer();
         showScreen('main');
     });
-    
+
     document.getElementById('playerId').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             document.getElementById('startChallengeBtn').click();
         }
     });
-    
-    canvas.addEventListener('click', handleClick);
-    canvas.addEventListener('touchstart', handleClick, { passive: false });
-    
+
+    // Fix: separate touch and click handlers to prevent double-fire
+    canvas.addEventListener('click', handleClickSafe);
+    canvas.addEventListener('touchstart', handleTouch, { passive: false });
+
     window.addEventListener('resize', () => {
         calculateCanvasSize();
         drawBoard();
@@ -707,16 +720,19 @@ function saveGameRecord(winner) {
         gameMode: gameMode,
         level: currentLevel
     };
-    
+
     fetch('/api/game-record', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
     })
-    .then(res => res.json())
+    .then(res => {
+        if (!res.ok) throw new Error('Server error');
+        return res.json();
+    })
     .then(result => {
         if (result.learned) {
-            console.log('AI learned from', result.patterns_count, 'patterns');
+            console.log('AI learned:', result.attack_patterns, 'attack,', result.defense_patterns, 'defense,', result.composites, 'composites');
         }
     })
     .catch(err => console.error('Error saving game record:', err));
