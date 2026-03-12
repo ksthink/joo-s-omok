@@ -54,6 +54,7 @@ header h1 {
     gap: 5px;
     margin-bottom: 15px;
     flex-wrap: wrap;
+    justify-content: center;
 }
 
 .tab {

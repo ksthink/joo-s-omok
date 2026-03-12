@@ -2,8 +2,20 @@ from flask import Flask, request, jsonify, send_from_directory
 import sqlite3
 import os
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from functools import wraps
+from zoneinfo import ZoneInfo
+
+KST = ZoneInfo('Asia/Seoul')
+
+def get_kst_date():
+    return datetime.now(KST).strftime('%Y-%m-%d')
+
+def get_kst_time():
+    return datetime.now(KST).strftime('%H:%M:%S')
+
+def get_kst_datetime():
+    return datetime.now(KST)
 
 app = Flask(__name__, static_folder='.')
 
@@ -155,7 +167,7 @@ def load_weights_from_file():
         with open(WEIGHTS_PATH, 'r', encoding='utf-8') as f:
             return json.load(f)
     except (FileNotFoundError, json.JSONDecodeError, OSError):
-        return {"version": 2, "last_updated": datetime.now().isoformat(), "patterns": {}}
+        return {"version": 2, "last_updated": get_kst_datetime().isoformat(), "patterns": {}}
 
 def save_weights_to_file():
     conn = get_db()
@@ -172,7 +184,7 @@ def save_weights_to_file():
 
     weights_data = {
         "version": 2,
-        "last_updated": datetime.now().isoformat(),
+        "last_updated": get_kst_datetime().isoformat(),
         "learning_config": LEARNING_CONFIG,
         "patterns": {}
     }
@@ -360,7 +372,7 @@ def update_pattern_weights(patterns, perspective, is_win):
 
         # Record weight history
         game_count = conn.execute('SELECT COUNT(*) as c FROM game_records').fetchone()['c']
-        now = datetime.now().isoformat()
+        now = get_kst_datetime().isoformat()
         cursor2 = conn.execute('SELECT pattern, attack_weight, defense_weight FROM pattern_stats')
         for row in cursor2.fetchall():
             conn.execute('''
@@ -444,7 +456,7 @@ def save_score():
     stones = validate_int(data.get('stones'), 0, min_val=0, max_val=500)
     date = data.get('date')
     if not date or not isinstance(date, str) or len(date) > 20:
-        date = datetime.now().strftime('%Y-%m-%d')
+        date = get_kst_date()
 
     conn = get_db()
     try:
@@ -488,14 +500,25 @@ def save_game_record():
                 })
     moves = valid_moves
     stone_count = len(moves)
-    date = datetime.now().strftime('%Y-%m-%d')
+    date = get_kst_date()
+
+    # Validate winner based on stone count
+    # Winner 1 (player) needs at least 9 stones (5 player + 4 AI)
+    # Winner 2 (AI) needs at least 10 stones (5 AI + 5 player)
+    # Winner 0 (draw) should have full board (225 stones) or mutual agreement
+    if winner == 1 and stone_count < 9:
+        # Invalid: player can't win with less than 9 stones
+        return jsonify({'success': False, 'error': 'Invalid game: player win requires at least 9 stones'}), 400
+    if winner == 2 and stone_count < 10:
+        # Invalid: AI can't win with less than 10 stones
+        return jsonify({'success': False, 'error': 'Invalid game: AI win requires at least 10 stones'}), 400
 
     # Save game record
     conn = get_db()
     try:
         cursor = conn.execute(
-            'INSERT INTO game_records (moves, winner, game_mode, level, stone_count, date) VALUES (?, ?, ?, ?, ?, ?)',
-            (json.dumps(moves), winner, game_mode, level, stone_count, date)
+            'INSERT INTO game_records (moves, winner, game_mode, level, stone_count, date, time) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            (json.dumps(moves), winner, game_mode, level, stone_count, date, get_kst_time())
         )
         game_id = cursor.lastrowid
         conn.commit()

@@ -7,6 +7,7 @@ let currentMoves = [];
 let currentMoveIndex = 0;
 let autoPlayInterval = null;
 let gamesData = [];
+let currentPatterns = [];
 
 // ─── XSS Prevention ────────────────────────────────────────────────────────────
 function escapeHtml(str) {
@@ -332,7 +333,8 @@ function renderGameSelect(games) {
     games.forEach(game => {
         const option = document.createElement('option');
         option.value = game.id;
-        option.textContent = `#${game.id} - ${game.date} (${game.game_mode}) - ${game.winner_text}`;
+        const timeStr = game.time ? ` ${game.time}` : '';
+        option.textContent = `#${game.id} - ${game.date}${timeStr} (${game.game_mode}) - ${game.winner_text}`;
         select.appendChild(option);
     });
 }
@@ -354,23 +356,28 @@ function initReplayControls() {
 }
 
 function loadGameReplay(gameId) {
-    safeFetch(`/api/game/${gameId}`)
-        .then(data => {
-            currentMoves = data.moves || [];
-            currentMoveIndex = 0;
-            const winnerText = data.winner === 1 ? '플레이어 승' : (data.winner === 2 ? 'AI 승' : '무승부');
-            document.getElementById('replayInfo').textContent =
-                `${data.game_mode} | ${data.level}단계 | ${data.stone_count}수 | ${winnerText} | ${data.date}`;
-            goToMove(0);
-        })
-        .catch(err => {
-            console.error('Error loading replay:', err);
-        });
+    Promise.all([
+        safeFetch(`/api/game/${gameId}`),
+        safeFetch(`/api/game/${gameId}/patterns`)
+    ]).then(([gameData, patternsData]) => {
+        currentMoves = gameData.moves || [];
+        currentMoveIndex = 0;
+        currentPatterns = patternsData.patterns || [];
+        const winnerText = gameData.winner === 1 ? '플레이어 승' : (gameData.winner === 2 ? 'AI 승' : 'AI테스트');
+        const modeMap = {'practice': '연습게임', 'challenge': '챌린지', 'tested': 'AI테스트'};
+        const modeText = modeMap[gameData.game_mode] || gameData.game_mode;
+        document.getElementById('replayInfo').textContent =
+            `${modeText} | ${gameData.level}단계 | ${gameData.stone_count}수 | ${winnerText} | ${gameData.date}`;
+        goToMove(0);
+    }).catch(err => {
+        console.error('Error loading replay:', err);
+    });
 }
 
 function resetReplay() {
     currentMoves = [];
     currentMoveIndex = 0;
+    currentPatterns = [];
     stopAutoPlay();
     drawEmptyBoard();
     document.getElementById('replayInfo').textContent = '게임을 선택하세요';
@@ -391,6 +398,38 @@ function renderBoard() {
         const move = currentMoves[i];
         drawStone(move.row, move.col, move.player, i === currentMoveIndex - 1);
     }
+    drawPatterns();
+}
+
+function drawPatterns() {
+    if (!currentPatterns || currentPatterns.length === 0) return;
+    currentPatterns.forEach(pattern => {
+        if (pattern.move_index !== undefined && pattern.move_index >= currentMoveIndex) return;
+        drawPatternLine(pattern);
+    });
+}
+function drawPatternLine(pattern) {
+    const startRow = pattern.start.row;
+    const startCol = pattern.start.col;
+    const endRow = pattern.end.row;
+    const endCol = pattern.end.col;
+    const offset = CELL_SIZE / 2;
+    const x1 = offset + startCol * CELL_SIZE;
+    const y1 = offset + startRow * CELL_SIZE;
+    const x2 = offset + endCol * CELL_SIZE;
+    const y2 = offset + endRow * CELL_SIZE;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    if (pattern.is_composite) {
+        ctx.strokeStyle = 'rgba(0, 255, 0, 0.5)';
+    } else {
+        ctx.strokeStyle = 'rgba(255, 99, 71, 0.5)';
+    }
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.restore();
 }
 
 // ─── Board Drawing (uses shared BoardRenderer if available) ─────────────────────
