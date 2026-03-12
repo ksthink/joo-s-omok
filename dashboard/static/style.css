@@ -615,3 +615,13 @@ header h1 {
         padding: 6px 10px;
     }
 }
+
+.weight-attack {
+    color: #ff6b6b;
+    font-weight: 600;
+}
+
+.weight-defense {
+    color: #4ecdc4;
+    font-weight: 600;
+}

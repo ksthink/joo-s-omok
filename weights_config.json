@@ -26,6 +26,26 @@
     "four_three": 40000,
     "double_four": 90000
   },
+  "cluster_patterns": {
+    "three_way_up": { "weight": 3000, "name": "ㅗ", "desc": "삼방향 위" },
+    "three_way_down": { "weight": 3000, "name": "ㅜ", "desc": "삼방향 아래" },
+    "three_way_left": { "weight": 3000, "name": "ㅓ", "desc": "삼방향 왼쪽" },
+    "three_way_right": { "weight": 3000, "name": "ㅏ", "desc": "삼방향 오른쪽" },
+    "cross_plus": { "weight": 5000, "name": "+", "desc": "십자가" },
+    "cross_x": { "weight": 5000, "name": "X", "desc": "대각선 십자" },
+    "corner_l_1": { "weight": 2000, "name": "┌", "desc": "왼쪽 위 코너" },
+    "corner_l_2": { "weight": 2000, "name": "┐", "desc": "오른쪽 위 코너" },
+    "corner_l_3": { "weight": 2000, "name": "└", "desc": "왼쪽 아래 코너" },
+    "corner_l_4": { "weight": 2000, "name": "┘", "desc": "오른쪽 아래 코너" },
+    "t_shape_1": { "weight": 2500, "name": "T", "desc": "T자 위" },
+    "t_shape_2": { "weight": 2500, "name": "⊥", "desc": "T자 아래" }
+  },
+  "cluster_connection_patterns": {
+    "nearby_threes": { "weight": 4000, "desc": "두 열린3이 근접" },
+    "bridge_threat": { "weight": 8000, "desc": "한 수로 두 패턴 연결" },
+    "supporting_threat": { "weight": 3000, "desc": "한 패턴이 다른 패턴 지원" },
+    "pincer_threat": { "weight": 3500, "desc": "두 패턴이 상대 협공" }
+  },
   "learning": {
     "min_games_threshold": 15,
     "ema_old_weight": 0.85,

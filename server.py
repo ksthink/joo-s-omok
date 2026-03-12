@@ -43,6 +43,8 @@ BASE_WEIGHTS = _config['patterns'] if _config else {
 COMPOSITE_PATTERNS = (_config or {}).get('composite_patterns', {
     "double_open_three": 30000, "four_three": 40000, "double_four": 90000
 })
+CLUSTER_PATTERNS = (_config or {}).get('cluster_patterns', {})
+CLUSTER_CONNECTION_PATTERNS = (_config or {}).get('cluster_connection_patterns', {})
 LEARNING_CONFIG = (_config or {}).get('learning', {
     "min_games_threshold": 15, "ema_old_weight": 0.85, "ema_new_weight": 0.15,
     "min_weight_ratio": 0.3, "max_weight_ratio": 3.0, "win_multiplier": 1.5
@@ -115,6 +117,32 @@ def init_db():
                 resulted_in_win INTEGER DEFAULT 0
             )
         ''')
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS cluster_pattern_stats (
+                pattern_id TEXT PRIMARY KEY,
+                win_count INTEGER DEFAULT 0,
+                total_count INTEGER DEFAULT 0,
+                attack_weight REAL,
+                defense_weight REAL,
+                attack_win_count INTEGER DEFAULT 0,
+                attack_total_count INTEGER DEFAULT 0,
+                defense_win_count INTEGER DEFAULT 0,
+                defense_total_count INTEGER DEFAULT 0
+            )
+        ''')
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS cluster_connection_stats (
+                connection_type TEXT PRIMARY KEY,
+                win_count INTEGER DEFAULT 0,
+                total_count INTEGER DEFAULT 0,
+                attack_weight REAL,
+                defense_weight REAL,
+                attack_win_count INTEGER DEFAULT 0,
+                attack_total_count INTEGER DEFAULT 0,
+                defense_win_count INTEGER DEFAULT 0,
+                defense_total_count INTEGER DEFAULT 0
+            )
+        ''')
 
         # Migrate old pattern_stats if columns are missing
         _migrate_pattern_stats(conn)
@@ -128,12 +156,299 @@ def init_db():
                 VALUES (?, 0, 0, ?, ?, ?, 0, 0, 0, 0)
             ''', (pattern, weight, weight, weight))
 
+        # Insert cluster patterns
+        for pattern_id, info in CLUSTER_PATTERNS.items():
+            weight = info.get('weight', 1000) if isinstance(info, dict) else info
+            conn.execute('''
+                INSERT OR IGNORE INTO cluster_pattern_stats
+                (pattern_id, win_count, total_count, attack_weight, defense_weight,
+                 attack_win_count, attack_total_count, defense_win_count, defense_total_count)
+                VALUES (?, 0, 0, ?, ?, 0, 0, 0, 0)
+            ''', (pattern_id, weight, weight))
+
+        # Insert cluster connection patterns
+        for conn_type, info in CLUSTER_CONNECTION_PATTERNS.items():
+            weight = info.get('weight', 1000) if isinstance(info, dict) else conn_type
+            conn.execute('''
+                INSERT OR IGNORE INTO cluster_connection_stats
+                (connection_type, win_count, total_count, attack_weight, defense_weight,
+                 attack_win_count, attack_total_count, defense_win_count, defense_total_count)
+                VALUES (?, 0, 0, ?, ?, 0, 0, 0, 0)
+            ''', (conn_type, weight, weight))
+
         conn.commit()
     finally:
         conn.close()
 
     if not os.path.exists(WEIGHTS_PATH):
         save_weights_to_file()
+
+def reanalyze_all_games(force=False):
+    """Reanalyze all existing games for pattern extraction."""
+    conn = get_db()
+    try:
+        if force:
+            conn.execute('DELETE FROM composite_pattern_stats')
+            conn.execute('''
+                UPDATE cluster_pattern_stats SET
+                    win_count = 0, total_count = 0,
+                    attack_win_count = 0, attack_total_count = 0,
+                    defense_win_count = 0, defense_total_count = 0,
+                    attack_weight = (SELECT weight FROM (
+                        SELECT pattern_id, 
+                            CASE WHEN pattern_id LIKE 'cross%' THEN 5000
+                                 WHEN pattern_id LIKE 'three%' THEN 3000
+                                 WHEN pattern_id LIKE 'corner%' THEN 2000
+                                 WHEN pattern_id LIKE 't_shape%' THEN 2500
+                                 ELSE 1000 END as weight
+                    ) WHERE cluster_pattern_stats.pattern_id = pattern_id),
+                    defense_weight = attack_weight
+            ''')
+            conn.execute('''
+                UPDATE cluster_connection_stats SET
+                    win_count = 0, total_count = 0,
+                    attack_win_count = 0, attack_total_count = 0,
+                    defense_win_count = 0, defense_total_count = 0,
+                    attack_weight = (SELECT weight FROM (
+                        SELECT connection_type,
+                            CASE WHEN connection_type = 'bridge_threat' THEN 8000
+                                 WHEN connection_type = 'nearby_threes' THEN 4000
+                                 WHEN connection_type = 'supporting_threat' THEN 3000
+                                 WHEN connection_type = 'pincer_threat' THEN 3500
+                                 ELSE 1000 END as weight
+                    ) WHERE cluster_connection_stats.connection_type = connection_type),
+                    defense_weight = attack_weight
+            ''')
+            conn.execute('UPDATE game_records SET analyzed = 0')
+            conn.commit()
+        
+        cursor = conn.execute('SELECT id, moves, winner, analyzed FROM game_records WHERE analyzed = 0 OR analyzed IS NULL')
+        games = cursor.fetchall()
+        
+        if not games:
+            print("No games to analyze")
+            return
+        
+        analyzed_count = 0
+        for row in games:
+            game_id = row['id']
+            moves = json.loads(row['moves']) if row['moves'] else []
+            winner = row['winner']
+            
+            if len(moves) < 9 or len(moves) > 225:
+                conn.execute('UPDATE game_records SET analyzed = 1 WHERE id = ?', (game_id,))
+                continue
+            
+            try:
+                for p in (1, 2):
+                    is_win = (winner == p)
+                    perspective = 'defense' if p == 1 else 'attack'
+                    
+                    composites = extract_composite_patterns(moves, p)
+                    for c in composites:
+                        conn.execute('''
+                            INSERT INTO composite_pattern_stats 
+                            (pattern_type, game_id, move_number, player, resulted_in_win)
+                            VALUES (?, ?, ?, ?, ?)
+                        ''', (c['type'], game_id, c['move_number'], c['player'], 1 if is_win else 0))
+                    
+                    cluster_patterns = extract_cluster_patterns(moves, p)
+                    if cluster_patterns:
+                        pattern_types = list(set(c['type'] for c in cluster_patterns))
+                        _update_cluster_pattern_weights_with_conn(conn, pattern_types, perspective, is_win)
+                    
+                    connections = extract_cluster_connections(moves, p)
+                    if connections:
+                        conn_types = list(set(c['type'] for c in connections))
+                        _update_cluster_connection_weights_with_conn(conn, conn_types, perspective, is_win)
+                
+                conn.execute('UPDATE game_records SET analyzed = 1 WHERE id = ?', (game_id,))
+                conn.commit()
+                analyzed_count += 1
+            except Exception as e:
+                print(f"Error reanalyzing game {game_id}: {e}")
+                conn.rollback()
+        
+        if analyzed_count > 0:
+            print(f"Reanalyzed {analyzed_count} games")
+    finally:
+        conn.close()
+    
+    save_weights_to_file()
+
+def _update_cluster_pattern_weights_with_conn(conn, cluster_patterns, perspective, is_win):
+    """Update cluster pattern weights using existing connection."""
+    if not cluster_patterns:
+        return
+    
+    threshold = LEARNING_CONFIG['min_games_threshold']
+    ema_old = LEARNING_CONFIG['ema_old_weight']
+    ema_new = LEARNING_CONFIG['ema_new_weight']
+    min_ratio = LEARNING_CONFIG['min_weight_ratio']
+    max_ratio = LEARNING_CONFIG['max_weight_ratio']
+    win_mult = LEARNING_CONFIG['win_multiplier']
+    
+    win_col = f'{perspective}_win_count'
+    total_col = f'{perspective}_total_count'
+    weight_col = f'{perspective}_weight'
+    
+    for pattern in cluster_patterns:
+        conn.execute(f'''
+            UPDATE cluster_pattern_stats
+            SET {win_col} = {win_col} + ?,
+                {total_col} = {total_col} + 1,
+                win_count = win_count + ?,
+                total_count = total_count + 1
+            WHERE pattern_id = ?
+        ''', (1 if is_win else 0, 1 if is_win else 0, pattern))
+
+def _update_cluster_connection_weights_with_conn(conn, connections, perspective, is_win):
+    """Update cluster connection weights using existing connection."""
+    if not connections:
+        return
+    
+    threshold = LEARNING_CONFIG['min_games_threshold']
+    ema_old = LEARNING_CONFIG['ema_old_weight']
+    ema_new = LEARNING_CONFIG['ema_new_weight']
+    min_ratio = LEARNING_CONFIG['min_weight_ratio']
+    max_ratio = LEARNING_CONFIG['max_weight_ratio']
+    win_mult = LEARNING_CONFIG['win_multiplier']
+    
+    win_col = f'{perspective}_win_count'
+    total_col = f'{perspective}_total_count'
+    weight_col = f'{perspective}_weight'
+    
+    for conn_type in connections:
+        conn.execute(f'''
+            UPDATE cluster_connection_stats
+            SET {win_col} = {win_col} + ?,
+                {total_col} = {total_col} + 1,
+                win_count = win_count + ?,
+                total_count = total_count + 1
+            WHERE connection_type = ?
+        ''', (1 if is_win else 0, 1 if is_win else 0, conn_type))
+
+def update_cluster_pattern_weights(cluster_patterns, perspective, is_win):
+    """Update cluster pattern weights."""
+    if not cluster_patterns:
+        return
+    
+    conn = get_db()
+    try:
+        threshold = LEARNING_CONFIG['min_games_threshold']
+        ema_old = LEARNING_CONFIG['ema_old_weight']
+        ema_new = LEARNING_CONFIG['ema_new_weight']
+        min_ratio = LEARNING_CONFIG['min_weight_ratio']
+        max_ratio = LEARNING_CONFIG['max_weight_ratio']
+        win_mult = LEARNING_CONFIG['win_multiplier']
+        
+        win_col = f'{perspective}_win_count'
+        total_col = f'{perspective}_total_count'
+        weight_col = f'{perspective}_weight'
+        
+        for pattern in cluster_patterns:
+            conn.execute(f'''
+                UPDATE cluster_pattern_stats
+                SET {win_col} = {win_col} + ?,
+                    {total_col} = {total_col} + 1,
+                    win_count = win_count + ?,
+                    total_count = total_count + 1
+                WHERE pattern_id = ?
+            ''', (1 if is_win else 0, 1 if is_win else 0, pattern))
+        
+        cursor = conn.execute(f'''
+            SELECT pattern_id, {win_col}, {total_col}, {weight_col}
+            FROM cluster_pattern_stats
+        ''')
+        rows = cursor.fetchall()
+        
+        for row in rows:
+            pattern_id = row['pattern_id']
+            win_count = row[win_col] or 0
+            total_count = row[total_col] or 0
+            current_w = row[weight_col]
+            
+            info = CLUSTER_PATTERNS.get(pattern_id, {})
+            base_weight = info.get('weight', 1000) if isinstance(info, dict) else 1000
+            
+            if current_w is None:
+                current_w = base_weight
+            
+            if total_count >= threshold:
+                raw_weight = (win_count / total_count) * base_weight * win_mult
+                new_weight = current_w * ema_old + raw_weight * ema_new
+                min_weight = base_weight * min_ratio
+                max_weight = base_weight * max_ratio
+                new_weight = max(min_weight, min(new_weight, max_weight))
+                
+                conn.execute(f'''
+                    UPDATE cluster_pattern_stats SET {weight_col} = ? WHERE pattern_id = ?
+                ''', (new_weight, pattern_id))
+        
+        conn.commit()
+    finally:
+        conn.close()
+
+def update_cluster_connection_weights(connections, perspective, is_win):
+    """Update cluster connection pattern weights."""
+    if not connections:
+        return
+    
+    conn = get_db()
+    try:
+        threshold = LEARNING_CONFIG['min_games_threshold']
+        ema_old = LEARNING_CONFIG['ema_old_weight']
+        ema_new = LEARNING_CONFIG['ema_new_weight']
+        min_ratio = LEARNING_CONFIG['min_weight_ratio']
+        max_ratio = LEARNING_CONFIG['max_weight_ratio']
+        win_mult = LEARNING_CONFIG['win_multiplier']
+        
+        win_col = f'{perspective}_win_count'
+        total_col = f'{perspective}_total_count'
+        weight_col = f'{perspective}_weight'
+        
+        for conn_type in connections:
+            conn.execute(f'''
+                UPDATE cluster_connection_stats
+                SET {win_col} = {win_col} + ?,
+                    {total_col} = {total_col} + 1,
+                    win_count = win_count + ?,
+                    total_count = total_count + 1
+                WHERE connection_type = ?
+            ''', (1 if is_win else 0, 1 if is_win else 0, conn_type))
+        
+        cursor = conn.execute(f'''
+            SELECT connection_type, {win_col}, {total_col}, {weight_col}
+            FROM cluster_connection_stats
+        ''')
+        rows = cursor.fetchall()
+        
+        for row in rows:
+            conn_type = row['connection_type']
+            win_count = row[win_col] or 0
+            total_count = row[total_col] or 0
+            current_w = row[weight_col]
+            
+            info = CLUSTER_CONNECTION_PATTERNS.get(conn_type, {})
+            base_weight = info.get('weight', 1000) if isinstance(info, dict) else 1000
+            
+            if current_w is None:
+                current_w = base_weight
+            
+            if total_count >= threshold:
+                raw_weight = (win_count / total_count) * base_weight * win_mult
+                new_weight = current_w * ema_old + raw_weight * ema_new
+                min_weight = base_weight * min_ratio
+                max_weight = base_weight * max_ratio
+                new_weight = max(min_weight, min(new_weight, max_weight))
+                
+                conn.execute(f'''
+                    UPDATE cluster_connection_stats SET {weight_col} = ? WHERE connection_type = ?
+                ''', (new_weight, conn_type))
+        
+        conn.commit()
+    finally:
+        conn.close()
 
 def _migrate_pattern_stats(conn):
     """Add new columns to pattern_stats if they don't exist (migration)."""
@@ -150,11 +465,15 @@ def _migrate_pattern_stats(conn):
     for col, col_type in new_cols.items():
         if col not in existing_cols:
             conn.execute(f'ALTER TABLE pattern_stats ADD COLUMN {col} {col_type}')
-    # Backfill attack/defense weights from current_weight for existing rows
     conn.execute('''
         UPDATE pattern_stats SET attack_weight = current_weight
         WHERE attack_weight IS NULL
     ''')
+    
+    cursor2 = conn.execute("PRAGMA table_info(game_records)")
+    game_cols = {row['name'] for row in cursor2.fetchall()}
+    if 'analyzed' not in game_cols:
+        conn.execute('ALTER TABLE game_records ADD COLUMN analyzed INTEGER DEFAULT 0')
     conn.execute('''
         UPDATE pattern_stats SET defense_weight = current_weight
         WHERE defense_weight IS NULL
@@ -311,6 +630,230 @@ def get_line_pattern(board, row, col, dr, dc, player):
         else:
             line += 'X'
     return line
+
+# ─── Cluster Pattern Extraction ───────────────────────────────────────────────────
+def find_clusters(board, player):
+    """Find connected stone clusters using 8-direction flood fill."""
+    size = len(board)
+    visited = [[False] * size for _ in range(size)]
+    clusters = []
+    directions_8 = [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)]
+    
+    for start_r in range(size):
+        for start_c in range(size):
+            if board[start_r][start_c] == player and not visited[start_r][start_c]:
+                cluster = []
+                stack = [(start_r, start_c)]
+                while stack:
+                    r, c = stack.pop()
+                    if visited[r][c]:
+                        continue
+                    visited[r][c] = True
+                    cluster.append((r, c))
+                    for dr, dc in directions_8:
+                        nr, nc = r + dr, c + dc
+                        if 0 <= nr < size and 0 <= nc < size:
+                            if board[nr][nc] == player and not visited[nr][nc]:
+                                stack.append((nr, nc))
+                if len(cluster) >= 3:
+                    clusters.append(cluster)
+    return clusters
+
+def get_cluster_bounds(cluster):
+    """Get bounding box of a cluster."""
+    rows = [p[0] for p in cluster]
+    cols = [p[1] for p in cluster]
+    return min(rows), max(rows), min(cols), max(cols)
+
+def extract_cluster_pattern_type(cluster, board):
+    """Identify the type of cluster pattern based on shape analysis."""
+    if len(cluster) < 3:
+        return None
+    
+    cluster_set = set(cluster)
+    size = len(cluster)
+    
+    min_r, max_r, min_c, max_c = get_cluster_bounds(cluster)
+    height = max_r - min_r + 1
+    width = max_c - min_c + 1
+    
+    directions_4 = [(0, 1), (1, 0), (1, 1), (1, -1)]
+    
+    center_r = sum(p[0] for p in cluster) // size
+    center_c = sum(p[1] for p in cluster) // size
+    
+    def count_in_direction(start_r, start_c, dr, dc):
+        count = 0
+        r, c = start_r + dr, start_c + dc
+        while (r, c) in cluster_set:
+            count += 1
+            r += dr
+            c += dc
+        return count
+    
+    horizontal = count_in_direction(center_r, center_c, 0, 1) + count_in_direction(center_r, center_c, 0, -1) + 1
+    vertical = count_in_direction(center_r, center_c, 1, 0) + count_in_direction(center_r, center_c, -1, 0) + 1
+    diag1 = count_in_direction(center_r, center_c, 1, 1) + count_in_direction(center_r, center_c, -1, -1) + 1
+    diag2 = count_in_direction(center_r, center_c, 1, -1) + count_in_direction(center_r, center_c, -1, 1) + 1
+    
+    has_h = horizontal >= 3
+    has_v = vertical >= 3
+    has_d1 = diag1 >= 3
+    has_d2 = diag2 >= 3
+    
+    active_count = sum([has_h, has_v, has_d1, has_d2])
+    
+    if active_count >= 4:
+        return 'cross_plus'
+    
+    if active_count == 3:
+        if has_h and has_v and (has_d1 or has_d2):
+            return 'cross_plus'
+        if has_d1 and has_d2 and (has_h or has_v):
+            return 'cross_x'
+        if has_h and has_v:
+            return 't_shape_1' if any(p[0] == min_r for p in cluster) else 't_shape_2'
+        return 'three_way_up'
+    
+    if active_count == 2:
+        if has_h and has_v:
+            top_count = sum(1 for p in cluster if p[0] == min_r)
+            bottom_count = sum(1 for p in cluster if p[0] == max_r)
+            left_count = sum(1 for p in cluster if p[1] == min_c)
+            right_count = sum(1 for p in cluster if p[1] == max_c)
+            
+            if top_count == 1 and left_count == 1:
+                return 'corner_l_1'
+            if top_count == 1 and right_count == 1:
+                return 'corner_l_2'
+            if bottom_count == 1 and left_count == 1:
+                return 'corner_l_3'
+            if bottom_count == 1 and right_count == 1:
+                return 'corner_l_4'
+            return 'corner_l_1'
+        
+        if has_d1 and has_d2:
+            return 'cross_x'
+    
+    return None
+
+def extract_cluster_patterns(moves, target_player):
+    """Extract cluster patterns from game moves."""
+    clusters_found = []
+    board = [[0] * 15 for _ in range(15)]
+    
+    for i, move in enumerate(moves):
+        player = move.get('player', 1 if i % 2 == 0 else 2)
+        row, col = move['row'], move['col']
+        if not (0 <= row < 15 and 0 <= col < 15):
+            continue
+        board[row][col] = player
+        
+        if player == target_player:
+            clusters = find_clusters(board, player)
+            for cluster in clusters:
+                pattern_type = extract_cluster_pattern_type(cluster, board)
+                if pattern_type:
+                    clusters_found.append({
+                        'type': pattern_type,
+                        'move_number': i + 1,
+                        'player': player,
+                        'size': len(cluster)
+                    })
+    
+    seen = set()
+    unique = []
+    for c in clusters_found:
+        key = (c['type'], c['move_number'], c['player'])
+        if key not in seen:
+            seen.add(key)
+            unique.append(c)
+    return unique
+
+def build_influence_map(board, player):
+    """Build influence map showing connection potential."""
+    size = len(board)
+    influence = [[0] * size for _ in range(size)]
+    
+    for r in range(size):
+        for c in range(size):
+            if board[r][c] == player:
+                for dr in range(-4, 5):
+                    for dc in range(-4, 5):
+                        nr, nc = r + dr, c + dc
+                        if 0 <= nr < size and 0 <= nc < size and board[nr][nc] == 0:
+                            dist = max(abs(dr), abs(dc))
+                            influence[nr][nc] += 5 - dist
+    return influence
+
+def find_connection_points(influence_map, threshold=4):
+    """Find high-influence connection points."""
+    size = len(influence_map)
+    points = []
+    for r in range(size):
+        for c in range(size):
+            if influence_map[r][c] >= threshold:
+                points.append((r, c, influence_map[r][c]))
+    return sorted(points, key=lambda x: -x[2])
+
+def classify_connection(board, row, col, player):
+    """Classify the type of connection created by placing at (row, col)."""
+    directions = [(0, 1), (1, 0), (1, 1), (1, -1)]
+    open_threes = 0
+    fours = 0
+    
+    for dr, dc in directions:
+        line = get_line_pattern(board, row, col, dr, dc, player)
+        if '_OOOO_' in line:
+            fours += 2
+        elif 'OOOO' in line:
+            fours += 1
+        if '_OOO_' in line:
+            open_threes += 1
+    
+    if open_threes >= 2:
+        return 'nearby_threes'
+    if fours >= 1 and open_threes >= 1:
+        return 'bridge_threat'
+    if open_threes >= 1 and fours >= 0:
+        return 'supporting_threat'
+    if fours >= 2:
+        return 'pincer_threat'
+    return None
+
+def extract_cluster_connections(moves, target_player):
+    """Extract cluster connection patterns from game moves."""
+    connections_found = []
+    board = [[0] * 15 for _ in range(15)]
+    
+    for i, move in enumerate(moves):
+        player = move.get('player', 1 if i % 2 == 0 else 2)
+        row, col = move['row'], move['col']
+        if not (0 <= row < 15 and 0 <= col < 15):
+            continue
+        
+        if player == target_player and board[row][col] == 0:
+            influence = build_influence_map(board, player)
+            if influence[row][col] >= 4:
+                conn_type = classify_connection(board, row, col, player)
+                if conn_type:
+                    connections_found.append({
+                        'type': conn_type,
+                        'move_number': i + 1,
+                        'player': player,
+                        'influence': influence[row][col]
+                    })
+        
+        board[row][col] = player
+    
+    seen = set()
+    unique = []
+    for c in connections_found:
+        key = (c['type'], c['move_number'], c['player'])
+        if key not in seen:
+            seen.add(key)
+            unique.append(c)
+    return unique
 
 # ─── Bidirectional Weight Updates ────────────────────────────────────────────────
 def update_pattern_weights(patterns, perspective, is_win):
@@ -529,7 +1072,7 @@ def save_game_record():
     if stone_count < 9 or stone_count > 225:
         return jsonify({'success': True, 'learned': False, 'reason': 'outlier'})
 
-    learned_info = {'attack_patterns': 0, 'defense_patterns': 0, 'composites': 0}
+    learned_info = {'attack_patterns': 0, 'defense_patterns': 0, 'composites': 0, 'cluster_patterns': 0, 'cluster_connections': 0}
 
     if winner == 1:
         # Player won: strengthen defense weights for player patterns,
@@ -573,12 +1116,34 @@ def save_game_record():
             finally:
                 conn2.close()
 
+    # Extract and learn cluster patterns
+    for p in (1, 2):
+        cluster_patterns = extract_cluster_patterns(moves, target_player=p)
+        if cluster_patterns:
+            pattern_types = [c['type'] for c in cluster_patterns]
+            perspective = 'defense' if p == 1 else 'attack'
+            is_win = (winner == p)
+            update_cluster_pattern_weights(pattern_types, perspective, is_win)
+            learned_info['cluster_patterns'] += len(cluster_patterns)
+
+    # Extract and learn cluster connection patterns
+    for p in (1, 2):
+        connections = extract_cluster_connections(moves, target_player=p)
+        if connections:
+            conn_types = [c['type'] for c in connections]
+            perspective = 'defense' if p == 1 else 'attack'
+            is_win = (winner == p)
+            update_cluster_connection_weights(conn_types, perspective, is_win)
+            learned_info['cluster_connections'] += len(connections)
+
     return jsonify({
         'success': True,
         'learned': True,
         'attack_patterns': learned_info['attack_patterns'],
         'defense_patterns': learned_info['defense_patterns'],
-        'composites': learned_info['composites']
+        'composites': learned_info['composites'],
+        'cluster_patterns': learned_info['cluster_patterns'],
+        'cluster_connections': learned_info['cluster_connections']
     })
 
 @app.route('/api/weights', methods=['GET', 'OPTIONS'])

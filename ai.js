@@ -29,6 +29,31 @@ const BASE_WEIGHTS = {
     "_O_": 10
 };
 
+const CLUSTER_PATTERNS = {
+    "three_way_up": 3000,
+    "three_way_down": 3000,
+    "three_way_left": 3000,
+    "three_way_right": 3000,
+    "cross_plus": 5000,
+    "cross_x": 5000,
+    "corner_l_1": 2000,
+    "corner_l_2": 2000,
+    "corner_l_3": 2000,
+    "corner_l_4": 2000,
+    "t_shape_1": 2500,
+    "t_shape_2": 2500
+};
+
+const CLUSTER_CONNECTION_PATTERNS = {
+    "nearby_threes": 4000,
+    "bridge_threat": 8000,
+    "supporting_threat": 3000,
+    "pincer_threat": 3500
+};
+
+let clusterWeights = null;
+let clusterConnectionWeights = null;
+
 // Patterns sorted by length desc then weight desc for exclusive matching
 const SORTED_PATTERNS = Object.keys(BASE_WEIGHTS).sort((a, b) => {
     if (b.length !== a.length) return b.length - a.length;
@@ -51,6 +76,46 @@ async function loadPatternWeights() {
     } catch (e) {
         patternWeights = null;
     }
+    
+    try {
+        const response = await fetch('/api/cluster-weights');
+        if (response.ok) {
+            const data = await response.json();
+            if (data) {
+                clusterWeights = { attack: {}, defense: {} };
+                clusterConnectionWeights = { attack: {}, defense: {} };
+                if (data.cluster_patterns) {
+                    for (const [patternId, info] of Object.entries(data.cluster_patterns)) {
+                        clusterWeights.attack[patternId] = info.attack_weight || CLUSTER_PATTERNS[patternId] || 1000;
+                        clusterWeights.defense[patternId] = info.defense_weight || CLUSTER_PATTERNS[patternId] || 1000;
+                    }
+                }
+                if (data.cluster_connections) {
+                    for (const [connType, info] of Object.entries(data.cluster_connections)) {
+                        clusterConnectionWeights.attack[connType] = info.attack_weight || CLUSTER_CONNECTION_PATTERNS[connType] || 1000;
+                        clusterConnectionWeights.defense[connType] = info.defense_weight || CLUSTER_CONNECTION_PATTERNS[connType] || 1000;
+                    }
+                }
+            }
+        }
+    } catch (e) {
+        clusterWeights = null;
+        clusterConnectionWeights = null;
+    }
+}
+
+function getClusterWeight(patternId, perspective) {
+    if (clusterWeights && clusterWeights[perspective] && clusterWeights[perspective][patternId] !== undefined) {
+        return clusterWeights[perspective][patternId];
+    }
+    return CLUSTER_PATTERNS[patternId] || 1000;
+}
+
+function getClusterConnectionWeight(connType, perspective) {
+    if (clusterConnectionWeights && clusterConnectionWeights[perspective] && clusterConnectionWeights[perspective][connType] !== undefined) {
+        return clusterConnectionWeights[perspective][connType];
+    }
+    return CLUSTER_CONNECTION_PATTERNS[connType] || 1000;
 }
 
 // perspective: 'attack' for AI stones, 'defense' for player stones
@@ -253,6 +318,180 @@ function fullEvaluateBoard(board) {
             }
         }
     }
+    
+    score += evaluateClusterPatterns(board, 2, 'attack');
+    score -= evaluateClusterPatterns(board, 1, 'defense');
+    score += evaluateClusterConnections(board, 2, 'attack');
+    score -= evaluateClusterConnections(board, 1, 'defense');
+    
+    return score;
+}
+
+// ─── Cluster Pattern Detection ──────────────────────────────────────────────────
+function findClusters(board, player) {
+    const size = board.length;
+    const visited = Array(size).fill(null).map(() => Array(size).fill(false));
+    const clusters = [];
+    const directions8 = [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[-1,1],[1,-1],[1,1]];
+    
+    for (let startR = 0; startR < size; startR++) {
+        for (let startC = 0; startC < size; startC++) {
+            if (board[startR][startC] === player && !visited[startR][startC]) {
+                const cluster = [];
+                const stack = [[startR, startC]];
+                while (stack.length > 0) {
+                    const [r, c] = stack.pop();
+                    if (visited[r][c]) continue;
+                    visited[r][c] = true;
+                    cluster.push([r, c]);
+                    for (const [dr, dc] of directions8) {
+                        const nr = r + dr, nc = c + dc;
+                        if (0 <= nr && nr < size && 0 <= nc && nc < size) {
+                            if (board[nr][nc] === player && !visited[nr][nc]) {
+                                stack.push([nr, nc]);
+                            }
+                        }
+                    }
+                }
+                if (cluster.length >= 3) {
+                    clusters.push(cluster);
+                }
+            }
+        }
+    }
+    return clusters;
+}
+
+function getClusterBounds(cluster) {
+    const rows = cluster.map(p => p[0]);
+    const cols = cluster.map(p => p[1]);
+    return [Math.min(...rows), Math.max(...rows), Math.min(...cols), Math.max(...cols)];
+}
+
+function identifyClusterPattern(cluster, board) {
+    if (cluster.length < 3) return null;
+    
+    const clusterSet = new Set(cluster.map(p => `${p[0]},${p[1]}`));
+    const directions4 = [[0,1],[1,0],[1,1],[1,-1]];
+    
+    const [minR, maxR, minC, maxC] = getClusterBounds(cluster);
+    const height = maxR - minR + 1;
+    const width = maxC - minC + 1;
+    
+    const centerR = Math.round(cluster.reduce((s, p) => s + p[0], 0) / cluster.length);
+    const centerC = Math.round(cluster.reduce((s, p) => s + p[1], 0) / cluster.length);
+    
+    const dirCounts = [0, 0, 0, 0];
+    for (const [r, c] of cluster) {
+        for (let i = 0; i < 4; i++) {
+            const [dr, dc] = directions4[i];
+            const nr = r + dr, nc = c + dc;
+            if (clusterSet.has(`${nr},${nc}`)) {
+                dirCounts[i]++;
+            }
+        }
+    }
+    
+    const activeDirs = dirCounts.filter(c => c > 0).length;
+    
+    if (activeDirs >= 3) {
+        if (dirCounts[0] > 0 && dirCounts[1] > 0) return 'cross_plus';
+        if (dirCounts[2] > 0 && dirCounts[3] > 0) return 'cross_x';
+        return 'three_way_up';
+    }
+    
+    if (activeDirs === 2) {
+        const hasV = dirCounts[1] > 0;
+        const hasH = dirCounts[0] > 0;
+        if (hasV && hasH) {
+            if (height <= 3 && width <= 3) return 'cross_plus';
+            const topMost = cluster.filter(p => p[0] === minR);
+            const bottomMost = cluster.filter(p => p[0] === maxR);
+            if (topMost.some(p => Math.abs(p[1] - centerC) <= 1)) return 't_shape_1';
+            if (bottomMost.some(p => Math.abs(p[1] - centerC) <= 1)) return 't_shape_2';
+            return 'corner_l_1';
+        }
+    }
+    
+    return null;
+}
+
+function evaluateClusterPatterns(board, player, perspective) {
+    const clusters = findClusters(board, player);
+    let score = 0;
+    const counted = new Set();
+    
+    for (const cluster of clusters) {
+        const patternType = identifyClusterPattern(cluster, board);
+        if (patternType && !counted.has(patternType)) {
+            score += getClusterWeight(patternType, perspective);
+            counted.add(patternType);
+        }
+    }
+    
+    return score;
+}
+
+// ─── Influence Map & Connection Detection ────────────────────────────────────────
+function buildInfluenceMap(board, player) {
+    const size = board.length;
+    const influence = Array(size).fill(null).map(() => Array(size).fill(0));
+    
+    for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+            if (board[r][c] === player) {
+                for (let dr = -4; dr <= 4; dr++) {
+                    for (let dc = -4; dc <= 4; dc++) {
+                        const nr = r + dr, nc = c + dc;
+                        if (0 <= nr && nr < size && 0 <= nc && nc < size && board[nr][nc] === 0) {
+                            const dist = Math.max(Math.abs(dr), Math.abs(dc));
+                            influence[nr][nc] += 5 - dist;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return influence;
+}
+
+function classifyConnection(board, row, col, player) {
+    const directions = [[0,1],[1,0],[1,1],[1,-1]];
+    let openThrees = 0;
+    let fours = 0;
+    
+    for (const [dr, dc] of directions) {
+        const line = getLine(row, col, dr, dc, player, board);
+        if (line.includes('_OOOO_')) fours += 2;
+        else if (line.includes('OOOO')) fours += 1;
+        if (line.includes('_OOO_')) openThrees += 1;
+    }
+    
+    if (openThrees >= 2) return 'nearby_threes';
+    if (fours >= 1 && openThrees >= 1) return 'bridge_threat';
+    if (openThrees >= 1) return 'supporting_threat';
+    if (fours >= 2) return 'pincer_threat';
+    return null;
+}
+
+function evaluateClusterConnections(board, player, perspective) {
+    const influence = buildInfluenceMap(board, player);
+    let score = 0;
+    const counted = new Set();
+    const size = board.length;
+    
+    for (let r = 0; r < size; r++) {
+        for (let c = 0; c < size; c++) {
+            if (influence[r][c] >= 4 && board[r][c] === 0) {
+                const connType = classifyConnection(board, r, c, player);
+                if (connType && !counted.has(connType)) {
+                    score += getClusterConnectionWeight(connType, perspective) * (influence[r][c] / 5);
+                    counted.add(connType);
+                }
+            }
+        }
+    }
+    
     return score;
 }
 

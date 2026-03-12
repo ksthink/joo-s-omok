@@ -28,6 +28,26 @@ BASE_WEIGHTS = _config['patterns'] if _config else {
     "_O_OO": 1000, "OO__": 100, "__OO": 100, "_O_O_": 100, "_OO_": 100,
     "O__": 10, "__O": 10, "_O_": 10
 }
+CLUSTER_PATTERNS = (_config or {}).get('cluster_patterns', {
+    "three_way_up": {"weight": 3000, "name": "ㅗ", "desc": "삼방향 위"},
+    "three_way_down": {"weight": 3000, "name": "ㅜ", "desc": "삼방향 아래"},
+    "three_way_left": {"weight": 3000, "name": "ㅓ", "desc": "삼방향 왼쪽"},
+    "three_way_right": {"weight": 3000, "name": "ㅏ", "desc": "삼방향 오른쪽"},
+    "cross_plus": {"weight": 5000, "name": "+", "desc": "십자가"},
+    "cross_x": {"weight": 5000, "name": "X", "desc": "대각선 십자"},
+    "corner_l_1": {"weight": 2000, "name": "┌", "desc": "왼쪽 위 코너"},
+    "corner_l_2": {"weight": 2000, "name": "┐", "desc": "오른쪽 위 코너"},
+    "corner_l_3": {"weight": 2000, "name": "└", "desc": "왼쪽 아래 코너"},
+    "corner_l_4": {"weight": 2000, "name": "┘", "desc": "오른쪽 아래 코너"},
+    "t_shape_1": {"weight": 2500, "name": "T", "desc": "T자 위"},
+    "t_shape_2": {"weight": 2500, "name": "⊥", "desc": "T자 아래"}
+})
+CLUSTER_CONNECTION_PATTERNS = (_config or {}).get('cluster_connection_patterns', {
+    "nearby_threes": {"weight": 4000, "desc": "두 열린3이 근접"},
+    "bridge_threat": {"weight": 8000, "desc": "한 수로 두 패턴 연결"},
+    "supporting_threat": {"weight": 3000, "desc": "한 패턴이 다른 패턴 지원"},
+    "pincer_threat": {"weight": 3500, "desc": "두 패턴이 상대 협공"}
+})
 LEARNING_CONFIG = (_config or {}).get('learning', {
     "min_games_threshold": 15
 })
@@ -462,6 +482,132 @@ def get_learning_progress():
             entry['defense_progress'] = min(100, round(dfn / threshold * 100)) if threshold > 0 else 0
         result.append(entry)
 
+    return jsonify(result)
+
+@app.route('/api/cluster-weights')
+def get_cluster_weights():
+    """Return cluster pattern weights for AI."""
+    conn = get_db()
+    try:
+        tables = {r['name'] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
+        
+        cluster_patterns = {}
+        cluster_connections = {}
+        
+        if 'cluster_pattern_stats' in tables:
+            rows = conn.execute('''
+                SELECT pattern_id, attack_weight, defense_weight, win_count, total_count
+                FROM cluster_pattern_stats
+            ''').fetchall()
+            for row in rows:
+                cluster_patterns[row['pattern_id']] = {
+                    'attack_weight': row['attack_weight'],
+                    'defense_weight': row['defense_weight'],
+                    'wins': row['win_count'],
+                    'total': row['total_count']
+                }
+        
+        if 'cluster_connection_stats' in tables:
+            rows = conn.execute('''
+                SELECT connection_type, attack_weight, defense_weight, win_count, total_count
+                FROM cluster_connection_stats
+            ''').fetchall()
+            for row in rows:
+                cluster_connections[row['connection_type']] = {
+                    'attack_weight': row['attack_weight'],
+                    'defense_weight': row['defense_weight'],
+                    'wins': row['win_count'],
+                    'total': row['total_count']
+                }
+    finally:
+        conn.close()
+    
+    return jsonify({
+        'cluster_patterns': cluster_patterns,
+        'cluster_connections': cluster_connections
+    })
+
+@app.route('/api/cluster-stats')
+def get_cluster_stats():
+    """Return cluster pattern statistics."""
+    conn = get_db()
+    try:
+        tables = {r['name'] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
+        if 'cluster_pattern_stats' not in tables:
+            return jsonify([])
+        
+        rows = conn.execute('''
+            SELECT pattern_id,
+                   win_count, total_count,
+                   attack_weight, defense_weight,
+                   attack_win_count, attack_total_count,
+                   defense_win_count, defense_total_count
+            FROM cluster_pattern_stats
+            ORDER BY total_count DESC
+        ''').fetchall()
+    finally:
+        conn.close()
+    
+    result = []
+    for row in rows:
+        total = row['total_count'] or 1
+        entry = {
+            'pattern_id': row['pattern_id'],
+            'name': CLUSTER_PATTERNS.get(row['pattern_id'], {}).get('name', row['pattern_id']),
+            'desc': CLUSTER_PATTERNS.get(row['pattern_id'], {}).get('desc', ''),
+            'total': row['total_count'],
+            'wins': row['win_count'],
+            'win_rate': round((row['win_count'] / total * 100), 1) if total > 0 else 0,
+            'attack_weight': row['attack_weight'],
+            'defense_weight': row['defense_weight'],
+            'attack_wins': row['attack_win_count'],
+            'attack_total': row['attack_total_count'],
+            'defense_wins': row['defense_win_count'],
+            'defense_total': row['defense_total_count']
+        }
+        result.append(entry)
+    
+    return jsonify(result)
+
+@app.route('/api/cluster-connection-stats')
+def get_cluster_connection_stats():
+    """Return cluster connection pattern statistics."""
+    conn = get_db()
+    try:
+        tables = {r['name'] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
+        if 'cluster_connection_stats' not in tables:
+            return jsonify([])
+        
+        rows = conn.execute('''
+            SELECT connection_type,
+                   win_count, total_count,
+                   attack_weight, defense_weight,
+                   attack_win_count, attack_total_count,
+                   defense_win_count, defense_total_count
+            FROM cluster_connection_stats
+            ORDER BY total_count DESC
+        ''').fetchall()
+    finally:
+        conn.close()
+    
+    result = []
+    for row in rows:
+        total = row['total_count'] or 1
+        entry = {
+            'connection_type': row['connection_type'],
+            'desc': CLUSTER_CONNECTION_PATTERNS.get(row['connection_type'], {}).get('desc', ''),
+            'total': row['total_count'],
+            'wins': row['win_count'],
+            'win_rate': round((row['win_count'] / total * 100), 1) if total > 0 else 0,
+            'attack_weight': row['attack_weight'],
+            'defense_weight': row['defense_weight'],
+            'attack_wins': row['attack_win_count'],
+            'attack_total': row['attack_total_count'],
+            'defense_wins': row['defense_win_count'],
+            'defense_total': row['defense_total_count']
+        }
+        result.append(entry)
+    
     return jsonify(result)
 
 if __name__ == '__main__':

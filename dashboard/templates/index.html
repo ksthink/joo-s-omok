@@ -17,6 +17,8 @@
             <button class="tab active" data-tab="stats">게임 통계</button>
             <button class="tab" data-tab="patterns">패턴 학습</button>
             <button class="tab" data-tab="composites">복합 위협</button>
+            <button class="tab" data-tab="clusters">군집 패턴</button>
+            <button class="tab" data-tab="connections">군집 연결</button>
             <button class="tab" data-tab="progress">학습 진행</button>
             <button class="tab" data-tab="leaderboard">리더보드</button>
             <button class="tab" data-tab="replay">기보 재생</button>
@@ -96,6 +98,55 @@
             </div>
             <div id="compositeStats" class="composite-grid"></div>
             <div id="compositeEmpty" class="empty-message" style="display:none;">아직 복합 위협 데이터가 없습니다</div>
+        </section>
+
+        <!-- 군집 패턴 통계 -->
+        <section id="clusters" class="tab-content">
+            <div class="pattern-info">
+                <p>2차원 군집 형태(ㅗ, +, X, L자 등)의 발생 빈도와 학습 현황입니다.</p>
+            </div>
+            <div class="table-scroll">
+                <table class="pattern-table">
+                    <thead>
+                        <tr>
+                            <th>패턴</th>
+                            <th>이름</th>
+                            <th>설명</th>
+                            <th>등장</th>
+                            <th>승률</th>
+                            <th>공격 가중치</th>
+                            <th>방어 가중치</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clusterTable">
+                    </tbody>
+                </table>
+            </div>
+            <div id="clusterEmpty" class="empty-message" style="display:none;">아직 군집 패턴 데이터가 없습니다</div>
+        </section>
+
+        <!-- 군집 연결 통계 -->
+        <section id="connections" class="tab-content">
+            <div class="pattern-info">
+                <p>군집 간 연결 패턴(영향력 맵 기반)의 발생 빈도와 학습 현황입니다.</p>
+            </div>
+            <div class="table-scroll">
+                <table class="pattern-table">
+                    <thead>
+                        <tr>
+                            <th>연결 타입</th>
+                            <th>설명</th>
+                            <th>등장</th>
+                            <th>승률</th>
+                            <th>공격 가중치</th>
+                            <th>방어 가중치</th>
+                        </tr>
+                    </thead>
+                    <tbody id="connectionTable">
+                    </tbody>
+                </table>
+            </div>
+            <div id="connectionEmpty" class="empty-message" style="display:none;">아직 군집 연결 데이터가 없습니다</div>
         </section>
 
         <!-- 학습 진행 상황 -->

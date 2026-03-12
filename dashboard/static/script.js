@@ -33,6 +33,8 @@ document.addEventListener('DOMContentLoaded', () => {
     loadLeaderboard();
     loadGames();
     loadCompositeStats();
+    loadClusterStats();
+    loadConnectionStats();
     loadLearningProgress();
     initReplayControls();
 });
@@ -217,6 +219,79 @@ function renderCompositeStats(stats) {
     }).join('');
 }
 
+// ─── Cluster Patterns Tab ────────────────────────────────────────────────────────
+function loadClusterStats() {
+    safeFetch('/api/cluster-stats')
+        .then(data => {
+            renderClusterStats(data);
+        })
+        .catch(err => {
+            console.error('Error loading cluster stats:', err);
+            const el = document.getElementById('clusterEmpty');
+            if (el) el.style.display = 'block';
+        });
+}
+
+function renderClusterStats(stats) {
+    const tbody = document.getElementById('clusterTable');
+    const emptyEl = document.getElementById('clusterEmpty');
+
+    if (!stats || stats.length === 0) {
+        if (tbody) tbody.innerHTML = '';
+        if (emptyEl) emptyEl.style.display = 'block';
+        return;
+    }
+    if (emptyEl) emptyEl.style.display = 'none';
+
+    tbody.innerHTML = stats.map(s => `
+        <tr>
+            <td><code>${escapeHtml(s.pattern_id)}</code></td>
+            <td>${escapeHtml(s.name)}</td>
+            <td>${escapeHtml(s.desc)}</td>
+            <td>${s.total}</td>
+            <td>${s.win_rate}%</td>
+            <td class="weight-attack">${s.attack_weight ? s.attack_weight.toFixed(0) : '-'}</td>
+            <td class="weight-defense">${s.defense_weight ? s.defense_weight.toFixed(0) : '-'}</td>
+        </tr>
+    `).join('');
+}
+
+// ─── Cluster Connections Tab ─────────────────────────────────────────────────────
+function loadConnectionStats() {
+    safeFetch('/api/cluster-connection-stats')
+        .then(data => {
+            renderConnectionStats(data);
+        })
+        .catch(err => {
+            console.error('Error loading connection stats:', err);
+            const el = document.getElementById('connectionEmpty');
+            if (el) el.style.display = 'block';
+        });
+}
+
+function renderConnectionStats(stats) {
+    const tbody = document.getElementById('connectionTable');
+    const emptyEl = document.getElementById('connectionEmpty');
+
+    if (!stats || stats.length === 0) {
+        if (tbody) tbody.innerHTML = '';
+        if (emptyEl) emptyEl.style.display = 'block';
+        return;
+    }
+    if (emptyEl) emptyEl.style.display = 'none';
+
+    tbody.innerHTML = stats.map(s => `
+        <tr>
+            <td><code>${escapeHtml(s.connection_type)}</code></td>
+            <td>${escapeHtml(s.desc)}</td>
+            <td>${s.total}</td>
+            <td>${s.win_rate}%</td>
+            <td class="weight-attack">${s.attack_weight ? s.attack_weight.toFixed(0) : '-'}</td>
+            <td class="weight-defense">${s.defense_weight ? s.defense_weight.toFixed(0) : '-'}</td>
+        </tr>
+    `).join('');
+}
+
 // ─── Learning Progress Tab ──────────────────────────────────────────────────────
 function loadLearningProgress() {
     safeFetch('/api/learning-progress')
@@ -396,7 +471,7 @@ function renderBoard() {
     drawEmptyBoard();
     for (let i = 0; i < currentMoveIndex; i++) {
         const move = currentMoves[i];
-        drawStone(move.row, move.col, move.player, i === currentMoveIndex - 1);
+        drawStone(move.row, move.col, move.player, i === currentMoveIndex - 1, i + 1);
     }
     drawPatterns();
 }
@@ -462,38 +537,42 @@ function drawEmptyBoard() {
     }
 }
 
-function drawStone(row, col, player, isLast) {
-    if (typeof BoardRenderer !== 'undefined') {
-        BoardRenderer.drawStone(ctx, row, col, player, CELL_SIZE, isLast);
+function drawStone(row, col, player, isLast, moveNumber) {
+    const x = CELL_SIZE / 2 + col * CELL_SIZE;
+    const y = CELL_SIZE / 2 + row * CELL_SIZE;
+    const radius = CELL_SIZE / 2 - 2;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    if (player === 1) {
+        const gradient = ctx.createRadialGradient(x - 2, y - 2, 0, x, y, radius);
+        gradient.addColorStop(0, '#1a1a1a');
+        gradient.addColorStop(1, '#000000');
+        ctx.fillStyle = gradient;
+        ctx.strokeStyle = '#808080';
     } else {
-        const x = CELL_SIZE / 2 + col * CELL_SIZE;
-        const y = CELL_SIZE / 2 + row * CELL_SIZE;
-        const radius = CELL_SIZE / 2 - 2;
+        const gradient = ctx.createRadialGradient(x - 2, y - 2, 0, x, y, radius);
+        gradient.addColorStop(0, '#ffffff');
+        gradient.addColorStop(1, '#c0c0c0');
+        ctx.fillStyle = gradient;
+        ctx.strokeStyle = '#909090';
+    }
+    ctx.fill();
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    if (isLast) {
         ctx.beginPath();
-        ctx.arc(x, y, radius, 0, Math.PI * 2);
-        if (player === 1) {
-            const gradient = ctx.createRadialGradient(x - 2, y - 2, 0, x, y, radius);
-            gradient.addColorStop(0, '#1a1a1a');
-            gradient.addColorStop(1, '#000000');
-            ctx.fillStyle = gradient;
-            ctx.strokeStyle = '#808080';
-        } else {
-            const gradient = ctx.createRadialGradient(x - 2, y - 2, 0, x, y, radius);
-            gradient.addColorStop(0, '#ffffff');
-            gradient.addColorStop(1, '#c0c0c0');
-            ctx.fillStyle = gradient;
-            ctx.strokeStyle = '#909090';
-        }
-        ctx.fill();
-        ctx.lineWidth = 1.5;
+        ctx.arc(x, y, radius + 2, 0, Math.PI * 2);
+        ctx.strokeStyle = player === 1 ? '#ffffff' : '#000000';
+        ctx.lineWidth = 3;
         ctx.stroke();
-        if (isLast) {
-            ctx.beginPath();
-            ctx.arc(x, y, radius + 2, 0, Math.PI * 2);
-            ctx.strokeStyle = player === 1 ? '#ffffff' : '#000000';
-            ctx.lineWidth = 3;
-            ctx.stroke();
-        }
+    }
+    if (moveNumber !== undefined) {
+        const fontSize = 9;
+        ctx.font = `bold ${fontSize}px GameFont`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = player === 1 ? '#ffffff' : '#000000';
+        ctx.fillText(moveNumber.toString(), x, y);
     }
 }
 
