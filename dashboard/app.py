@@ -334,7 +334,7 @@ def find_composite_threat_lines(board, row, col, player):
     composite_type = None
     composite_lines = []
 
-    if open_four_lines >= 2 or (len(open_four_lines) >= 1 and len(blocked_four_lines) >= 1):
+    if len(open_four_lines) >= 2 or (len(open_four_lines) >= 1 and len(blocked_four_lines) >= 1):
         composite_type = 'double_four'
         composite_lines = open_four_lines + blocked_four_lines
     elif len(blocked_four_lines) >= 1 and len(open_three_lines) >= 1:

@@ -2,9 +2,25 @@ from flask import Flask, request, jsonify, send_from_directory
 import sqlite3
 import os
 import json
+import logging
+import traceback
 from datetime import datetime, timezone
 from functools import wraps
 from zoneinfo import ZoneInfo
+
+# Configure logging
+LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
+os.makedirs(LOG_DIR, exist_ok=True)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(os.path.join(LOG_DIR, 'server.log')),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger('omok_server')
 
 KST = ZoneInfo('Asia/Seoul')
 
@@ -40,6 +56,10 @@ BASE_WEIGHTS = _config['patterns'] if _config else {
     "_O_OO": 1000, "OO__": 100, "__OO": 100, "_O_O_": 100, "_OO_": 100,
     "O__": 10, "__O": 10, "_O_": 10
 }
+
+WIN_CONDITION_PATTERNS = {'OOOOO'}
+
+SIMPLE_PATTERNS = {'O__', '__O', '_O_'}
 COMPOSITE_PATTERNS = (_config or {}).get('composite_patterns', {
     "double_open_three": 30000, "four_three": 40000, "double_four": 90000
 })
@@ -329,7 +349,7 @@ def _update_cluster_connection_weights_with_conn(conn, connections, perspective,
         ''', (1 if is_win else 0, 1 if is_win else 0, conn_type))
 
 def update_cluster_pattern_weights(cluster_patterns, perspective, is_win):
-    """Update cluster pattern weights."""
+    """Update cluster pattern weights with ratio bounds."""
     if not cluster_patterns:
         return
     
@@ -356,41 +376,69 @@ def update_cluster_pattern_weights(cluster_patterns, perspective, is_win):
                 WHERE pattern_id = ?
             ''', (1 if is_win else 0, 1 if is_win else 0, pattern))
         
-        cursor = conn.execute(f'''
-            SELECT pattern_id, {win_col}, {total_col}, {weight_col}
+        cursor = conn.execute('''
+            SELECT pattern_id, attack_total_count, defense_total_count,
+                   attack_weight, defense_weight
             FROM cluster_pattern_stats
         ''')
         rows = cursor.fetchall()
         
         for row in rows:
             pattern_id = row['pattern_id']
-            win_count = row[win_col] or 0
-            total_count = row[total_col] or 0
-            current_w = row[weight_col]
+            att_total = row['attack_total_count'] or 0
+            def_total = row['defense_total_count'] or 0
+            att_weight = row['attack_weight']
+            def_weight = row['defense_weight']
             
             info = CLUSTER_PATTERNS.get(pattern_id, {})
             base_weight = info.get('weight', 1000) if isinstance(info, dict) else 1000
             
-            if current_w is None:
-                current_w = base_weight
+            if att_weight is None:
+                att_weight = base_weight
+            if def_weight is None:
+                def_weight = base_weight
             
-            if total_count >= threshold:
-                raw_weight = (win_count / total_count) * base_weight * win_mult
-                new_weight = current_w * ema_old + raw_weight * ema_new
-                min_weight = base_weight * min_ratio
-                max_weight = base_weight * max_ratio
-                new_weight = max(min_weight, min(new_weight, max_weight))
-                
-                conn.execute(f'''
-                    UPDATE cluster_pattern_stats SET {weight_col} = ? WHERE pattern_id = ?
-                ''', (new_weight, pattern_id))
+            cursor2 = conn.execute(f'''
+                SELECT {win_col}, {total_col} FROM cluster_pattern_stats WHERE pattern_id = ?
+            ''', (pattern_id,))
+            row2 = cursor2.fetchone()
+            if not row2:
+                continue
+            
+            win_count = row2[0] or 0
+            total_count = row2[1] or 0
+            
+            if total_count < threshold:
+                continue
+            
+            win_rate = win_count / total_count
+            raw_weight = win_rate * base_weight * win_mult
+            current_w = att_weight if perspective == 'attack' else def_weight
+            new_weight = current_w * ema_old + raw_weight * ema_new
+            
+            min_weight = base_weight * min_ratio
+            max_weight = base_weight * max_ratio
+            
+            other_weight = def_weight if perspective == 'attack' else att_weight
+            ratio_limit = max_ratio
+            if other_weight and other_weight > base_weight * min_ratio:
+                if perspective == 'attack':
+                    max_weight = min(max_weight, other_weight * ratio_limit)
+                else:
+                    min_weight = max(min_weight, other_weight / ratio_limit)
+            
+            new_weight = max(min_weight, min(new_weight, max_weight))
+            
+            conn.execute(f'''
+                UPDATE cluster_pattern_stats SET {weight_col} = ? WHERE pattern_id = ?
+            ''', (new_weight, pattern_id))
         
         conn.commit()
     finally:
         conn.close()
 
 def update_cluster_connection_weights(connections, perspective, is_win):
-    """Update cluster connection pattern weights."""
+    """Update cluster connection pattern weights with ratio bounds."""
     if not connections:
         return
     
@@ -417,34 +465,62 @@ def update_cluster_connection_weights(connections, perspective, is_win):
                 WHERE connection_type = ?
             ''', (1 if is_win else 0, 1 if is_win else 0, conn_type))
         
-        cursor = conn.execute(f'''
-            SELECT connection_type, {win_col}, {total_col}, {weight_col}
+        cursor = conn.execute('''
+            SELECT connection_type, attack_total_count, defense_total_count,
+                   attack_weight, defense_weight
             FROM cluster_connection_stats
         ''')
         rows = cursor.fetchall()
         
         for row in rows:
             conn_type = row['connection_type']
-            win_count = row[win_col] or 0
-            total_count = row[total_col] or 0
-            current_w = row[weight_col]
+            att_total = row['attack_total_count'] or 0
+            def_total = row['defense_total_count'] or 0
+            att_weight = row['attack_weight']
+            def_weight = row['defense_weight']
             
             info = CLUSTER_CONNECTION_PATTERNS.get(conn_type, {})
             base_weight = info.get('weight', 1000) if isinstance(info, dict) else 1000
             
-            if current_w is None:
-                current_w = base_weight
+            if att_weight is None:
+                att_weight = base_weight
+            if def_weight is None:
+                def_weight = base_weight
             
-            if total_count >= threshold:
-                raw_weight = (win_count / total_count) * base_weight * win_mult
-                new_weight = current_w * ema_old + raw_weight * ema_new
-                min_weight = base_weight * min_ratio
-                max_weight = base_weight * max_ratio
-                new_weight = max(min_weight, min(new_weight, max_weight))
-                
-                conn.execute(f'''
-                    UPDATE cluster_connection_stats SET {weight_col} = ? WHERE connection_type = ?
-                ''', (new_weight, conn_type))
+            cursor2 = conn.execute(f'''
+                SELECT {win_col}, {total_col} FROM cluster_connection_stats WHERE connection_type = ?
+            ''', (conn_type,))
+            row2 = cursor2.fetchone()
+            if not row2:
+                continue
+            
+            win_count = row2[0] or 0
+            total_count = row2[1] or 0
+            
+            if total_count < threshold:
+                continue
+            
+            win_rate = win_count / total_count
+            raw_weight = win_rate * base_weight * win_mult
+            current_w = att_weight if perspective == 'attack' else def_weight
+            new_weight = current_w * ema_old + raw_weight * ema_new
+            
+            min_weight = base_weight * min_ratio
+            max_weight = base_weight * max_ratio
+            
+            other_weight = def_weight if perspective == 'attack' else att_weight
+            ratio_limit = max_ratio
+            if other_weight and other_weight > base_weight * min_ratio:
+                if perspective == 'attack':
+                    max_weight = min(max_weight, other_weight * ratio_limit)
+                else:
+                    min_weight = max(min_weight, other_weight / ratio_limit)
+            
+            new_weight = max(min_weight, min(new_weight, max_weight))
+            
+            conn.execute(f'''
+                UPDATE cluster_connection_stats SET {weight_col} = ? WHERE connection_type = ?
+            ''', (new_weight, conn_type))
         
         conn.commit()
     finally:
@@ -540,8 +616,9 @@ def get_region(row, col):
     return 'mid'
 
 def extract_patterns_from_moves(moves, target_player):
-    """Extract patterns for a specific player from the game moves."""
+    """Extract patterns for a specific player from the game moves with phase weighting."""
     patterns = set()
+    patterns_with_phase = []
     board = [[0] * 15 for _ in range(15)]
 
     for i, move in enumerate(moves):
@@ -552,7 +629,11 @@ def extract_patterns_from_moves(moves, target_player):
         board[row][col] = player
 
         if player == target_player:
-            patterns.update(extract_patterns_at(board, row, col, player))
+            detected = extract_patterns_at(board, row, col, player)
+            patterns.update(detected)
+            move_number = i + 1
+            phase = get_game_phase(move_number)
+            patterns_with_phase.append((detected, phase))
 
     return patterns
 
@@ -703,36 +784,59 @@ def extract_cluster_pattern_type(cluster, board):
     
     active_count = sum([has_h, has_v, has_d1, has_d2])
     
+    # 4 or more directions: cross pattern
     if active_count >= 4:
         return 'cross_plus'
     
+    # 3 directions: three-way patterns
     if active_count == 3:
-        if has_h and has_v and (has_d1 or has_d2):
-            return 'cross_plus'
-        if has_d1 and has_d2 and (has_h or has_v):
-            return 'cross_x'
+        # T-shape: vertical + horizontal (like ㅗ or ㅜ)
         if has_h and has_v:
-            return 't_shape_1' if any(p[0] == min_r for p in cluster) else 't_shape_2'
+            # Determine orientation based on cluster shape
+            top_count = sum(1 for p in cluster if p[0] == min_r)
+            bottom_count = sum(1 for p in cluster if p[0] == max_r)
+            if top_count == 1:
+                return 't_shape_1'  # ㅗ shape (T pointing up)
+            elif bottom_count == 1:
+                return 't_shape_2'  # ㅜ shape (T pointing down)
+            return 'three_way_up'  # Generic three-way
+        
+        # X with one arm: diagonal + diagonal
+        if has_d1 and has_d2:
+            # ㅓ or ㅏ shape
+            left_count = sum(1 for p in cluster if p[1] == min_c)
+            right_count = sum(1 for p in cluster if p[1] == max_c)
+            if left_count == 1:
+                return 'three_way_left'  # ㅓ shape
+            elif right_count == 1:
+                return 'three_way_right'  # ㅏ shape
+            return 'cross_x'
+        
+        # Mixed: one straight + two diagonals
+        # This shouldn't happen with typical patterns, but handle it
         return 'three_way_up'
     
+    # 2 directions: corner or L-shape
     if active_count == 2:
         if has_h and has_v:
+            # Check shape to determine corner type
             top_count = sum(1 for p in cluster if p[0] == min_r)
             bottom_count = sum(1 for p in cluster if p[0] == max_r)
             left_count = sum(1 for p in cluster if p[1] == min_c)
             right_count = sum(1 for p in cluster if p[1] == max_c)
             
             if top_count == 1 and left_count == 1:
-                return 'corner_l_1'
+                return 'corner_l_1'  # ┌
             if top_count == 1 and right_count == 1:
-                return 'corner_l_2'
+                return 'corner_l_2'  # ┐
             if bottom_count == 1 and left_count == 1:
-                return 'corner_l_3'
+                return 'corner_l_3'  # └
             if bottom_count == 1 and right_count == 1:
-                return 'corner_l_4'
+                return 'corner_l_4'  # ┘
             return 'corner_l_1'
         
         if has_d1 and has_d2:
+            # X shape with only diagonals
             return 'cross_x'
     
     return None
@@ -811,14 +915,15 @@ def classify_connection(board, row, col, player):
         if '_OOO_' in line:
             open_threes += 1
     
+    # Classification order matters - pincer_threat must come before supporting_threat
     if open_threes >= 2:
-        return 'nearby_threes'
+        return 'nearby_threes'        # Double open three (쌍삼)
     if fours >= 1 and open_threes >= 1:
-        return 'bridge_threat'
-    if open_threes >= 1 and fours >= 0:
-        return 'supporting_threat'
+        return 'bridge_threat'        # Four-three (사삼)
     if fours >= 2:
-        return 'pincer_threat'
+        return 'pincer_threat'        # Double four (쌍사)
+    if open_threes >= 1:
+        return 'supporting_threat'    # Open three support
     return None
 
 def extract_cluster_connections(moves, target_player):
@@ -858,10 +963,15 @@ def extract_cluster_connections(moves, target_player):
 # ─── Bidirectional Weight Updates ────────────────────────────────────────────────
 def update_pattern_weights(patterns, perspective, is_win):
     """
-    Update pattern weights bidirectionally.
+    Update pattern weights bidirectionally with ratio bounds and bias correction.
     perspective: 'attack' or 'defense'
     is_win: True if this perspective's patterns contributed to a win
     """
+    patterns = set(patterns) - WIN_CONDITION_PATTERNS
+    
+    if not patterns:
+        return
+    
     conn = get_db()
     try:
         threshold = LEARNING_CONFIG['min_games_threshold']
@@ -885,39 +995,78 @@ def update_pattern_weights(patterns, perspective, is_win):
                 WHERE pattern = ?
             ''', (1 if is_win else 0, 1 if is_win else 0, pattern))
 
-        # Recalculate weights for patterns that have enough data
-        cursor = conn.execute(f'''
-            SELECT pattern, {win_col}, {total_col}, {weight_col}
+        cursor = conn.execute('''
+            SELECT pattern, attack_total_count, defense_total_count,
+                   attack_weight, defense_weight, current_weight
             FROM pattern_stats
         ''')
         rows = cursor.fetchall()
 
         for row in rows:
             pattern = row['pattern']
-            win_count = row[win_col] or 0
-            total_count = row[total_col] or 0
-            current_w = row[weight_col]
+            att_total = row['attack_total_count'] or 0
+            def_total = row['defense_total_count'] or 0
+            att_weight = row['attack_weight']
+            def_weight = row['defense_weight']
+            current_w = row['current_weight']
             base_weight = BASE_WEIGHTS.get(pattern, 1000)
 
+            if att_weight is None:
+                att_weight = base_weight
+            if def_weight is None:
+                def_weight = base_weight
             if current_w is None:
                 current_w = base_weight
 
-            if total_count >= threshold:
-                raw_weight = (win_count / total_count) * base_weight * win_mult
-                new_weight = current_w * ema_old + raw_weight * ema_new
-                min_weight = base_weight * min_ratio
-                max_weight = base_weight * max_ratio
-                new_weight = max(min_weight, min(new_weight, max_weight))
+            att_win = 0
+            def_win = 0
+            if pattern in patterns:
+                cursor2 = conn.execute(f'''
+                    SELECT attack_win_count, defense_win_count, attack_total_count, defense_total_count
+                    FROM pattern_stats WHERE pattern = ?
+                ''', (pattern,))
+                row2 = cursor2.fetchone()
+                if row2:
+                    att_win = row2['attack_win_count'] or 0
+                    def_win = row2['defense_win_count'] or 0
+                    att_total = row2['attack_total_count'] or 0
+                    def_total = row2['defense_total_count'] or 0
 
-                conn.execute(f'''
-                    UPDATE pattern_stats SET {weight_col} = ?, current_weight = ? WHERE pattern = ?
-                ''', (new_weight, new_weight, pattern))
+            if perspective == 'attack':
+                win_count = att_win
+                total_count = att_total
+            else:
+                win_count = def_win
+                total_count = def_total
 
-        # Record weight history
+            if total_count < threshold:
+                continue
+
+            win_rate = win_count / total_count
+            simple_pattern_penalty = 0.7 if pattern in SIMPLE_PATTERNS else 1.0
+            raw_weight = win_rate * base_weight * win_mult * simple_pattern_penalty
+            new_weight = current_w * ema_old + raw_weight * ema_new
+            min_weight = base_weight * min_ratio
+            max_weight = base_weight * max_ratio
+            
+            other_weight = def_weight if perspective == 'attack' else att_weight
+            ratio_limit = max_ratio
+            if other_weight and other_weight > base_weight * min_ratio:
+                if perspective == 'attack':
+                    max_weight = min(max_weight, other_weight * ratio_limit)
+                else:
+                    min_weight = max(min_weight, other_weight / ratio_limit)
+            
+            new_weight = max(min_weight, min(new_weight, max_weight))
+
+            conn.execute(f'''
+                UPDATE pattern_stats SET {weight_col} = ?, current_weight = ? WHERE pattern = ?
+            ''', (new_weight, new_weight, pattern))
+
         game_count = conn.execute('SELECT COUNT(*) as c FROM game_records').fetchone()['c']
         now = get_kst_datetime().isoformat()
-        cursor2 = conn.execute('SELECT pattern, attack_weight, defense_weight FROM pattern_stats')
-        for row in cursor2.fetchall():
+        cursor3 = conn.execute('SELECT pattern, attack_weight, defense_weight FROM pattern_stats')
+        for row in cursor3.fetchall():
             conn.execute('''
                 INSERT INTO weight_history (pattern, attack_weight, defense_weight, game_count, recorded_at)
                 VALUES (?, ?, ?, ?, ?)
@@ -1068,9 +1217,12 @@ def save_game_record():
     finally:
         conn.close()
 
-    # Skip learning for outlier games
+    # Skip learning for outlier games or draws/incomplete games
     if stone_count < 9 or stone_count > 225:
         return jsonify({'success': True, 'learned': False, 'reason': 'outlier'})
+    
+    if winner == -1 or winner == 0:
+        return jsonify({'success': True, 'learned': False, 'reason': 'draw_or_incomplete'})
 
     learned_info = {'attack_patterns': 0, 'defense_patterns': 0, 'composites': 0, 'cluster_patterns': 0, 'cluster_connections': 0}
 
@@ -1210,6 +1362,29 @@ def serve_file(path):
         return jsonify({'error': 'Not found'}), 404
     return send_from_directory('.', path)
 
+# ─── Error Handlers ──────────────────────────────────────────────────────────────
+@app.errorhandler(404)
+def not_found(error):
+    logger.warning(f'404 Not Found: {request.url}')
+    return jsonify({'error': 'Not found'}), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    logger.error(f'500 Internal Error: {request.url}\n{traceback.format_exc()}')
+    return jsonify({'error': 'Internal server error'}), 500
+
+@app.errorhandler(Exception)
+def handle_exception(error):
+    logger.error(f'Unhandled exception: {str(error)}\n{traceback.format_exc()}')
+    return jsonify({'error': 'Internal server error'}), 500
+
 if __name__ == '__main__':
-    init_db()
-    app.run(host='0.0.0.0', port=8081, debug=False)
+    try:
+        logger.info('Initializing database...')
+        init_db()
+        logger.info('Database initialized successfully')
+        logger.info('Starting Omok server on port 8081...')
+        app.run(host='0.0.0.0', port=8081, debug=False, threaded=True)
+    except Exception as e:
+        logger.critical(f'Failed to start server: {str(e)}\n{traceback.format_exc()}')
+        raise

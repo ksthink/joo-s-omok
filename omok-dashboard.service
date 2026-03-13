@@ -1,0 +1,16 @@
+[Unit]
+Description=Omok Dashboard Server
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/test/omok/dashboard
+ExecStart=/usr/bin/python3 app.py
+Restart=always
+RestartSec=10
+StandardOutput=append:/home/ubuntu/test/omok/logs/dashboard.log
+StandardError=append:/home/ubuntu/test/omok/logs/dashboard_error.log
+
+[Install]
+WantedBy=multi-user.target

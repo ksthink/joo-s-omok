@@ -1,0 +1,399 @@
+2026-03-13 09:10:35,124 - omok_server - INFO - Initializing database...
+2026-03-13 09:10:35,125 - omok_server - INFO - Database initialized successfully
+2026-03-13 09:10:35,125 - omok_server - INFO - Starting Omok server on port 8081...
+ * Serving Flask app 'server'
+ * Debug mode: off
+2026-03-13 09:10:35,129 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 09:10:35,129 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 09:10:37,939 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:10:37] "[33mGET /api/stats HTTP/1.1[0m" 404 -
+2026-03-13 09:10:51,799 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:10:51] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 09:10:55,560 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:10:55] "GET / HTTP/1.1" 200 -
+2026-03-13 09:11:21,134 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 09:11:21] "GET / HTTP/1.1" 200 -
+2026-03-13 09:11:21,169 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 09:11:21] "[36mGET /style.css HTTP/1.1[0m" 304 -
+2026-03-13 09:11:21,174 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 09:11:21] "[36mGET /board-renderer.js HTTP/1.1[0m" 304 -
+2026-03-13 09:11:21,174 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 09:11:21] "[36mGET /ai.js HTTP/1.1[0m" 304 -
+2026-03-13 09:11:21,175 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 09:11:21] "[36mGET /game.js HTTP/1.1[0m" 304 -
+2026-03-13 09:11:21,177 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 09:11:21] "[35m[1mGET /stone.wav HTTP/1.1[0m" 206 -
+2026-03-13 09:11:21,258 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 09:11:21] "[36mGET /font.woff2 HTTP/1.1[0m" 304 -
+2026-03-13 09:11:21,260 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 09:11:21] "[35m[1mGET /stone.wav HTTP/1.1[0m" 206 -
+[2026-03-13 09:15:15] \033[1;33mKilling all server processes...\033[0m
+[2026-03-13 09:15:17] Cleaned up all server processes and lock files
+[2026-03-13 09:15:20] \033[0;34mStarting watchdog mode...\033[0m
+[2026-03-13 09:15:20] \033[1;33mServer not running, starting...\033[0m
+[2026-03-13 09:15:20] \033[0;34mStarting server...\033[0m
+[2026-03-13 09:15:20] \033[1;33mServer processes already running (1). Cleaning up...\033[0m
+[2026-03-13 09:15:20] \033[1;33mKilling all server processes...\033[0m
+2026-03-13 09:15:23,829 - omok_server - INFO - Initializing database...
+2026-03-13 09:15:23,830 - omok_server - INFO - Database initialized successfully
+2026-03-13 09:15:23,830 - omok_server - INFO - Starting Omok server on port 8081...
+ * Serving Flask app 'server'
+ * Debug mode: off
+2026-03-13 09:15:23,835 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 09:15:23,836 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 09:15:30,989 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:15:30] "GET /api/weights HTTP/1.1" 200 -
+[2026-03-13 09:15:33] \033[0;31mERROR: Server failed to respond within 10 seconds\033[0m
+[2026-03-13 09:15:36] \033[0;31mServer process not found\033[0m
+[2026-03-13 09:15:36] \033[1;33mRestarting server (attempt 1)\033[0m
+[2026-03-13 09:15:36] \033[0;34mStarting server...\033[0m
+[2026-03-13 09:15:36] \033[1;33mServer processes already running (2). Cleaning up...\033[0m
+[2026-03-13 09:15:36] \033[1;33mKilling all server processes...\033[0m
+[2026-03-13 09:15:39] Stopping watchdog (PID: 156730)
+[2026-03-13 09:15:39] Watchdog stopping...
+[2026-03-13 09:15:40] \033[1;33mKilling all server processes...\033[0m
+[2026-03-13 09:15:40] Cleaned up all server processes and lock files
+[2026-03-13 09:15:42] \033[0;34mStarting watchdog mode...\033[0m
+[2026-03-13 09:15:42] \033[1;33mServer not running, starting...\033[0m
+[2026-03-13 09:15:42] \033[0;34mStarting server...\033[0m
+[2026-03-13 09:15:42] \033[1;33mServer processes already running (1). Cleaning up...\033[0m
+[2026-03-13 09:15:42] \033[1;33mKilling all server processes...\033[0m
+2026-03-13 09:15:45,344 - omok_server - INFO - Initializing database...
+2026-03-13 09:15:45,345 - omok_server - INFO - Database initialized successfully
+2026-03-13 09:15:45,347 - omok_server - INFO - Starting Omok server on port 8081...
+ * Serving Flask app 'server'
+ * Debug mode: off
+2026-03-13 09:15:45,351 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 09:15:45,351 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+[2026-03-13 09:15:53] Stopping watchdog (PID: 157039)
+[2026-03-13 09:15:54] Watchdog stopping...
+[2026-03-13 09:15:54] \033[1;33mKilling all server processes...\033[0m
+[2026-03-13 09:15:56] Cleaned up all server processes and lock files
+[2026-03-13 09:16:45] \033[1;33mKilling all server processes...\033[0m
+[2026-03-13 09:16:47] Cleaned up all server processes and lock files
+[2026-03-13 09:16:49] \033[0;34mStarting watchdog mode...\033[0m
+[2026-03-13 09:16:49] \033[1;33mServer not running/responding, starting...\033[0m
+[2026-03-13 09:16:49] \033[0;34mStarting server...\033[0m
+[2026-03-13 09:16:50] \033[1;33mServer processes already running (1). Cleaning up...\033[0m
+[2026-03-13 09:16:50] \033[1;33mKilling all server processes...\033[0m
+2026-03-13 09:16:54,372 - omok_server - INFO - Initializing database...
+2026-03-13 09:16:54,373 - omok_server - INFO - Database initialized successfully
+2026-03-13 09:16:54,373 - omok_server - INFO - Starting Omok server on port 8081...
+ * Serving Flask app 'server'
+ * Debug mode: off
+2026-03-13 09:16:54,380 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 09:16:54,380 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 09:16:55,039 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:16:55] "GET /api/weights HTTP/1.1" 200 -
+[2026-03-13 09:16:55] \033[0;32mServer started successfully (PID: 157512)\033[0m
+2026-03-13 09:17:00,078 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:17:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 09:17:06,877 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:17:06] "GET /api/weights HTTP/1.1" 200 -
+[2026-03-13 09:17:20] \033[0;31mServer process not found\033[0m
+[2026-03-13 09:17:20] \033[1;33mRestarting server (attempt 1)\033[0m
+[2026-03-13 09:17:20] \033[0;34mStarting server...\033[0m
+[2026-03-13 09:17:20] \033[1;33mServer processes already running (1). Cleaning up...\033[0m
+[2026-03-13 09:17:20] \033[1;33mKilling all server processes...\033[0m
+[2026-03-13 09:17:20] \033[0;34mStarting server...\033[0m
+2026-03-13 09:17:20,717 - omok_server - INFO - Initializing database...
+2026-03-13 09:17:20,718 - omok_server - INFO - Database initialized successfully
+2026-03-13 09:17:20,719 - omok_server - INFO - Starting Omok server on port 8081...
+ * Serving Flask app 'server'
+ * Debug mode: off
+2026-03-13 09:17:20,724 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 09:17:20,725 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 09:17:21,527 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:17:21] "GET /api/weights HTTP/1.1" 200 -
+[2026-03-13 09:17:21] \033[0;32mServer started successfully (PID: 157894)\033[0m
+2026-03-13 09:17:24,330 - omok_server - INFO - Initializing database...
+2026-03-13 09:17:24,331 - omok_server - INFO - Database initialized successfully
+2026-03-13 09:17:24,331 - omok_server - INFO - Starting Omok server on port 8081...
+ * Serving Flask app 'server'
+ * Debug mode: off
+2026-03-13 09:17:24,551 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:17:24] "GET /api/weights HTTP/1.1" 200 -
+[2026-03-13 09:17:25] \033[0;31mERROR: Server process died during startup\033[0m
+[2026-03-13 09:17:28] \033[0;31mServer process not found\033[0m
+[2026-03-13 09:17:28] \033[1;33mRestarting server (attempt 2)\033[0m
+[2026-03-13 09:17:28] \033[0;34mStarting server...\033[0m
+[2026-03-13 09:17:28] \033[1;33mServer processes already running (2). Cleaning up...\033[0m
+[2026-03-13 09:17:28] \033[1;33mKilling all server processes...\033[0m
+2026-03-13 09:17:32,379 - omok_server - INFO - Initializing database...
+2026-03-13 09:17:32,380 - omok_server - INFO - Database initialized successfully
+2026-03-13 09:17:32,380 - omok_server - INFO - Starting Omok server on port 8081...
+ * Serving Flask app 'server'
+ * Debug mode: off
+2026-03-13 09:17:32,385 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 09:17:32,385 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 09:17:33,199 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:17:33] "GET /api/weights HTTP/1.1" 200 -
+[2026-03-13 09:17:33] \033[0;32mServer started successfully (PID: 158012)\033[0m
+[2026-03-13 09:17:36] \033[0;34mStarting watchdog mode...\033[0m
+2026-03-13 09:17:36,311 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:17:36] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 09:17:41,308 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:17:41] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 09:17:51,161 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:17:51] "GET /api/weights HTTP/1.1" 200 -
+[2026-03-13 09:18:34] \033[0;34mStarting watchdog mode...\033[0m
+[2026-03-13 09:18:36] \033[0;31mServer process not found\033[0m
+[2026-03-13 09:18:36] \033[1;33mRestarting server (attempt 1)\033[0m
+[2026-03-13 09:18:36] \033[0;34mStarting server...\033[0m
+[2026-03-13 09:18:36] \033[1;33mServer processes already running (1). Cleaning up...\033[0m
+[2026-03-13 09:18:36] \033[1;33mKilling all server processes...\033[0m
+[2026-03-13 09:18:36] \033[0;31mServer process not found\033[0m
+[2026-03-13 09:18:36] \033[1;33mRestarting server (attempt 1)\033[0m
+[2026-03-13 09:18:36] \033[0;34mStarting server...\033[0m
+2026-03-13 09:18:36,553 - omok_server - INFO - Initializing database...
+2026-03-13 09:18:36,554 - omok_server - INFO - Database initialized successfully
+2026-03-13 09:18:36,554 - omok_server - INFO - Starting Omok server on port 8081...
+ * Serving Flask app 'server'
+ * Debug mode: off
+2026-03-13 09:18:36,558 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 09:18:36,558 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 09:18:37,375 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:18:37] "GET /api/weights HTTP/1.1" 200 -
+[2026-03-13 09:18:37] \033[0;32mServer started successfully (PID: 158567)\033[0m
+2026-03-13 09:18:40,472 - omok_server - INFO - Initializing database...
+2026-03-13 09:18:40,473 - omok_server - INFO - Database initialized successfully
+2026-03-13 09:18:40,473 - omok_server - INFO - Starting Omok server on port 8081...
+ * Serving Flask app 'server'
+ * Debug mode: off
+[2026-03-13 09:18:41] \033[0;31mERROR: Server process died during startup\033[0m
+2026-03-13 09:18:42,692 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:18:42] "GET /api/weights HTTP/1.1" 200 -
+[2026-03-13 09:18:44] \033[0;31mServer process not found\033[0m
+[2026-03-13 09:18:44] \033[1;33mRestarting server (attempt 2)\033[0m
+[2026-03-13 09:18:44] \033[0;34mStarting server...\033[0m
+[2026-03-13 09:18:44] \033[1;33mServer processes already running (2). Cleaning up...\033[0m
+[2026-03-13 09:18:44] \033[1;33mKilling all server processes...\033[0m
+2026-03-13 09:18:48,529 - omok_server - INFO - Initializing database...
+2026-03-13 09:18:48,530 - omok_server - INFO - Database initialized successfully
+2026-03-13 09:18:48,530 - omok_server - INFO - Starting Omok server on port 8081...
+ * Serving Flask app 'server'
+ * Debug mode: off
+2026-03-13 09:18:48,534 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 09:18:48,534 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 09:18:49,179 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:18:49] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 09:18:49,350 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:18:49] "GET /api/weights HTTP/1.1" 200 -
+[2026-03-13 09:18:49] \033[0;32mServer started successfully (PID: 158697)\033[0m
+2026-03-13 09:19:00,404 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:19:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 09:19:30,428 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:19:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 09:20:00,456 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:20:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 09:20:30,479 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:20:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 09:21:00,503 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:21:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 09:21:16,020 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 09:21:16] "[36mGET / HTTP/1.1[0m" 304 -
+2026-03-13 09:21:16,049 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 09:21:16] "[36mGET /style.css HTTP/1.1[0m" 304 -
+2026-03-13 09:21:16,056 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 09:21:16] "[36mGET /ai.js HTTP/1.1[0m" 304 -
+2026-03-13 09:21:16,057 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 09:21:16] "[36mGET /game.js HTTP/1.1[0m" 304 -
+2026-03-13 09:21:16,058 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 09:21:16] "[36mGET /board-renderer.js HTTP/1.1[0m" 304 -
+2026-03-13 09:21:16,059 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 09:21:16] "[35m[1mGET /stone.wav HTTP/1.1[0m" 206 -
+2026-03-13 09:21:16,094 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 09:21:16] "[36mGET /font.woff2 HTTP/1.1[0m" 304 -
+2026-03-13 09:21:16,096 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 09:21:16] "[35m[1mGET /stone.wav HTTP/1.1[0m" 206 -
+2026-03-13 09:21:30,526 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:21:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 09:22:00,559 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:22:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 09:22:30,584 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:22:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 09:23:00,607 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:23:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 09:23:30,631 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:23:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 09:24:00,655 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:24:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 09:24:30,680 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:24:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 09:25:00,703 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:25:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 09:25:30,729 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:25:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 09:26:00,754 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:26:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 09:26:30,778 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:26:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 09:27:00,801 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:27:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 09:27:30,826 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:27:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 09:28:00,851 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:28:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 09:28:30,875 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:28:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 09:29:00,900 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:29:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 09:29:30,924 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:29:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 09:30:00,949 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:30:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 09:30:30,975 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:30:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 09:31:00,999 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:31:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 10:43:25,203 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:43:25] "[36mGET / HTTP/1.1[0m" 304 -
+2026-03-13 10:43:25,227 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:43:25] "[36mGET /style.css HTTP/1.1[0m" 304 -
+2026-03-13 10:43:25,233 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:43:25] "[36mGET /board-renderer.js HTTP/1.1[0m" 304 -
+2026-03-13 10:43:25,233 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:43:25] "[36mGET /game.js HTTP/1.1[0m" 304 -
+2026-03-13 10:43:25,234 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:43:25] "[36mGET /ai.js HTTP/1.1[0m" 304 -
+2026-03-13 10:43:25,325 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:43:25] "[36mGET /font.woff2 HTTP/1.1[0m" 304 -
+2026-03-13 10:43:25,327 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:43:25] "[35m[1mGET /stone.wav HTTP/1.1[0m" 206 -
+2026-03-13 10:43:25,355 - omok_server - WARNING - 404 Not Found: http://13.124.10.111:8081/favicon.ico
+2026-03-13 10:43:25,355 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:43:25] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-03-13 10:43:47,328 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:43:47] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 10:43:47,343 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:43:47] "[33mGET /api/cluster-weights HTTP/1.1[0m" 404 -
+2026-03-13 10:43:49,749 - omok_server - WARNING - 404 Not Found: http://13.124.10.111:8081/favicon.ico
+2026-03-13 10:43:49,749 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:43:49] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-03-13 10:44:28,867 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:44:28] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 10:44:28,882 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:44:28] "[33mGET /api/cluster-weights HTTP/1.1[0m" 404 -
+2026-03-13 10:45:25,084 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:45:25] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 10:45:25,101 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:45:25] "[33mGET /api/cluster-weights HTTP/1.1[0m" 404 -
+2026-03-13 10:46:21,857 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:46:21] "POST /api/game-record HTTP/1.1" 200 -
+2026-03-13 10:46:23,258 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:46:23] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 10:46:23,272 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:46:23] "[33mGET /api/cluster-weights HTTP/1.1[0m" 404 -
+2026-03-13 10:49:16,799 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:49:16] "POST /api/game-record HTTP/1.1" 200 -
+2026-03-13 10:49:18,334 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:49:18] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 10:49:18,349 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:49:18] "[33mGET /api/cluster-weights HTTP/1.1[0m" 404 -
+2026-03-13 10:49:46,106 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:49:46] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 10:49:46,119 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:49:46] "[33mGET /api/cluster-weights HTTP/1.1[0m" 404 -
+2026-03-13 10:51:51,830 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:51:51] "POST /api/game-record HTTP/1.1" 200 -
+2026-03-13 10:51:58,557 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:51:58] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 10:51:58,572 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:51:58] "[33mGET /api/cluster-weights HTTP/1.1[0m" 404 -
+2026-03-13 10:53:35,638 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:53:35] "POST /api/game-record HTTP/1.1" 200 -
+2026-03-13 10:53:37,540 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:53:37] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 10:53:37,555 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:53:37] "[33mGET /api/cluster-weights HTTP/1.1[0m" 404 -
+2026-03-13 10:56:09,242 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:56:09] "POST /api/game-record HTTP/1.1" 200 -
+2026-03-13 11:10:34,300 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 11:10:34] "[36mGET / HTTP/1.1[0m" 304 -
+2026-03-13 11:10:34,330 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 11:10:34] "[36mGET /style.css HTTP/1.1[0m" 304 -
+2026-03-13 11:10:34,332 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 11:10:34] "[36mGET /board-renderer.js HTTP/1.1[0m" 304 -
+2026-03-13 11:10:34,334 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 11:10:34] "[36mGET /ai.js HTTP/1.1[0m" 304 -
+2026-03-13 11:10:34,334 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 11:10:34] "[35m[1mGET /stone.wav HTTP/1.1[0m" 206 -
+2026-03-13 11:10:34,335 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 11:10:34] "[36mGET /game.js HTTP/1.1[0m" 304 -
+2026-03-13 11:10:34,360 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 11:10:34] "[36mGET /font.woff2 HTTP/1.1[0m" 304 -
+2026-03-13 12:01:29,683 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 12:01:29] "[36mGET / HTTP/1.1[0m" 304 -
+2026-03-13 12:01:29,719 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 12:01:29] "[36mGET /style.css HTTP/1.1[0m" 304 -
+2026-03-13 12:01:29,727 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 12:01:29] "[36mGET /ai.js HTTP/1.1[0m" 304 -
+2026-03-13 12:01:29,727 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 12:01:29] "[36mGET /board-renderer.js HTTP/1.1[0m" 304 -
+2026-03-13 12:01:29,728 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 12:01:29] "[36mGET /game.js HTTP/1.1[0m" 304 -
+2026-03-13 12:01:29,729 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 12:01:29] "[35m[1mGET /stone.wav HTTP/1.1[0m" 206 -
+2026-03-13 12:01:29,811 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 12:01:29] "[36mGET /font.woff2 HTTP/1.1[0m" 304 -
+2026-03-13 13:03:00,096 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:03:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:03:30,122 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:03:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:04:00,170 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:04:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:04:30,195 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:04:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:05:00,221 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:05:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:05:30,246 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:05:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:06:00,272 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:06:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:06:30,297 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:06:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:07:00,321 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:07:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:07:30,346 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:07:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:08:00,372 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:08:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:08:30,395 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:08:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:09:00,418 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:09:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:09:30,442 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:09:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:10:00,466 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:10:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:10:30,491 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:10:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:11:00,516 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:11:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:11:30,540 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:11:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:12:00,565 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:12:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:12:30,593 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:12:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:13:00,618 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:13:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:13:30,643 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:13:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:14:00,669 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:14:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:14:30,693 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:14:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:15:00,717 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:15:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:15:30,742 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:15:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:16:00,765 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:16:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:16:30,788 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:16:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:17:00,813 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:17:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:17:30,836 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:17:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:18:00,859 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:18:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:18:30,884 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:18:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:19:00,908 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:19:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:19:30,933 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:19:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:20:00,958 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:20:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:20:30,984 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:20:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:21:01,007 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:21:01] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 13:57:50,326 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 13:57:50] "[36mGET / HTTP/1.1[0m" 304 -
+2026-03-13 13:57:50,340 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 13:57:50] "[36mGET /font.woff2 HTTP/1.1[0m" 304 -
+2026-03-13 13:57:50,341 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 13:57:50] "[36mGET /game.js HTTP/1.1[0m" 304 -
+2026-03-13 13:57:50,342 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 13:57:50] "[36mGET /board-renderer.js HTTP/1.1[0m" 304 -
+2026-03-13 13:57:50,342 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 13:57:50] "[36mGET /ai.js HTTP/1.1[0m" 304 -
+2026-03-13 13:57:50,346 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 13:57:50] "[36mGET /style.css HTTP/1.1[0m" 304 -
+2026-03-13 13:57:50,495 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 13:57:50] "[35m[1mGET /stone.wav HTTP/1.1[0m" 206 -
+2026-03-13 13:57:50,524 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 13:57:50] "[35m[1mGET /stone.wav HTTP/1.1[0m" 206 -
+2026-03-13 13:57:50,691 - omok_server - WARNING - 404 Not Found: http://13.124.10.111:8081/apple-touch-icon-precomposed.png
+2026-03-13 13:57:50,691 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 13:57:50] "[33mGET /apple-touch-icon-precomposed.png HTTP/1.1[0m" 404 -
+2026-03-13 13:57:50,699 - omok_server - WARNING - 404 Not Found: http://13.124.10.111:8081/apple-touch-icon.png
+2026-03-13 13:57:50,700 - omok_server - WARNING - 404 Not Found: http://13.124.10.111:8081/favicon.ico
+2026-03-13 13:57:50,700 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 13:57:50] "[33mGET /apple-touch-icon.png HTTP/1.1[0m" 404 -
+2026-03-13 13:57:50,700 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 13:57:50] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-03-13 14:02:30,019 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:02:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:03:00,079 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:03:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:03:30,110 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:03:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:04:00,141 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:04:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:04:30,167 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:04:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:05:00,192 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:05:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:05:18,559 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:05:18] "[36mGET / HTTP/1.1[0m" 304 -
+2026-03-13 14:05:18,574 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:05:18] "[36mGET /game.js HTTP/1.1[0m" 304 -
+2026-03-13 14:05:18,574 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:05:18] "[36mGET /board-renderer.js HTTP/1.1[0m" 304 -
+2026-03-13 14:05:18,575 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:05:18] "[36mGET /font.woff2 HTTP/1.1[0m" 304 -
+2026-03-13 14:05:18,575 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:05:18] "[36mGET /ai.js HTTP/1.1[0m" 304 -
+2026-03-13 14:05:18,579 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:05:18] "[36mGET /style.css HTTP/1.1[0m" 304 -
+2026-03-13 14:05:18,734 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:05:18] "[35m[1mGET /stone.wav HTTP/1.1[0m" 206 -
+2026-03-13 14:05:18,761 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:05:18] "[35m[1mGET /stone.wav HTTP/1.1[0m" 206 -
+2026-03-13 14:05:21,590 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:05:21] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:05:21,616 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:05:21] "[33mGET /api/cluster-weights HTTP/1.1[0m" 404 -
+2026-03-13 14:05:29,449 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:05:29] "GET / HTTP/1.1" 200 -
+2026-03-13 14:05:29,482 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:05:29] "GET /style.css HTTP/1.1" 200 -
+2026-03-13 14:05:29,485 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:05:29] "GET /board-renderer.js HTTP/1.1" 200 -
+2026-03-13 14:05:29,500 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:05:29] "[35m[1mGET /stone.wav HTTP/1.1[0m" 206 -
+2026-03-13 14:05:29,501 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:05:29] "GET /game.js HTTP/1.1" 200 -
+2026-03-13 14:05:29,501 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:05:29] "GET /ai.js HTTP/1.1" 200 -
+2026-03-13 14:05:29,644 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:05:29] "GET /font.woff2 HTTP/1.1" 200 -
+2026-03-13 14:05:29,676 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:05:29] "[35m[1mGET /stone.wav HTTP/1.1[0m" 206 -
+2026-03-13 14:05:29,824 - omok_server - WARNING - 404 Not Found: http://13.124.10.111:8081/favicon.ico
+2026-03-13 14:05:29,824 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:05:29] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-03-13 14:05:30,216 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:05:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:05:36,264 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:05:36] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:05:36,320 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:05:36] "[33mGET /api/cluster-weights HTTP/1.1[0m" 404 -
+2026-03-13 14:06:00,258 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:06:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:06:08,510 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:06:08] "POST /api/game-record HTTP/1.1" 200 -
+2026-03-13 14:06:30,281 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:06:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:06:53,890 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:06:53] "POST /api/game-record HTTP/1.1" 200 -
+2026-03-13 14:06:58,053 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:06:58] "POST /api/leaderboard HTTP/1.1" 200 -
+2026-03-13 14:07:00,306 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:07:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:07:07,307 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:07:07] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:07:07,350 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:07:07] "[33mGET /api/cluster-weights HTTP/1.1[0m" 404 -
+2026-03-13 14:07:30,329 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:07:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:08:00,353 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:08:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:08:06,943 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:08:06] "POST /api/game-record HTTP/1.1" 200 -
+2026-03-13 14:08:17,688 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:08:17] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:08:17,869 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:08:17] "[33mGET /api/cluster-weights HTTP/1.1[0m" 404 -
+2026-03-13 14:08:30,379 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:08:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:09:00,402 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:09:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:09:30,426 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:09:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:10:00,449 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:10:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:10:30,475 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:10:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:10:35,551 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:10:35] "POST /api/game-record HTTP/1.1" 200 -
+2026-03-13 14:10:37,634 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:10:37] "POST /api/leaderboard HTTP/1.1" 200 -
+2026-03-13 14:10:42,815 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:10:42] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:10:42,876 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:10:42] "[33mGET /api/cluster-weights HTTP/1.1[0m" 404 -
+2026-03-13 14:10:46,226 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:10:46] "GET /api/leaderboard HTTP/1.1" 200 -
+2026-03-13 14:11:00,499 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:11:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:11:06,593 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:11:06] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:11:06,624 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:11:06] "[33mGET /api/cluster-weights HTTP/1.1[0m" 404 -
+2026-03-13 14:11:30,522 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:11:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:12:00,546 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:12:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:12:30,571 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:12:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:12:31,589 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:12:31] "POST /api/game-record HTTP/1.1" 200 -
+2026-03-13 14:12:34,529 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:12:34] "POST /api/leaderboard HTTP/1.1" 200 -
+2026-03-13 14:13:00,596 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:13:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:13:30,620 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:13:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:14:00,643 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:14:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:14:30,668 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:14:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:15:00,692 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:15:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:15:30,715 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:15:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:16:00,740 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:16:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:16:30,765 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:16:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:17:00,788 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:17:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:17:30,811 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:17:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:18:00,835 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:18:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:18:30,860 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:18:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:19:00,884 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:19:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:19:30,908 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:19:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:20:00,933 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:20:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:20:30,958 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:20:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:21:00,980 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:21:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:21:31,003 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:21:31] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 14:41:50,723 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:41:50] "[36mGET / HTTP/1.1[0m" 304 -
+2026-03-13 14:41:50,742 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:41:50] "[36mGET /style.css HTTP/1.1[0m" 304 -
+2026-03-13 14:41:50,753 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:41:50] "[36mGET /ai.js HTTP/1.1[0m" 304 -
+2026-03-13 14:41:50,754 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:41:50] "[35m[1mGET /stone.wav HTTP/1.1[0m" 206 -
+2026-03-13 14:41:50,755 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:41:50] "[36mGET /game.js HTTP/1.1[0m" 304 -
+2026-03-13 14:41:50,756 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:41:50] "[36mGET /board-renderer.js HTTP/1.1[0m" 304 -
+2026-03-13 14:41:50,776 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:41:50] "[36mGET /font.woff2 HTTP/1.1[0m" 304 -
+2026-03-13 14:41:50,779 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:41:50] "[35m[1mGET /stone.wav HTTP/1.1[0m" 206 -
+2026-03-13 14:41:50,820 - omok_server - WARNING - 404 Not Found: http://13.124.10.111:8081/favicon.ico
+2026-03-13 14:41:50,820 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:41:50] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -

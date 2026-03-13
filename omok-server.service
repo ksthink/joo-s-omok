@@ -1,0 +1,16 @@
+[Unit]
+Description=Omok Game Server
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/test/omok
+ExecStart=/home/ubuntu/test/omok/run_server.sh watch
+Restart=always
+RestartSec=10
+StandardOutput=append:/home/ubuntu/test/omok/logs/server.log
+StandardError=append:/home/ubuntu/test/omok/logs/server_error.log
+
+[Install]
+WantedBy=multi-user.target
