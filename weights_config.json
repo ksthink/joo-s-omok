@@ -48,8 +48,8 @@
   },
   "learning": {
     "min_games_threshold": 30,
-    "ema_old_weight": 0.85,
-    "ema_new_weight": 0.15,
+    "ema_old_weight": 0.65,
+    "ema_new_weight": 0.35,
     "min_weight_ratio": 0.5,
     "max_weight_ratio": 2.0,
     "win_multiplier": 1.2

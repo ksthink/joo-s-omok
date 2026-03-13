@@ -637,6 +637,49 @@ def extract_patterns_from_moves(moves, target_player):
 
     return patterns
 
+def extract_decisive_patterns(moves, target_player, n_final=6):
+    """
+    Extract patterns from only the last N moves of the game.
+    These are the 'decisive' patterns most causally linked to the game outcome.
+    Builds the full board state first, then only records patterns from the last N moves.
+    """
+    board = [[0] * 15 for _ in range(15)]
+
+    # Replay the entire game to build correct board state
+    for move in moves:
+        player = move.get('player', 0)
+        row, col = move['row'], move['col']
+        if 0 <= row < 15 and 0 <= col < 15 and player in (1, 2):
+            board[row][col] = player
+
+    # Now undo last N moves to replay from (total - N)
+    total = len(moves)
+    start_idx = max(0, total - n_final)
+
+    # Rebuild board up to start_idx
+    board2 = [[0] * 15 for _ in range(15)]
+    for i in range(start_idx):
+        move = moves[i]
+        player = move.get('player', 0)
+        row, col = move['row'], move['col']
+        if 0 <= row < 15 and 0 <= col < 15 and player in (1, 2):
+            board2[row][col] = player
+
+    # Collect patterns only from the decisive last moves
+    patterns = set()
+    for i in range(start_idx, total):
+        move = moves[i]
+        player = move.get('player', 1 if i % 2 == 0 else 2)
+        row, col = move['row'], move['col']
+        if not (0 <= row < 15 and 0 <= col < 15):
+            continue
+        board2[row][col] = player
+        if player == target_player:
+            detected = extract_patterns_at(board2, row, col, player)
+            patterns.update(detected)
+
+    return patterns
+
 def extract_composite_patterns(moves, target_player):
     """Detect composite threat patterns (쌍삼, 사삼, 쌍사) from moves."""
     composites = []
@@ -1227,10 +1270,10 @@ def save_game_record():
     learned_info = {'attack_patterns': 0, 'defense_patterns': 0, 'composites': 0, 'cluster_patterns': 0, 'cluster_connections': 0}
 
     if winner == 1:
-        # Player won: strengthen defense weights for player patterns,
-        # weaken attack weights for AI patterns
-        player_patterns = extract_patterns_from_moves(moves, target_player=1)
-        ai_patterns = extract_patterns_from_moves(moves, target_player=2)
+        # Player won: strengthen defense weights for player decisive patterns,
+        # weaken attack weights for AI decisive patterns
+        player_patterns = extract_decisive_patterns(moves, target_player=1)
+        ai_patterns = extract_decisive_patterns(moves, target_player=2)
 
         if player_patterns:
             update_pattern_weights(player_patterns, perspective='defense', is_win=True)
@@ -1240,14 +1283,14 @@ def save_game_record():
             learned_info['attack_patterns'] = len(ai_patterns)
 
     elif winner == 2:
-        # AI won: strengthen attack weights for AI patterns
-        ai_patterns = extract_patterns_from_moves(moves, target_player=2)
+        # AI won: strengthen attack weights for AI decisive patterns
+        ai_patterns = extract_decisive_patterns(moves, target_player=2)
         if ai_patterns:
             update_pattern_weights(ai_patterns, perspective='attack', is_win=True)
             learned_info['attack_patterns'] = len(ai_patterns)
 
-        # Also record player defense failures
-        player_patterns = extract_patterns_from_moves(moves, target_player=1)
+        # Also record player defense failures (decisive patterns only)
+        player_patterns = extract_decisive_patterns(moves, target_player=1)
         if player_patterns:
             update_pattern_weights(player_patterns, perspective='defense', is_win=False)
             learned_info['defense_patterns'] = len(player_patterns)

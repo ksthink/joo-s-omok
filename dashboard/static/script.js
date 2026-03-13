@@ -428,6 +428,9 @@ function initReplayControls() {
     document.getElementById('btnNext').addEventListener('click', () => goToMove(currentMoveIndex + 1));
     document.getElementById('btnLast').addEventListener('click', () => goToMove(currentMoves.length));
     document.getElementById('btnAuto').addEventListener('click', toggleAutoPlay);
+    document.getElementById('showPatternLines').addEventListener('change', () => {
+        renderBoard();
+    });
 }
 
 function loadGameReplay(gameId) {
@@ -478,6 +481,8 @@ function renderBoard() {
 
 function drawPatterns() {
     if (!currentPatterns || currentPatterns.length === 0) return;
+    const showLines = document.getElementById('showPatternLines');
+    if (!showLines || !showLines.checked) return;
     currentPatterns.forEach(pattern => {
         if (pattern.move_index !== undefined && pattern.move_index >= currentMoveIndex) return;
         drawPatternLine(pattern);

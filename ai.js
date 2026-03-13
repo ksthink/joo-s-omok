@@ -254,71 +254,83 @@ function initIncrementalScore(board) {
     incrementalScore = fullEvaluateBoard(board);
 }
 
-function calcDelta(board, row, col, player) {
-    // Calculate the score contribution of placing player's stone at (row,col).
-    // This affects all lines through (row,col) for both players.
-    const directions = [[0,1],[1,0],[1,1],[1,-1]];
-    let delta = 0;
-    const perspective = player === 2 ? 'attack' : 'defense';
-    const sign = player === 2 ? 1 : -1;
-
-    // Score contribution from the newly placed stone's lines
-    for (const [dr, dc] of directions) {
-        const line = getLine(row, col, dr, dc, player, board);
-        delta += sign * evaluateLine(line, perspective);
-    }
-
-    // Also recalc opponent lines through this point (their lines are now blocked)
-    const opponent = player === 2 ? 1 : 2;
-    const oppPerspective = opponent === 2 ? 'attack' : 'defense';
-    const oppSign = opponent === 2 ? 1 : -1;
-
-    for (const [dr, dc] of directions) {
-        const line = getLine(row, col, dr, dc, opponent, board);
-        delta += oppSign * evaluateLine(line, oppPerspective);
-    }
-
-    return delta;
-}
+// Incremental evaluation: we track the board and recompute the full score at leaf nodes.
+// True incremental (delta-only) is complex to keep in sync with line-based fullEvaluateBoard,
+// so we use the board mutation + full eval approach only at depth=0.
+// For interior nodes, we simply update the board state and rely on the score at depth=0.
 
 function applyMoveIncremental(board, row, col, player) {
-    // Remove old contributions from lines through this point BEFORE placing stone
-    const oldDelta = calcDelta(board, row, col, player === 2 ? 1 : 2);
-
     board[row][col] = player;
     updateZobristHash(row, col, player);
-
-    // Add new contributions after placing stone
-    const newDelta = calcDelta(board, row, col, player);
-    incrementalScore += (newDelta - oldDelta);
+    // incrementalScore is refreshed at depth=0 via fullEvaluateBoard; no delta needed here.
 }
 
 function undoMoveIncremental(board, row, col, player) {
-    const oldDelta = calcDelta(board, row, col, player);
-
     board[row][col] = 0;
     updateZobristHash(row, col, player);
+    // incrementalScore is refreshed at depth=0 via fullEvaluateBoard; no delta needed here.
+}
 
-    const opponent = player === 2 ? 1 : 2;
-    const newDelta = calcDelta(board, row, col, opponent);
-    incrementalScore -= (oldDelta - newDelta);
+// Build a full-length line string along direction (dr,dc) starting at (r0,c0).
+// Uses board boundaries as line ends (no fixed window).
+function getFullLine(r0, c0, dr, dc, player, board) {
+    const size = board.length;
+    let line = '';
+    // Walk from start to end of the board in this direction
+    for (let r = r0, c = c0; r >= 0 && r < size && c >= 0 && c < size; r += dr, c += dc) {
+        if (board[r][c] === player) line += 'O';
+        else if (board[r][c] === 0) line += '_';
+        else line += 'X';
+    }
+    return line;
+}
+
+// Score all unique lines on the board once per direction.
+// Horizontal: 15 rows, Vertical: 15 cols, Diag \: top-row + left-col, Diag /: bottom-row + left-col.
+function evaluateAllLines(board, player, perspective) {
+    const size = board.length;
+    let score = 0;
+
+    // Horizontal lines (dr=0, dc=1) – one per row
+    for (let r = 0; r < size; r++) {
+        const line = getFullLine(r, 0, 0, 1, player, board);
+        score += evaluateLine(line, perspective);
+    }
+    // Vertical lines (dr=1, dc=0) – one per col
+    for (let c = 0; c < size; c++) {
+        const line = getFullLine(0, c, 1, 0, player, board);
+        score += evaluateLine(line, perspective);
+    }
+    // Diagonal \ (dr=1, dc=1) – top row + left col (excluding corner double-count)
+    for (let c = 0; c < size; c++) {
+        const line = getFullLine(0, c, 1, 1, player, board);
+        score += evaluateLine(line, perspective);
+    }
+    for (let r = 1; r < size; r++) {
+        const line = getFullLine(r, 0, 1, 1, player, board);
+        score += evaluateLine(line, perspective);
+    }
+    // Diagonal / (dr=-1, dc=1) – bottom row + left col
+    for (let c = 0; c < size; c++) {
+        const line = getFullLine(size - 1, c, -1, 1, player, board);
+        score += evaluateLine(line, perspective);
+    }
+    for (let r = 0; r < size - 1; r++) {
+        const line = getFullLine(r, 0, -1, 1, player, board);
+        score += evaluateLine(line, perspective);
+    }
+
+    return score;
 }
 
 // ─── Full Board Evaluation (used for initialization) ───────────────────────────
 function fullEvaluateBoard(board) {
-    const size = board.length;
     let score = 0;
 
-    for (let i = 0; i < size; i++) {
-        for (let j = 0; j < size; j++) {
-            if (board[i][j] === 2) {
-                score += evaluatePoint(i, j, 2, board, 'attack');
-            } else if (board[i][j] === 1) {
-                score -= evaluatePoint(i, j, 1, board, 'defense');
-            }
-        }
-    }
-    
+    // Line-based scan: each line evaluated exactly once per direction, no double-counting
+    score += evaluateAllLines(board, 2, 'attack');
+    score -= evaluateAllLines(board, 1, 'defense');
+
     score += evaluateClusterPatterns(board, 2, 'attack');
     score -= evaluateClusterPatterns(board, 1, 'defense');
     score += evaluateClusterConnections(board, 2, 'attack');
@@ -456,21 +468,27 @@ function buildInfluenceMap(board, player) {
 }
 
 function classifyConnection(board, row, col, player) {
+    // Temporarily place a stone at this empty cell so pattern detection is meaningful
+    board[row][col] = player;
+
     const directions = [[0,1],[1,0],[1,1],[1,-1]];
     let openThrees = 0;
     let fours = 0;
-    
+
     for (const [dr, dc] of directions) {
         const line = getLine(row, col, dr, dc, player, board);
         if (line.includes('_OOOO_')) fours += 2;
         else if (line.includes('OOOO')) fours += 1;
         if (line.includes('_OOO_')) openThrees += 1;
     }
-    
-    if (openThrees >= 2) return 'nearby_threes';
-    if (fours >= 1 && openThrees >= 1) return 'bridge_threat';
-    if (openThrees >= 1) return 'supporting_threat';
+
+    // Restore the cell
+    board[row][col] = 0;
+
     if (fours >= 2) return 'pincer_threat';
+    if (fours >= 1 && openThrees >= 1) return 'bridge_threat';
+    if (openThrees >= 2) return 'nearby_threes';
+    if (openThrees >= 1) return 'supporting_threat';
     return null;
 }
 
@@ -623,8 +641,9 @@ function minimax(board, depth, alpha, beta, isMaximizing, startTime, timeLimitMs
         if (alpha >= beta) return { score: ttEntry.score, move: ttEntry.move, timeout: false };
     }
 
-    // Use incremental score instead of full board scan
-    const score = incrementalScore;
+    // At leaf nodes, compute the accurate full board score.
+    // fullEvaluateBoard uses line-based evaluation (no double-counting).
+    const score = fullEvaluateBoard(board);
     if (depth === 0 || Math.abs(score) >= 100000) {
         return { score, move: null, timeout: false };
     }

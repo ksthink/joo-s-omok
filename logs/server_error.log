@@ -1,301 +1,1235 @@
-2026-03-13 09:15:23,829 - omok_server - INFO - Initializing database...
-2026-03-13 09:15:23,830 - omok_server - INFO - Database initialized successfully
-2026-03-13 09:15:23,830 - omok_server - INFO - Starting Omok server on port 8081...
-2026-03-13 09:15:23,835 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+2026-03-13 15:13:16,359 - omok_server - INFO - Initializing database...
+2026-03-13 15:13:16,360 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:13:16,360 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:13:16,370 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on all addresses (0.0.0.0)
  * Running on http://127.0.0.1:8081
  * Running on http://172.26.15.97:8081
-2026-03-13 09:15:23,836 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2026-03-13 09:15:30,989 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:15:30] "GET /api/weights HTTP/1.1" 200 -
-[2026-03-13 09:15:33] ERROR: Server failed to respond within 10 seconds
-2026-03-13 09:15:45,344 - omok_server - INFO - Initializing database...
-2026-03-13 09:15:45,345 - omok_server - INFO - Database initialized successfully
-2026-03-13 09:15:45,347 - omok_server - INFO - Starting Omok server on port 8081...
-2026-03-13 09:15:45,351 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+2026-03-13 15:13:16,370 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:13:17,158 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:13:17] "GET / HTTP/1.1" 200 -
+2026-03-13 15:13:20,270 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:13:20] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:14:11,675 - omok_server - INFO - Initializing database...
+2026-03-13 15:14:11,676 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:14:11,676 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:14:11,681 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on all addresses (0.0.0.0)
  * Running on http://127.0.0.1:8081
  * Running on http://172.26.15.97:8081
-2026-03-13 09:15:45,351 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2026-03-13 09:16:54,372 - omok_server - INFO - Initializing database...
-2026-03-13 09:16:54,373 - omok_server - INFO - Database initialized successfully
-2026-03-13 09:16:54,373 - omok_server - INFO - Starting Omok server on port 8081...
-2026-03-13 09:16:54,380 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on all addresses (0.0.0.0)
- * Running on http://127.0.0.1:8081
- * Running on http://172.26.15.97:8081
-2026-03-13 09:16:54,380 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2026-03-13 09:16:55,039 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:16:55] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:17:00,078 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:17:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:17:06,877 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:17:06] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:17:20,717 - omok_server - INFO - Initializing database...
-2026-03-13 09:17:20,718 - omok_server - INFO - Database initialized successfully
-2026-03-13 09:17:20,719 - omok_server - INFO - Starting Omok server on port 8081...
-2026-03-13 09:17:20,724 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on all addresses (0.0.0.0)
- * Running on http://127.0.0.1:8081
- * Running on http://172.26.15.97:8081
-2026-03-13 09:17:20,725 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2026-03-13 09:17:21,527 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:17:21] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:17:24,330 - omok_server - INFO - Initializing database...
-2026-03-13 09:17:24,331 - omok_server - INFO - Database initialized successfully
-2026-03-13 09:17:24,331 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:14:11,681 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:14:12,496 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:14:12] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:14:13,404 - omok_server - INFO - Initializing database...
+2026-03-13 15:14:13,405 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:14:13,405 - omok_server - INFO - Starting Omok server on port 8081...
 Address already in use
 Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
-2026-03-13 09:17:24,551 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:17:24] "GET /api/weights HTTP/1.1" 200 -
-[2026-03-13 09:17:25] ERROR: Server process died during startup
-2026-03-13 09:17:32,379 - omok_server - INFO - Initializing database...
-2026-03-13 09:17:32,380 - omok_server - INFO - Database initialized successfully
-2026-03-13 09:17:32,380 - omok_server - INFO - Starting Omok server on port 8081...
-2026-03-13 09:17:32,385 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+[2026-03-13 15:14:14] ERROR: Server process died during startup
+2026-03-13 15:14:19,735 - omok_server - INFO - Initializing database...
+2026-03-13 15:14:19,735 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:14:19,736 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:14:19,742 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on all addresses (0.0.0.0)
  * Running on http://127.0.0.1:8081
  * Running on http://172.26.15.97:8081
-2026-03-13 09:17:32,385 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2026-03-13 09:17:33,199 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:17:33] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:17:36,311 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:17:36] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:17:41,308 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:17:41] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:17:51,161 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:17:51] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:18:36,553 - omok_server - INFO - Initializing database...
-2026-03-13 09:18:36,554 - omok_server - INFO - Database initialized successfully
-2026-03-13 09:18:36,554 - omok_server - INFO - Starting Omok server on port 8081...
-2026-03-13 09:18:36,558 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on all addresses (0.0.0.0)
- * Running on http://127.0.0.1:8081
- * Running on http://172.26.15.97:8081
-2026-03-13 09:18:36,558 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2026-03-13 09:18:37,375 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:18:37] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:18:40,472 - omok_server - INFO - Initializing database...
-2026-03-13 09:18:40,473 - omok_server - INFO - Database initialized successfully
-2026-03-13 09:18:40,473 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:14:19,742 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:14:20,558 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:14:20] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:14:21,473 - omok_server - INFO - Initializing database...
+2026-03-13 15:14:21,474 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:14:21,474 - omok_server - INFO - Starting Omok server on port 8081...
 Address already in use
 Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
-[2026-03-13 09:18:41] ERROR: Server process died during startup
-2026-03-13 09:18:42,692 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:18:42] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:18:48,529 - omok_server - INFO - Initializing database...
-2026-03-13 09:18:48,530 - omok_server - INFO - Database initialized successfully
-2026-03-13 09:18:48,530 - omok_server - INFO - Starting Omok server on port 8081...
-2026-03-13 09:18:48,534 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+[2026-03-13 15:14:22] ERROR: Server process died during startup
+2026-03-13 15:14:25,507 - omok_server - INFO - Initializing database...
+2026-03-13 15:14:25,508 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:14:25,508 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:14:25,512 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
  * Running on all addresses (0.0.0.0)
  * Running on http://127.0.0.1:8081
  * Running on http://172.26.15.97:8081
-2026-03-13 09:18:48,534 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
-2026-03-13 09:18:49,179 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:18:49] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:18:49,350 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:18:49] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:19:00,404 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:19:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:19:30,428 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:19:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:20:00,456 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:20:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:20:30,479 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:20:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:21:00,503 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:21:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:21:16,020 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 09:21:16] "[36mGET / HTTP/1.1[0m" 304 -
-2026-03-13 09:21:16,049 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 09:21:16] "[36mGET /style.css HTTP/1.1[0m" 304 -
-2026-03-13 09:21:16,056 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 09:21:16] "[36mGET /ai.js HTTP/1.1[0m" 304 -
-2026-03-13 09:21:16,057 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 09:21:16] "[36mGET /game.js HTTP/1.1[0m" 304 -
-2026-03-13 09:21:16,058 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 09:21:16] "[36mGET /board-renderer.js HTTP/1.1[0m" 304 -
-2026-03-13 09:21:16,059 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 09:21:16] "[35m[1mGET /stone.wav HTTP/1.1[0m" 206 -
-2026-03-13 09:21:16,094 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 09:21:16] "[36mGET /font.woff2 HTTP/1.1[0m" 304 -
-2026-03-13 09:21:16,096 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 09:21:16] "[35m[1mGET /stone.wav HTTP/1.1[0m" 206 -
-2026-03-13 09:21:30,526 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:21:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:22:00,559 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:22:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:22:30,584 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:22:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:23:00,607 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:23:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:23:30,631 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:23:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:24:00,655 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:24:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:24:30,680 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:24:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:25:00,703 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:25:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:25:30,729 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:25:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:26:00,754 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:26:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:26:30,778 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:26:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:27:00,801 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:27:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:27:30,826 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:27:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:28:00,851 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:28:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:28:30,875 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:28:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:29:00,900 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:29:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:29:30,924 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:29:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:30:00,949 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:30:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:30:30,975 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:30:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 09:31:00,999 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 09:31:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 10:43:25,203 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:43:25] "[36mGET / HTTP/1.1[0m" 304 -
-2026-03-13 10:43:25,227 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:43:25] "[36mGET /style.css HTTP/1.1[0m" 304 -
-2026-03-13 10:43:25,233 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:43:25] "[36mGET /board-renderer.js HTTP/1.1[0m" 304 -
-2026-03-13 10:43:25,233 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:43:25] "[36mGET /game.js HTTP/1.1[0m" 304 -
-2026-03-13 10:43:25,234 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:43:25] "[36mGET /ai.js HTTP/1.1[0m" 304 -
-2026-03-13 10:43:25,325 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:43:25] "[36mGET /font.woff2 HTTP/1.1[0m" 304 -
-2026-03-13 10:43:25,327 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:43:25] "[35m[1mGET /stone.wav HTTP/1.1[0m" 206 -
-2026-03-13 10:43:25,355 - omok_server - WARNING - 404 Not Found: http://13.124.10.111:8081/favicon.ico
-2026-03-13 10:43:25,355 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:43:25] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
-2026-03-13 10:43:47,328 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:43:47] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 10:43:47,343 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:43:47] "[33mGET /api/cluster-weights HTTP/1.1[0m" 404 -
-2026-03-13 10:43:49,749 - omok_server - WARNING - 404 Not Found: http://13.124.10.111:8081/favicon.ico
-2026-03-13 10:43:49,749 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:43:49] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
-2026-03-13 10:44:28,867 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:44:28] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 10:44:28,882 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:44:28] "[33mGET /api/cluster-weights HTTP/1.1[0m" 404 -
-2026-03-13 10:45:25,084 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:45:25] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 10:45:25,101 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:45:25] "[33mGET /api/cluster-weights HTTP/1.1[0m" 404 -
-2026-03-13 10:46:21,857 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:46:21] "POST /api/game-record HTTP/1.1" 200 -
-2026-03-13 10:46:23,258 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:46:23] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 10:46:23,272 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:46:23] "[33mGET /api/cluster-weights HTTP/1.1[0m" 404 -
-2026-03-13 10:49:16,799 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:49:16] "POST /api/game-record HTTP/1.1" 200 -
-2026-03-13 10:49:18,334 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:49:18] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 10:49:18,349 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:49:18] "[33mGET /api/cluster-weights HTTP/1.1[0m" 404 -
-2026-03-13 10:49:46,106 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:49:46] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 10:49:46,119 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:49:46] "[33mGET /api/cluster-weights HTTP/1.1[0m" 404 -
-2026-03-13 10:51:51,830 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:51:51] "POST /api/game-record HTTP/1.1" 200 -
-2026-03-13 10:51:58,557 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:51:58] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 10:51:58,572 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:51:58] "[33mGET /api/cluster-weights HTTP/1.1[0m" 404 -
-2026-03-13 10:53:35,638 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:53:35] "POST /api/game-record HTTP/1.1" 200 -
-2026-03-13 10:53:37,540 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:53:37] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 10:53:37,555 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:53:37] "[33mGET /api/cluster-weights HTTP/1.1[0m" 404 -
-2026-03-13 10:56:09,242 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 10:56:09] "POST /api/game-record HTTP/1.1" 200 -
-2026-03-13 11:10:34,300 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 11:10:34] "[36mGET / HTTP/1.1[0m" 304 -
-2026-03-13 11:10:34,330 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 11:10:34] "[36mGET /style.css HTTP/1.1[0m" 304 -
-2026-03-13 11:10:34,332 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 11:10:34] "[36mGET /board-renderer.js HTTP/1.1[0m" 304 -
-2026-03-13 11:10:34,334 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 11:10:34] "[35m[1mGET /stone.wav HTTP/1.1[0m" 206 -
-2026-03-13 11:10:34,334 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 11:10:34] "[36mGET /ai.js HTTP/1.1[0m" 304 -
-2026-03-13 11:10:34,335 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 11:10:34] "[36mGET /game.js HTTP/1.1[0m" 304 -
-2026-03-13 11:10:34,360 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 11:10:34] "[36mGET /font.woff2 HTTP/1.1[0m" 304 -
-2026-03-13 12:01:29,683 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 12:01:29] "[36mGET / HTTP/1.1[0m" 304 -
-2026-03-13 12:01:29,719 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 12:01:29] "[36mGET /style.css HTTP/1.1[0m" 304 -
-2026-03-13 12:01:29,727 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 12:01:29] "[36mGET /ai.js HTTP/1.1[0m" 304 -
-2026-03-13 12:01:29,727 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 12:01:29] "[36mGET /board-renderer.js HTTP/1.1[0m" 304 -
-2026-03-13 12:01:29,728 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 12:01:29] "[36mGET /game.js HTTP/1.1[0m" 304 -
-2026-03-13 12:01:29,729 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 12:01:29] "[35m[1mGET /stone.wav HTTP/1.1[0m" 206 -
-2026-03-13 12:01:29,811 - werkzeug - INFO - 211.104.152.211 - - [13/Mar/2026 12:01:29] "[36mGET /font.woff2 HTTP/1.1[0m" 304 -
-2026-03-13 13:03:00,096 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:03:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:03:30,122 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:03:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:04:00,170 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:04:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:04:30,195 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:04:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:05:00,221 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:05:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:05:30,246 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:05:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:06:00,272 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:06:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:06:30,297 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:06:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:07:00,321 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:07:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:07:30,346 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:07:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:08:00,372 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:08:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:08:30,395 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:08:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:09:00,418 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:09:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:09:30,442 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:09:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:10:00,466 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:10:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:10:30,491 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:10:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:11:00,516 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:11:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:11:30,540 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:11:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:12:00,565 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:12:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:12:30,593 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:12:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:13:00,618 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:13:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:13:30,643 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:13:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:14:00,669 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:14:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:14:30,693 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:14:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:15:00,717 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:15:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:15:30,742 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:15:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:16:00,765 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:16:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:16:30,788 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:16:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:17:00,813 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:17:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:17:30,836 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:17:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:18:00,859 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:18:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:18:30,884 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:18:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:19:00,908 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:19:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:19:30,933 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:19:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:20:00,958 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:20:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:20:30,984 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:20:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:21:01,007 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 13:21:01] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 13:57:50,326 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 13:57:50] "[36mGET / HTTP/1.1[0m" 304 -
-2026-03-13 13:57:50,340 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 13:57:50] "[36mGET /font.woff2 HTTP/1.1[0m" 304 -
-2026-03-13 13:57:50,341 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 13:57:50] "[36mGET /game.js HTTP/1.1[0m" 304 -
-2026-03-13 13:57:50,342 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 13:57:50] "[36mGET /board-renderer.js HTTP/1.1[0m" 304 -
-2026-03-13 13:57:50,342 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 13:57:50] "[36mGET /ai.js HTTP/1.1[0m" 304 -
-2026-03-13 13:57:50,346 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 13:57:50] "[36mGET /style.css HTTP/1.1[0m" 304 -
-2026-03-13 13:57:50,495 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 13:57:50] "[35m[1mGET /stone.wav HTTP/1.1[0m" 206 -
-2026-03-13 13:57:50,524 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 13:57:50] "[35m[1mGET /stone.wav HTTP/1.1[0m" 206 -
-2026-03-13 13:57:50,691 - omok_server - WARNING - 404 Not Found: http://13.124.10.111:8081/apple-touch-icon-precomposed.png
-2026-03-13 13:57:50,691 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 13:57:50] "[33mGET /apple-touch-icon-precomposed.png HTTP/1.1[0m" 404 -
-2026-03-13 13:57:50,699 - omok_server - WARNING - 404 Not Found: http://13.124.10.111:8081/apple-touch-icon.png
-2026-03-13 13:57:50,700 - omok_server - WARNING - 404 Not Found: http://13.124.10.111:8081/favicon.ico
-2026-03-13 13:57:50,700 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 13:57:50] "[33mGET /apple-touch-icon.png HTTP/1.1[0m" 404 -
-2026-03-13 13:57:50,700 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 13:57:50] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
-2026-03-13 14:02:30,019 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:02:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:03:00,079 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:03:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:03:30,110 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:03:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:04:00,141 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:04:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:04:30,167 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:04:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:05:00,192 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:05:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:05:18,559 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:05:18] "[36mGET / HTTP/1.1[0m" 304 -
-2026-03-13 14:05:18,574 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:05:18] "[36mGET /game.js HTTP/1.1[0m" 304 -
-2026-03-13 14:05:18,574 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:05:18] "[36mGET /board-renderer.js HTTP/1.1[0m" 304 -
-2026-03-13 14:05:18,575 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:05:18] "[36mGET /font.woff2 HTTP/1.1[0m" 304 -
-2026-03-13 14:05:18,575 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:05:18] "[36mGET /ai.js HTTP/1.1[0m" 304 -
-2026-03-13 14:05:18,579 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:05:18] "[36mGET /style.css HTTP/1.1[0m" 304 -
-2026-03-13 14:05:18,734 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:05:18] "[35m[1mGET /stone.wav HTTP/1.1[0m" 206 -
-2026-03-13 14:05:18,761 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:05:18] "[35m[1mGET /stone.wav HTTP/1.1[0m" 206 -
-2026-03-13 14:05:21,590 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:05:21] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:05:21,616 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:05:21] "[33mGET /api/cluster-weights HTTP/1.1[0m" 404 -
-2026-03-13 14:05:29,449 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:05:29] "GET / HTTP/1.1" 200 -
-2026-03-13 14:05:29,482 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:05:29] "GET /style.css HTTP/1.1" 200 -
-2026-03-13 14:05:29,485 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:05:29] "GET /board-renderer.js HTTP/1.1" 200 -
-2026-03-13 14:05:29,500 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:05:29] "[35m[1mGET /stone.wav HTTP/1.1[0m" 206 -
-2026-03-13 14:05:29,501 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:05:29] "GET /game.js HTTP/1.1" 200 -
-2026-03-13 14:05:29,501 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:05:29] "GET /ai.js HTTP/1.1" 200 -
-2026-03-13 14:05:29,644 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:05:29] "GET /font.woff2 HTTP/1.1" 200 -
-2026-03-13 14:05:29,676 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:05:29] "[35m[1mGET /stone.wav HTTP/1.1[0m" 206 -
-2026-03-13 14:05:29,824 - omok_server - WARNING - 404 Not Found: http://13.124.10.111:8081/favicon.ico
-2026-03-13 14:05:29,824 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:05:29] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
-2026-03-13 14:05:30,216 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:05:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:05:36,264 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:05:36] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:05:36,320 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:05:36] "[33mGET /api/cluster-weights HTTP/1.1[0m" 404 -
-2026-03-13 14:06:00,258 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:06:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:06:08,510 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:06:08] "POST /api/game-record HTTP/1.1" 200 -
-2026-03-13 14:06:30,281 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:06:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:06:53,890 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:06:53] "POST /api/game-record HTTP/1.1" 200 -
-2026-03-13 14:06:58,053 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:06:58] "POST /api/leaderboard HTTP/1.1" 200 -
-2026-03-13 14:07:00,306 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:07:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:07:07,307 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:07:07] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:07:07,350 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:07:07] "[33mGET /api/cluster-weights HTTP/1.1[0m" 404 -
-2026-03-13 14:07:30,329 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:07:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:08:00,353 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:08:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:08:06,943 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:08:06] "POST /api/game-record HTTP/1.1" 200 -
-2026-03-13 14:08:17,688 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:08:17] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:08:17,869 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:08:17] "[33mGET /api/cluster-weights HTTP/1.1[0m" 404 -
-2026-03-13 14:08:30,379 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:08:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:09:00,402 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:09:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:09:30,426 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:09:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:10:00,449 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:10:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:10:30,475 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:10:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:10:35,551 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:10:35] "POST /api/game-record HTTP/1.1" 200 -
-2026-03-13 14:10:37,634 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:10:37] "POST /api/leaderboard HTTP/1.1" 200 -
-2026-03-13 14:10:42,815 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:10:42] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:10:42,876 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:10:42] "[33mGET /api/cluster-weights HTTP/1.1[0m" 404 -
-2026-03-13 14:10:46,226 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:10:46] "GET /api/leaderboard HTTP/1.1" 200 -
-2026-03-13 14:11:00,499 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:11:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:11:06,593 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:11:06] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:11:06,624 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:11:06] "[33mGET /api/cluster-weights HTTP/1.1[0m" 404 -
-2026-03-13 14:11:30,522 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:11:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:12:00,546 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:12:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:12:30,571 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:12:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:12:31,589 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:12:31] "POST /api/game-record HTTP/1.1" 200 -
-2026-03-13 14:12:34,529 - werkzeug - INFO - 39.118.172.47 - - [13/Mar/2026 14:12:34] "POST /api/leaderboard HTTP/1.1" 200 -
-2026-03-13 14:13:00,596 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:13:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:13:30,620 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:13:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:14:00,643 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:14:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:14:30,668 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:14:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:15:00,692 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:15:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:15:30,715 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:15:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:16:00,740 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:16:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:16:30,765 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:16:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:17:00,788 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:17:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:17:30,811 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:17:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:18:00,835 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:18:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:18:30,860 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:18:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:19:00,884 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:19:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:19:30,908 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:19:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:20:00,933 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:20:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:20:30,958 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:20:30] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:21:00,980 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:21:00] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:21:31,003 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 14:21:31] "GET /api/weights HTTP/1.1" 200 -
-2026-03-13 14:41:50,723 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:41:50] "[36mGET / HTTP/1.1[0m" 304 -
-2026-03-13 14:41:50,742 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:41:50] "[36mGET /style.css HTTP/1.1[0m" 304 -
-2026-03-13 14:41:50,753 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:41:50] "[36mGET /ai.js HTTP/1.1[0m" 304 -
-2026-03-13 14:41:50,754 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:41:50] "[35m[1mGET /stone.wav HTTP/1.1[0m" 206 -
-2026-03-13 14:41:50,755 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:41:50] "[36mGET /game.js HTTP/1.1[0m" 304 -
-2026-03-13 14:41:50,756 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:41:50] "[36mGET /board-renderer.js HTTP/1.1[0m" 304 -
-2026-03-13 14:41:50,776 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:41:50] "[36mGET /font.woff2 HTTP/1.1[0m" 304 -
-2026-03-13 14:41:50,779 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:41:50] "[35m[1mGET /stone.wav HTTP/1.1[0m" 206 -
-2026-03-13 14:41:50,820 - omok_server - WARNING - 404 Not Found: http://13.124.10.111:8081/favicon.ico
-2026-03-13 14:41:50,820 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 14:41:50] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2026-03-13 15:14:25,512 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:14:26,331 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:14:26] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:14:27,798 - omok_server - INFO - Initializing database...
+2026-03-13 15:14:27,799 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:14:27,799 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:14:28] ERROR: Server process died during startup
+2026-03-13 15:14:31,830 - omok_server - INFO - Initializing database...
+2026-03-13 15:14:31,831 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:14:31,831 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:14:31,835 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:14:31,835 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:14:32,652 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:14:32] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:14:33,573 - omok_server - INFO - Initializing database...
+2026-03-13 15:14:33,574 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:14:33,574 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:14:34] ERROR: Server process died during startup
+2026-03-13 15:14:37,603 - omok_server - INFO - Initializing database...
+2026-03-13 15:14:37,604 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:14:37,604 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:14:37,611 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:14:37,612 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:14:38,425 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:14:38] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:14:39,895 - omok_server - INFO - Initializing database...
+2026-03-13 15:14:39,896 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:14:39,896 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:14:40] ERROR: Server process died during startup
+2026-03-13 15:14:43,926 - omok_server - INFO - Initializing database...
+2026-03-13 15:14:43,927 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:14:43,927 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:14:43,931 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:14:43,931 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:14:44,747 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:14:44] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:14:45,667 - omok_server - INFO - Initializing database...
+2026-03-13 15:14:45,668 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:14:45,668 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:14:46] ERROR: Server process died during startup
+2026-03-13 15:14:49,698 - omok_server - INFO - Initializing database...
+2026-03-13 15:14:49,699 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:14:49,699 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:14:49,704 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:14:49,704 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:14:50,518 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:14:50] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:14:51,990 - omok_server - INFO - Initializing database...
+2026-03-13 15:14:51,991 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:14:51,991 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:14:52] ERROR: Server process died during startup
+2026-03-13 15:14:56,018 - omok_server - INFO - Initializing database...
+2026-03-13 15:14:56,019 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:14:56,019 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:14:56,023 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:14:56,023 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:14:56,839 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:14:56] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:14:57,762 - omok_server - INFO - Initializing database...
+2026-03-13 15:14:57,763 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:14:57,763 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:14:58] ERROR: Server process died during startup
+2026-03-13 15:15:02,271 - omok_server - INFO - Initializing database...
+2026-03-13 15:15:02,272 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:15:02,272 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:15:02,281 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:15:02,281 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:15:02,679 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:15:02] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:15:04,094 - omok_server - INFO - Initializing database...
+2026-03-13 15:15:04,095 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:15:04,095 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:15:04] ERROR: Server process died during startup
+2026-03-13 15:15:08,126 - omok_server - INFO - Initializing database...
+2026-03-13 15:15:08,127 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:15:08,127 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:15:08,132 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:15:08,132 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:15:08,946 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:15:08] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:15:09,922 - omok_server - INFO - Initializing database...
+2026-03-13 15:15:09,923 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:15:09,923 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:15:10] ERROR: Server process died during startup
+[2026-03-13 15:15:11] ERROR: Max restart attempts (10) reached. Waiting 60 seconds...
+[2026-03-13 15:15:13] ERROR: Max restart attempts (10) reached. Waiting 60 seconds...
+2026-03-13 15:15:25,725 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:15:25] "GET / HTTP/1.1" 200 -
+2026-03-13 15:15:42,320 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 15:15:42] "[36mGET / HTTP/1.1[0m" 304 -
+2026-03-13 15:15:42,338 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 15:15:42] "[36mGET /style.css HTTP/1.1[0m" 304 -
+2026-03-13 15:15:42,346 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 15:15:42] "GET /ai.js HTTP/1.1" 200 -
+2026-03-13 15:15:42,347 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 15:15:42] "[36mGET /board-renderer.js HTTP/1.1[0m" 304 -
+2026-03-13 15:15:42,348 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 15:15:42] "[36mGET /game.js HTTP/1.1[0m" 304 -
+2026-03-13 15:15:42,349 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 15:15:42] "[35m[1mGET /stone.wav HTTP/1.1[0m" 206 -
+2026-03-13 15:15:42,368 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 15:15:42] "[36mGET /font.woff2 HTTP/1.1[0m" 304 -
+2026-03-13 15:15:42,378 - werkzeug - INFO - 180.182.16.50 - - [13/Mar/2026 15:15:42] "[35m[1mGET /stone.wav HTTP/1.1[0m" 206 -
+2026-03-13 15:16:13,959 - omok_server - INFO - Initializing database...
+2026-03-13 15:16:13,960 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:16:13,960 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:16:13,966 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:16:13,966 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:16:14,783 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:16:14] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:16:16,195 - omok_server - INFO - Initializing database...
+2026-03-13 15:16:16,196 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:16:16,196 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:16:17] ERROR: Server process died during startup
+2026-03-13 15:16:20,231 - omok_server - INFO - Initializing database...
+2026-03-13 15:16:20,232 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:16:20,232 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:16:20,236 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:16:20,236 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:16:21,050 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:16:21] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:16:22,017 - omok_server - INFO - Initializing database...
+2026-03-13 15:16:22,018 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:16:22,018 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:16:22] ERROR: Server process died during startup
+2026-03-13 15:16:28,289 - omok_server - INFO - Initializing database...
+2026-03-13 15:16:28,290 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:16:28,290 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:16:28,294 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:16:28,294 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:16:29,110 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:16:29] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:16:30,074 - omok_server - INFO - Initializing database...
+2026-03-13 15:16:30,075 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:16:30,075 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:16:30] ERROR: Server process died during startup
+2026-03-13 15:16:36,348 - omok_server - INFO - Initializing database...
+2026-03-13 15:16:36,349 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:16:36,350 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:16:36,355 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:16:36,355 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:16:37,170 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:16:37] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:16:38,131 - omok_server - INFO - Initializing database...
+2026-03-13 15:16:38,132 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:16:38,132 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:16:38] ERROR: Server process died during startup
+2026-03-13 15:16:42,159 - omok_server - INFO - Initializing database...
+2026-03-13 15:16:42,159 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:16:42,160 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:16:42,164 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:16:42,164 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:16:42,983 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:16:42] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:16:44,406 - omok_server - INFO - Initializing database...
+2026-03-13 15:16:44,407 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:16:44,407 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:16:45] ERROR: Server process died during startup
+2026-03-13 15:16:48,440 - omok_server - INFO - Initializing database...
+2026-03-13 15:16:48,441 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:16:48,441 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:16:48,445 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:16:48,446 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:16:49,261 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:16:49] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:16:50,219 - omok_server - INFO - Initializing database...
+2026-03-13 15:16:50,220 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:16:50,220 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:16:51] ERROR: Server process died during startup
+2026-03-13 15:16:54,258 - omok_server - INFO - Initializing database...
+2026-03-13 15:16:54,259 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:16:54,259 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:16:54,263 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:16:54,263 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:16:55,076 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:16:55] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:16:56,498 - omok_server - INFO - Initializing database...
+2026-03-13 15:16:56,499 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:16:56,499 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:16:57] ERROR: Server process died during startup
+2026-03-13 15:17:00,531 - omok_server - INFO - Initializing database...
+2026-03-13 15:17:00,532 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:17:00,532 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:17:00,536 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:17:00,536 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:17:01,355 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:17:01] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:17:02,416 - omok_server - INFO - Initializing database...
+2026-03-13 15:17:02,419 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:17:02,419 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:17:03] ERROR: Server process died during startup
+2026-03-13 15:17:06,352 - omok_server - INFO - Initializing database...
+2026-03-13 15:17:06,353 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:17:06,354 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:17:06,360 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:17:06,361 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:17:07,171 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:17:07] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:17:08,610 - omok_server - INFO - Initializing database...
+2026-03-13 15:17:08,611 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:17:08,611 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:17:09] ERROR: Server process died during startup
+2026-03-13 15:17:12,630 - omok_server - INFO - Initializing database...
+2026-03-13 15:17:12,630 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:17:12,631 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:17:12,635 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:17:12,635 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:17:13,454 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:17:13] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:17:14,409 - omok_server - INFO - Initializing database...
+2026-03-13 15:17:14,410 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:17:14,410 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:17:15] ERROR: Server process died during startup
+[2026-03-13 15:17:16] ERROR: Max restart attempts (10) reached. Waiting 60 seconds...
+[2026-03-13 15:17:18] ERROR: Max restart attempts (10) reached. Waiting 60 seconds...
+2026-03-13 15:18:20,710 - omok_server - INFO - Initializing database...
+2026-03-13 15:18:20,711 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:18:20,711 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:18:20,719 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:18:20,719 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:18:21,528 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:18:21] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:18:22,472 - omok_server - INFO - Initializing database...
+2026-03-13 15:18:22,473 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:18:22,473 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:18:23] ERROR: Server process died during startup
+2026-03-13 15:18:26,508 - omok_server - INFO - Initializing database...
+2026-03-13 15:18:26,509 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:18:26,509 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:18:26,513 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:18:26,513 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:18:27,328 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:18:27] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:18:28,771 - omok_server - INFO - Initializing database...
+2026-03-13 15:18:28,772 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:18:28,772 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:18:29] ERROR: Server process died during startup
+2026-03-13 15:18:32,800 - omok_server - INFO - Initializing database...
+2026-03-13 15:18:32,800 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:18:32,801 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:18:32,807 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:18:32,807 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:18:33,620 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:18:33] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:18:34,573 - omok_server - INFO - Initializing database...
+2026-03-13 15:18:34,574 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:18:34,574 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:18:35] ERROR: Server process died during startup
+2026-03-13 15:18:38,600 - omok_server - INFO - Initializing database...
+2026-03-13 15:18:38,601 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:18:38,601 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:18:38,606 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:18:38,606 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:18:39,423 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:18:39] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:18:40,860 - omok_server - INFO - Initializing database...
+2026-03-13 15:18:40,861 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:18:40,862 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:18:41] ERROR: Server process died during startup
+2026-03-13 15:18:44,893 - omok_server - INFO - Initializing database...
+2026-03-13 15:18:44,894 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:18:44,894 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:18:44,899 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:18:44,899 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:18:45,715 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:18:45] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:18:46,658 - omok_server - INFO - Initializing database...
+2026-03-13 15:18:46,659 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:18:46,660 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:18:47] ERROR: Server process died during startup
+2026-03-13 15:18:50,698 - omok_server - INFO - Initializing database...
+2026-03-13 15:18:50,699 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:18:50,699 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:18:50,710 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:18:50,710 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:18:51,516 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:18:51] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:18:52,954 - omok_server - INFO - Initializing database...
+2026-03-13 15:18:52,955 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:18:52,955 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:18:53] ERROR: Server process died during startup
+2026-03-13 15:18:56,985 - omok_server - INFO - Initializing database...
+2026-03-13 15:18:56,986 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:18:56,986 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:18:56,990 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:18:56,990 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:18:57,807 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:18:57] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:18:58,759 - omok_server - INFO - Initializing database...
+2026-03-13 15:18:58,760 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:18:58,760 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:18:59] ERROR: Server process died during startup
+2026-03-13 15:19:02,801 - omok_server - INFO - Initializing database...
+2026-03-13 15:19:02,802 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:19:02,802 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:19:02,807 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:19:02,807 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:19:03,614 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:19:03] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:19:05,052 - omok_server - INFO - Initializing database...
+2026-03-13 15:19:05,053 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:19:05,053 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:19:05] ERROR: Server process died during startup
+2026-03-13 15:19:09,081 - omok_server - INFO - Initializing database...
+2026-03-13 15:19:09,082 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:19:09,082 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:19:09,086 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:19:09,087 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:19:09,901 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:19:09] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:19:10,854 - omok_server - INFO - Initializing database...
+2026-03-13 15:19:10,855 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:19:10,856 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:19:11] ERROR: Server process died during startup
+2026-03-13 15:19:14,891 - omok_server - INFO - Initializing database...
+2026-03-13 15:19:14,892 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:19:14,892 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:19:14,898 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:19:14,898 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:19:15,709 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:19:15] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:19:17,137 - omok_server - INFO - Initializing database...
+2026-03-13 15:19:17,138 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:19:17,138 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:19:17] ERROR: Server process died during startup
+[2026-03-13 15:19:18] ERROR: Max restart attempts (10) reached. Waiting 60 seconds...
+[2026-03-13 15:19:20] ERROR: Max restart attempts (10) reached. Waiting 60 seconds...
+2026-03-13 15:20:22,967 - omok_server - INFO - Initializing database...
+2026-03-13 15:20:22,968 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:20:22,968 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:20:22,974 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:20:22,974 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:20:23,784 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:20:23] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:20:25,212 - omok_server - INFO - Initializing database...
+2026-03-13 15:20:25,213 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:20:25,213 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:20:26] ERROR: Server process died during startup
+2026-03-13 15:20:29,241 - omok_server - INFO - Initializing database...
+2026-03-13 15:20:29,242 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:20:29,242 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:20:29,247 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:20:29,247 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:20:30,059 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:20:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:20:31,032 - omok_server - INFO - Initializing database...
+2026-03-13 15:20:31,033 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:20:31,034 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:20:31] ERROR: Server process died during startup
+2026-03-13 15:20:35,066 - omok_server - INFO - Initializing database...
+2026-03-13 15:20:35,067 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:20:35,067 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:20:35,072 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:20:35,072 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:20:35,881 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:20:35] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:20:37,304 - omok_server - INFO - Initializing database...
+2026-03-13 15:20:37,305 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:20:37,305 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:20:38] ERROR: Server process died during startup
+2026-03-13 15:20:41,334 - omok_server - INFO - Initializing database...
+2026-03-13 15:20:41,335 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:20:41,335 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:20:41,340 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:20:41,340 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:20:42,155 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:20:42] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:20:43,124 - omok_server - INFO - Initializing database...
+2026-03-13 15:20:43,125 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:20:43,125 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:20:43] ERROR: Server process died during startup
+2026-03-13 15:20:47,159 - omok_server - INFO - Initializing database...
+2026-03-13 15:20:47,160 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:20:47,160 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:20:47,165 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:20:47,165 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:20:47,977 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:20:47] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:20:49,402 - omok_server - INFO - Initializing database...
+2026-03-13 15:20:49,403 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:20:49,403 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:20:50] ERROR: Server process died during startup
+2026-03-13 15:20:53,430 - omok_server - INFO - Initializing database...
+2026-03-13 15:20:53,431 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:20:53,431 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:20:53,436 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:20:53,436 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:20:54,251 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:20:54] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:20:55,225 - omok_server - INFO - Initializing database...
+2026-03-13 15:20:55,226 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:20:55,226 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:20:56] ERROR: Server process died during startup
+2026-03-13 15:20:59,252 - omok_server - INFO - Initializing database...
+2026-03-13 15:20:59,253 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:20:59,253 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:20:59,257 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:20:59,257 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:21:00,101 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:21:00] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:21:01,603 - omok_server - INFO - Initializing database...
+2026-03-13 15:21:01,604 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:21:01,604 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:21:02] ERROR: Server process died during startup
+2026-03-13 15:21:05,589 - omok_server - INFO - Initializing database...
+2026-03-13 15:21:05,590 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:21:05,590 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:21:05,596 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:21:05,596 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:21:06,363 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:21:06] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:21:07,353 - omok_server - INFO - Initializing database...
+2026-03-13 15:21:07,354 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:21:07,354 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:21:08] ERROR: Server process died during startup
+2026-03-13 15:21:11,383 - omok_server - INFO - Initializing database...
+2026-03-13 15:21:11,384 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:21:11,384 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:21:11,391 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:21:11,391 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:21:12,205 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:21:12] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:21:13,609 - omok_server - INFO - Initializing database...
+2026-03-13 15:21:13,610 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:21:13,610 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:21:14] ERROR: Server process died during startup
+2026-03-13 15:21:17,640 - omok_server - INFO - Initializing database...
+2026-03-13 15:21:17,641 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:21:17,641 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:21:17,646 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:21:17,646 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:21:18,459 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:21:18] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:21:19,446 - omok_server - INFO - Initializing database...
+2026-03-13 15:21:19,447 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:21:19,447 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:21:20] ERROR: Server process died during startup
+[2026-03-13 15:21:21] ERROR: Max restart attempts (10) reached. Waiting 60 seconds...
+[2026-03-13 15:21:23] ERROR: Max restart attempts (10) reached. Waiting 60 seconds...
+2026-03-13 15:22:25,708 - omok_server - INFO - Initializing database...
+2026-03-13 15:22:25,709 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:22:25,709 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:22:25,718 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:22:25,718 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:22:26,531 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:22:26] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:22:27,651 - omok_server - INFO - Initializing database...
+2026-03-13 15:22:27,652 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:22:27,652 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:22:28] ERROR: Server process died during startup
+2026-03-13 15:22:31,540 - omok_server - INFO - Initializing database...
+2026-03-13 15:22:31,541 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:22:31,541 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:22:31,545 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:22:31,545 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:22:32,364 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:22:32] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:22:33,805 - omok_server - INFO - Initializing database...
+2026-03-13 15:22:33,806 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:22:33,806 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:22:34] ERROR: Server process died during startup
+2026-03-13 15:22:37,800 - omok_server - INFO - Initializing database...
+2026-03-13 15:22:37,801 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:22:37,801 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:22:37,805 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:22:37,805 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:22:38,623 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:22:38] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:22:39,608 - omok_server - INFO - Initializing database...
+2026-03-13 15:22:39,609 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:22:39,609 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:22:40] ERROR: Server process died during startup
+2026-03-13 15:22:43,748 - omok_server - INFO - Initializing database...
+2026-03-13 15:22:43,750 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:22:43,750 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:22:43,757 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:22:43,758 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:22:44,460 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:22:44] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:22:45,872 - omok_server - INFO - Initializing database...
+2026-03-13 15:22:45,873 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:22:45,873 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:22:46] ERROR: Server process died during startup
+2026-03-13 15:22:49,969 - omok_server - INFO - Initializing database...
+2026-03-13 15:22:49,971 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:22:49,971 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:22:49,977 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:22:49,977 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:22:50,723 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:22:50] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:22:51,701 - omok_server - INFO - Initializing database...
+2026-03-13 15:22:51,702 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:22:51,702 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:22:52] ERROR: Server process died during startup
+2026-03-13 15:22:55,868 - omok_server - INFO - Initializing database...
+2026-03-13 15:22:55,869 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:22:55,870 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:22:55,875 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:22:55,875 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:22:56,565 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:22:56] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:22:57,975 - omok_server - INFO - Initializing database...
+2026-03-13 15:22:57,975 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:22:57,976 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:22:58] ERROR: Server process died during startup
+2026-03-13 15:23:02,302 - omok_server - INFO - Initializing database...
+2026-03-13 15:23:02,304 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:23:02,304 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:23:02,313 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:23:02,313 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:23:02,910 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:23:02] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:23:03,848 - omok_server - INFO - Initializing database...
+2026-03-13 15:23:03,849 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:23:03,849 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:23:04] ERROR: Server process died during startup
+2026-03-13 15:23:07,842 - omok_server - INFO - Initializing database...
+2026-03-13 15:23:07,843 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:23:07,843 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:23:07,847 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:23:07,847 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:23:08,664 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:23:08] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:23:10,162 - omok_server - INFO - Initializing database...
+2026-03-13 15:23:10,163 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:23:10,163 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:23:10] ERROR: Server process died during startup
+2026-03-13 15:23:14,190 - omok_server - INFO - Initializing database...
+2026-03-13 15:23:14,191 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:23:14,191 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:23:14,196 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:23:14,196 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:23:15,007 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:23:15] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:23:15,908 - omok_server - INFO - Initializing database...
+2026-03-13 15:23:15,909 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:23:15,909 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:23:16] ERROR: Server process died during startup
+2026-03-13 15:23:19,941 - omok_server - INFO - Initializing database...
+2026-03-13 15:23:19,942 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:23:19,942 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:23:19,946 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:23:19,946 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:23:20,759 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:23:20] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:23:22,252 - omok_server - INFO - Initializing database...
+2026-03-13 15:23:22,254 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:23:22,254 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:23:23] ERROR: Server process died during startup
+[2026-03-13 15:23:23] ERROR: Max restart attempts (10) reached. Waiting 60 seconds...
+[2026-03-13 15:23:26] ERROR: Max restart attempts (10) reached. Waiting 60 seconds...
+2026-03-13 15:24:28,014 - omok_server - INFO - Initializing database...
+2026-03-13 15:24:28,015 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:24:28,015 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:24:28,021 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:24:28,021 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:24:28,832 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:24:28] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:24:30,319 - omok_server - INFO - Initializing database...
+2026-03-13 15:24:30,320 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:24:30,321 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:24:31] ERROR: Server process died during startup
+2026-03-13 15:24:34,478 - omok_server - INFO - Initializing database...
+2026-03-13 15:24:34,479 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:24:34,479 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:24:34,483 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:24:34,483 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:24:35,192 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:24:35] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:24:36,076 - omok_server - INFO - Initializing database...
+2026-03-13 15:24:36,077 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:24:36,077 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:24:36] ERROR: Server process died during startup
+2026-03-13 15:24:40,161 - omok_server - INFO - Initializing database...
+2026-03-13 15:24:40,162 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:24:40,162 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:24:40,168 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:24:40,168 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:24:40,930 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:24:40] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:24:42,432 - omok_server - INFO - Initializing database...
+2026-03-13 15:24:42,433 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:24:42,433 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:24:43] ERROR: Server process died during startup
+2026-03-13 15:24:46,497 - omok_server - INFO - Initializing database...
+2026-03-13 15:24:46,498 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:24:46,498 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:24:46,503 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:24:46,503 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:24:47,318 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:24:47] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:24:48,172 - omok_server - INFO - Initializing database...
+2026-03-13 15:24:48,173 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:24:48,173 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:24:48] ERROR: Server process died during startup
+2026-03-13 15:24:52,202 - omok_server - INFO - Initializing database...
+2026-03-13 15:24:52,203 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:24:52,203 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:24:52,208 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:24:52,208 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:24:53,026 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:24:53] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:24:54,567 - omok_server - INFO - Initializing database...
+2026-03-13 15:24:54,568 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:24:54,568 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:24:55] ERROR: Server process died during startup
+2026-03-13 15:24:58,594 - omok_server - INFO - Initializing database...
+2026-03-13 15:24:58,595 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:24:58,595 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:24:58,599 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:24:58,599 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:24:59,414 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:24:59] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:25:00,366 - omok_server - INFO - Initializing database...
+2026-03-13 15:25:00,367 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:25:00,367 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:25:01] ERROR: Server process died during startup
+2026-03-13 15:25:04,338 - omok_server - INFO - Initializing database...
+2026-03-13 15:25:04,339 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:25:04,339 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:25:04,343 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:25:04,344 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:25:05,142 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:25:05] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:25:06,706 - omok_server - INFO - Initializing database...
+2026-03-13 15:25:06,707 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:25:06,707 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:25:07] ERROR: Server process died during startup
+2026-03-13 15:25:10,814 - omok_server - INFO - Initializing database...
+2026-03-13 15:25:10,816 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:25:10,816 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:25:10,822 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:25:10,822 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:25:11,554 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:25:11] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:25:12,393 - omok_server - INFO - Initializing database...
+2026-03-13 15:25:12,394 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:25:12,394 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:25:13] ERROR: Server process died during startup
+2026-03-13 15:25:16,419 - omok_server - INFO - Initializing database...
+2026-03-13 15:25:16,420 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:25:16,420 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:25:16,424 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:25:16,424 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:25:17,238 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:25:17] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:25:18,799 - omok_server - INFO - Initializing database...
+2026-03-13 15:25:18,800 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:25:18,800 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:25:19] ERROR: Server process died during startup
+2026-03-13 15:25:22,845 - omok_server - INFO - Initializing database...
+2026-03-13 15:25:22,846 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:25:22,846 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:25:22,850 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:25:22,850 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:25:23,649 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:25:23] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:25:24,483 - omok_server - INFO - Initializing database...
+2026-03-13 15:25:24,484 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:25:24,484 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:25:25] ERROR: Server process died during startup
+[2026-03-13 15:25:26] ERROR: Max restart attempts (10) reached. Waiting 60 seconds...
+[2026-03-13 15:25:28] ERROR: Max restart attempts (10) reached. Waiting 60 seconds...
+2026-03-13 15:26:30,902 - omok_server - INFO - Initializing database...
+2026-03-13 15:26:30,903 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:26:30,903 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:26:30,917 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:26:30,917 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:26:31,724 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:26:31] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:26:32,541 - omok_server - INFO - Initializing database...
+2026-03-13 15:26:32,542 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:26:32,542 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:26:33] ERROR: Server process died during startup
+2026-03-13 15:26:36,575 - omok_server - INFO - Initializing database...
+2026-03-13 15:26:36,576 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:26:36,576 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:26:36,580 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:26:36,581 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:26:37,398 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:26:37] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:26:38,972 - omok_server - INFO - Initializing database...
+2026-03-13 15:26:38,973 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:26:38,973 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:26:39] ERROR: Server process died during startup
+2026-03-13 15:26:42,998 - omok_server - INFO - Initializing database...
+2026-03-13 15:26:42,999 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:26:42,999 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:26:43,006 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:26:43,006 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:26:43,818 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:26:43] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:26:44,634 - omok_server - INFO - Initializing database...
+2026-03-13 15:26:44,635 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:26:44,635 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:26:45] ERROR: Server process died during startup
+2026-03-13 15:26:48,669 - omok_server - INFO - Initializing database...
+2026-03-13 15:26:48,670 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:26:48,670 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:26:48,677 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:26:48,677 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:26:49,490 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:26:49] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:26:51,059 - omok_server - INFO - Initializing database...
+2026-03-13 15:26:51,060 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:26:51,060 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:26:51] ERROR: Server process died during startup
+2026-03-13 15:26:55,183 - omok_server - INFO - Initializing database...
+2026-03-13 15:26:55,184 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:26:55,184 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:26:55,191 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:26:55,191 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:26:55,911 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:26:55] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:26:56,727 - omok_server - INFO - Initializing database...
+2026-03-13 15:26:56,728 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:26:56,728 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:26:57] ERROR: Server process died during startup
+2026-03-13 15:27:00,760 - omok_server - INFO - Initializing database...
+2026-03-13 15:27:00,761 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:27:00,761 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:27:00,766 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:27:00,766 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:27:01,648 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:27:01] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:27:03,161 - omok_server - INFO - Initializing database...
+2026-03-13 15:27:03,162 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:27:03,162 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:27:03] ERROR: Server process died during startup
+2026-03-13 15:27:07,181 - omok_server - INFO - Initializing database...
+2026-03-13 15:27:07,182 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:27:07,182 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:27:07,187 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:27:07,187 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:27:08,007 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:27:08] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:27:08,903 - omok_server - INFO - Initializing database...
+2026-03-13 15:27:08,904 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:27:08,904 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:27:09] ERROR: Server process died during startup
+2026-03-13 15:27:12,941 - omok_server - INFO - Initializing database...
+2026-03-13 15:27:12,942 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:27:12,942 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:27:12,949 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:27:12,949 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:27:13,758 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:27:13] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:27:15,256 - omok_server - INFO - Initializing database...
+2026-03-13 15:27:15,257 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:27:15,257 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:27:16] ERROR: Server process died during startup
+2026-03-13 15:27:19,282 - omok_server - INFO - Initializing database...
+2026-03-13 15:27:19,283 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:27:19,283 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:27:19,287 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:27:19,287 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:27:20,105 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:27:20] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:27:20,999 - omok_server - INFO - Initializing database...
+2026-03-13 15:27:21,000 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:27:21,000 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:27:21] ERROR: Server process died during startup
+2026-03-13 15:27:25,039 - omok_server - INFO - Initializing database...
+2026-03-13 15:27:25,040 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:27:25,040 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:27:25,046 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:27:25,046 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:27:25,854 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:27:25] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:27:27,345 - omok_server - INFO - Initializing database...
+2026-03-13 15:27:27,346 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:27:27,346 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:27:28] ERROR: Server process died during startup
+[2026-03-13 15:27:28] ERROR: Max restart attempts (10) reached. Waiting 60 seconds...
+[2026-03-13 15:27:31] ERROR: Max restart attempts (10) reached. Waiting 60 seconds...
+2026-03-13 15:28:33,108 - omok_server - INFO - Initializing database...
+2026-03-13 15:28:33,109 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:28:33,109 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:28:33,115 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:28:33,115 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:28:33,931 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:28:33] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:28:35,415 - omok_server - INFO - Initializing database...
+2026-03-13 15:28:35,416 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:28:35,416 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:28:36] ERROR: Server process died during startup
+2026-03-13 15:28:39,543 - omok_server - INFO - Initializing database...
+2026-03-13 15:28:39,544 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:28:39,544 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:28:39,550 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:28:39,550 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:28:40,268 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:28:40] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:28:41,172 - omok_server - INFO - Initializing database...
+2026-03-13 15:28:41,173 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:28:41,173 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:28:41] ERROR: Server process died during startup
+2026-03-13 15:28:45,219 - omok_server - INFO - Initializing database...
+2026-03-13 15:28:45,220 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:28:45,220 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:28:45,224 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:28:45,225 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:28:46,028 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:28:46] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:28:47,513 - omok_server - INFO - Initializing database...
+2026-03-13 15:28:47,514 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:28:47,514 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:28:48] ERROR: Server process died during startup
+2026-03-13 15:28:51,549 - omok_server - INFO - Initializing database...
+2026-03-13 15:28:51,550 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:28:51,550 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:28:51,554 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:28:51,554 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:28:52,367 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:28:52] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:28:53,275 - omok_server - INFO - Initializing database...
+2026-03-13 15:28:53,275 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:28:53,276 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:28:54] ERROR: Server process died during startup
+2026-03-13 15:28:57,306 - omok_server - INFO - Initializing database...
+2026-03-13 15:28:57,307 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:28:57,307 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:28:57,311 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:28:57,311 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:28:58,125 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:28:58] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:28:59,607 - omok_server - INFO - Initializing database...
+2026-03-13 15:28:59,608 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:28:59,608 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:29:00] ERROR: Server process died during startup
+2026-03-13 15:29:03,651 - omok_server - INFO - Initializing database...
+2026-03-13 15:29:03,652 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:29:03,652 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:29:03,656 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:29:03,656 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:29:04,462 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:29:04] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:29:05,403 - omok_server - INFO - Initializing database...
+2026-03-13 15:29:05,404 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:29:05,404 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:29:06] ERROR: Server process died during startup
+2026-03-13 15:29:09,435 - omok_server - INFO - Initializing database...
+2026-03-13 15:29:09,436 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:29:09,437 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:29:09,441 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:29:09,441 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:29:10,255 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:29:10] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:29:11,700 - omok_server - INFO - Initializing database...
+2026-03-13 15:29:11,701 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:29:11,701 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:29:12] ERROR: Server process died during startup
+2026-03-13 15:29:17,496 - omok_server - INFO - Initializing database...
+2026-03-13 15:29:17,497 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:29:17,497 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:29:17,502 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:29:17,502 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:29:18,318 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:29:18] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:29:19,774 - omok_server - INFO - Initializing database...
+2026-03-13 15:29:19,775 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:29:19,775 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:29:20] ERROR: Server process died during startup
+2026-03-13 15:29:23,807 - omok_server - INFO - Initializing database...
+2026-03-13 15:29:23,808 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:29:23,808 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:29:23,812 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:29:23,812 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:29:24,631 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:29:24] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:29:25,564 - omok_server - INFO - Initializing database...
+2026-03-13 15:29:25,565 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:29:25,565 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:29:26] ERROR: Server process died during startup
+2026-03-13 15:29:29,588 - omok_server - INFO - Initializing database...
+2026-03-13 15:29:29,589 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:29:29,589 - omok_server - INFO - Starting Omok server on port 8081...
+2026-03-13 15:29:29,593 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://172.26.15.97:8081
+2026-03-13 15:29:29,593 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2026-03-13 15:29:30,411 - werkzeug - INFO - 127.0.0.1 - - [13/Mar/2026 15:29:30] "GET /api/weights HTTP/1.1" 200 -
+2026-03-13 15:29:31,873 - omok_server - INFO - Initializing database...
+2026-03-13 15:29:31,874 - omok_server - INFO - Database initialized successfully
+2026-03-13 15:29:31,874 - omok_server - INFO - Starting Omok server on port 8081...
+Address already in use
+Port 8081 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2026-03-13 15:29:32] ERROR: Server process died during startup
+[2026-03-13 15:29:33] ERROR: Max restart attempts (10) reached. Waiting 60 seconds...
+[2026-03-13 15:29:35] ERROR: Max restart attempts (10) reached. Waiting 60 seconds...
