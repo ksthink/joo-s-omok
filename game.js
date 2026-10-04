@@ -1,5 +1,5 @@
 // 앱 버전: 첫 화면에 표시됨. 배포할 때 함께 올린다.
-const APP_VERSION = '2.0.0';
+const APP_VERSION = '2.1.0';
 
 const BOARD_SIZE = 15;
 const EMPTY = 0;
@@ -25,6 +25,7 @@ let elapsedSeconds = 0;
 let introAnimationId = null;
 let lastMove = null;
 let moveHistory = [];
+let gameSerial = 0; // bumped on every new board, so a late AI answer can be discarded
 let touchHandled = false; // prevent double-fire on mobile
 
 const LEVEL_CONFIG = {
@@ -102,6 +103,7 @@ function initBoard() {
     levelStartTime = Date.now();
     lastMove = null;
     moveHistory = [];
+    gameSerial++;
 
     const turnEl = document.getElementById('turn');
     if (turnEl) turnEl.textContent = '당신의 차례 (흑)';
@@ -437,9 +439,12 @@ function makeMove(row, col, player) {
 function aiTurn() {
     if (gameOver) return;
     document.getElementById('turn').textContent = 'AI 생각 중...';
-    setTimeout(() => {
+    const serial = gameSerial;
+    setTimeout(async () => {
         const timeLimit = gameMode === 'challenge' ? LEVEL_CONFIG[currentLevel].timeLimit : 700;
-        const move = getAIMove(board, timeLimit);
+        const move = await chooseAIMove(board, timeLimit, gameMode, lastMove);
+        // A new game may have started while Jev was answering
+        if (serial !== gameSerial || gameOver) return;
         if (move) {
             makeMove(move.row, move.col, AI);
         }

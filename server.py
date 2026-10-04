@@ -4,6 +4,8 @@ import os
 import json
 import logging
 import traceback
+import urllib.error
+import urllib.request
 from datetime import datetime, timezone
 from functools import wraps
 from zoneinfo import ZoneInfo
@@ -1390,6 +1392,138 @@ def reset_weights():
 
     save_weights_to_file()
     return jsonify({'success': True, 'message': 'Weights reset to defaults'})
+
+# ─── Jev Intuition Layer (TypeSafe System One) ───────────────────────────────────
+# The browser sends the board and the engine's candidate moves; this route builds
+# the prompt itself (no free text from the client reaches the API) and asks Jev
+# which candidate it prefers. The key stays on the server (TYPESAFE_API_KEY).
+JEV_API_URL = os.environ.get('JEV_API_URL', 'https://api.typesafe.ai/v1/systemone')
+JEV_MODEL = os.environ.get('JEV_MODEL', 'jev-latest')
+JEV_TIMEOUT_SEC = 3.0
+JEV_MAX_CANDIDATES = 12
+JEV_COLS = 'ABCDEFGHIJKLMNO'
+JEV_GRADE_TEXT = {
+    'three': 'an open three', 'four': 'a four', 'double-three': 'a double three',
+    'four-three': 'a four-three', 'winning': 'a winning shape', 'five': 'five',
+}
+
+def jev_coord(row, col):
+    return f'{JEV_COLS[col]}{row + 1}'
+
+def jev_board_text(board, last_move):
+    lines = [
+        'Gomoku on a 15x15 board. Five or more in a row wins.',
+        'X = black (opponent). O = white (you). It is your move as O.',
+        'Columns A-O run left to right, rows 1-15 run top to bottom.',
+        '    ' + ' '.join(JEV_COLS),
+    ]
+    for r in range(15):
+        lines.append(f'{r + 1:>3} ' + ' '.join('.XO'[v] for v in board[r]))
+    if last_move:
+        lines.append(f'Opponent just played {jev_coord(*last_move)}.')
+    return '\n'.join(lines)
+
+def jev_note(cand):
+    parts = []
+    me, opp = JEV_GRADE_TEXT.get(cand.get('me')), JEV_GRADE_TEXT.get(cand.get('opp'))
+    if me:
+        parts.append(f'makes {me} for O')
+    if opp:
+        parts.append(f'blocks X from {opp}')
+    return '; '.join(parts) or 'quiet developing move'
+
+def jev_parse_request(data):
+    """Validate the client payload. Returns (board, last_move, candidates) or raises ValueError."""
+    board = data.get('board')
+    if not (isinstance(board, list) and len(board) == 15 and
+            all(isinstance(row, list) and len(row) == 15 and
+                all(v in (0, 1, 2) for v in row) for row in board)):
+        raise ValueError('board must be 15x15 of 0/1/2')
+
+    def cell(m):
+        r, c = m.get('row'), m.get('col')
+        if not (isinstance(r, int) and isinstance(c, int) and 0 <= r < 15 and 0 <= c < 15):
+            raise ValueError('bad coordinate')
+        return r, c
+
+    last = data.get('lastMove')
+    last_move = cell(last) if isinstance(last, dict) else None
+
+    raw = data.get('candidates')
+    if not isinstance(raw, list) or not 2 <= len(raw) <= JEV_MAX_CANDIDATES:
+        raise ValueError(f'candidates must be a list of 2-{JEV_MAX_CANDIDATES} moves')
+    candidates, seen = [], set()
+    for m in raw:
+        if not isinstance(m, dict):
+            raise ValueError('bad candidate')
+        r, c = cell(m)
+        if board[r][c] != 0 or (r, c) in seen:
+            raise ValueError('candidate must be a distinct empty cell')
+        seen.add((r, c))
+        candidates.append({'row': r, 'col': c, 'me': m.get('me'), 'opp': m.get('opp')})
+    return board, last_move, candidates
+
+@app.route('/api/jev-move', methods=['POST', 'OPTIONS'])
+@cross_origin
+def jev_move():
+    if request.method == 'OPTIONS':
+        return jsonify({}), 200
+
+    api_key = os.environ.get('TYPESAFE_API_KEY')
+    if not api_key:
+        return jsonify({'ok': False, 'error': 'jev_disabled'}), 503
+
+    try:
+        board, last_move, candidates = jev_parse_request(request.get_json(silent=True) or {})
+    except ValueError as e:
+        return jsonify({'ok': False, 'error': str(e)}), 400
+
+    ids = {jev_coord(c['row'], c['col']): c for c in candidates}
+    payload = {
+        'model': JEV_MODEL,
+        'state': jev_board_text(board, last_move),
+        'questions': {
+            'move': {
+                'type': 'choice',
+                'instructions': 'Which candidate move gives O the best winning chances?',
+                'criteria': {cid: jev_note(c) for cid, c in ids.items()},
+            }
+        },
+    }
+
+    req = urllib.request.Request(
+        JEV_API_URL,
+        data=json.dumps(payload).encode('utf-8'),
+        headers={'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'},
+        method='POST',
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=JEV_TIMEOUT_SEC) as resp:
+            body = json.loads(resp.read().decode('utf-8'))
+    except urllib.error.HTTPError as e:
+        detail = e.read().decode('utf-8', 'replace')[:300]
+        logger.warning(f'Jev HTTP {e.code}: {detail}')
+        return jsonify({'ok': False, 'error': f'jev_http_{e.code}'}), 502
+    except Exception as e:
+        logger.warning(f'Jev request failed: {e}')
+        return jsonify({'ok': False, 'error': 'jev_unreachable'}), 502
+
+    answer = (body.get('answers') or {}).get('move') or {}
+    choice = ids.get(answer.get('choice'))
+    if not choice:
+        return jsonify({'ok': False, 'error': 'jev_bad_answer'}), 502
+
+    probs = answer.get('probabilities') or {}
+    return jsonify({
+        'ok': True,
+        'choice': {'row': choice['row'], 'col': choice['col']},
+        'confidence': answer.get('confidence'),
+        'probabilities': [
+            {'row': c['row'], 'col': c['col'], 'p': float(probs.get(cid, 0) or 0)}
+            for cid, c in ids.items()
+        ],
+        'usage': body.get('usage'),
+    })
 
 # ─── Static File Serving ─────────────────────────────────────────────────────────
 ALLOWED_EXTENSIONS = {'.html', '.js', '.css', '.woff2', '.wav', '.json', '.png', '.ico'}

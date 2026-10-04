@@ -4,10 +4,11 @@
 
 ## 소개
 
-현재 버전: **v2.0.0** (첫 화면 하단에 표시, `game.js`의 `APP_VERSION`)
+현재 버전: **v2.1.0** (첫 화면 하단에 표시, `game.js`의 `APP_VERSION`)
 
 | 버전 | 변경 내용 |
 |---|---|
+| v2.1.0 | 연습 모드에 Jev 직관 레이어(조용한 국면에서 MiniMax 후보 + Jev 확률 블렌딩, 실패 시 MiniMax 폴백) |
 | v2.0.0 | AI 전술 계층(띈 4·띈 3 인식, 모든 노드 위협 기반 후보 제한), 차례를 아는 말단 평가, 평가 캐시로 탐색 깊이 약 2배 |
 | v1.x | 최초 공개: MiniMax + 학습 가중치, 연습·챌린지·랭크 모드 |
 
@@ -149,6 +150,22 @@ omok/
 | POST | `/api/game-record` | 기보 저장 + AI 양방향 학습 |
 | GET | `/api/weights` | 패턴 가중치 조회 (attack/defense 분리) |
 | POST | `/api/weights/reset` | 가중치 초기화 |
+| POST | `/api/jev-move` | Jev 직관 레이어 프록시 (아래 참고) |
+
+### Jev 직관 레이어
+
+연습 모드의 **조용한 국면**에서만 [TypeSafe Jev](https://docs.typesafe.ai)를 함께 씁니다. "코드가 계산하고 Jev가 판단한다" 구조입니다.
+
+1. `ai.js`의 `getAIMoveAnalysis()`가 평소대로 탐색합니다. 5목, 4 막기, 열린3 대응, 확정 승패처럼 강제되는 국면이면 그 수를 바로 둡니다 (Jev 호출 없음).
+2. 조용한 국면이면 상위 후보 8개를 같은 깊이로 다시 점수화해 서버에 보냅니다.
+3. 서버(`/api/jev-move`)가 보드를 텍스트로 만들어 Jev에 Choice 질문을 보냅니다. 클라이언트의 자유 텍스트는 API로 전달되지 않습니다.
+4. `jev.js`가 `alpha × Jev 확률 + (1 − alpha) × 정규화된 MiniMax 점수`로 최종 수를 고릅니다. 최선수보다 `safetyMargin` 이상 나쁜 후보는 처음부터 제외합니다.
+5. 키가 없거나, 시간 초과·오류가 나면 MiniMax 수를 그대로 둡니다. 키가 없으면 그 세션에서는 다시 묻지 않고, 일시 오류면 60초 쉰 뒤 재시도합니다.
+
+설정:
+- 서버 환경변수 `TYPESAFE_API_KEY` (필수, TypeSafe 콘솔에서 발급). 선택: `JEV_MODEL` (기본 `jev-latest`), `JEV_API_URL`.
+- 동작 파라미터는 `jev.js`의 `JEV_CONFIG` (`modes`, `alpha`, `safetyMargin`, `candidates`, `timeoutMs`). 챌린지 모드는 점수 비교를 위해 순수 MiniMax로 둡니다.
+- 브라우저 콘솔의 `jevStats`에서 호출·교체·폴백 횟수를 볼 수 있습니다.
 
 ### 대시보드 서버 (8082)
 

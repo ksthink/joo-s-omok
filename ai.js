@@ -924,6 +924,11 @@ const leafCache = new Map();
 // Counters of the last getAIMove() search, for benchmarks
 const searchStats = { nodes: 0, leafEvals: 0, uncachedEvals: 0, depth: 0, ms: 0 };
 
+// Score of the deepest completed root search (AI's point of view)
+let lastRootScore = 0;
+// Whether the last getValidMovesSmart() call found a quiet position (no forcing threats)
+let lastMovesQuiet = false;
+
 function getSearchStats() {
     return Object.assign({}, searchStats);
 }
@@ -957,7 +962,25 @@ const evaluateLeafUncached = function (board, side) {
 const MAX_EXTENSIONS = 8; // single-reply extensions allowed on one search path
 
 function getAIMove(board, timeLimit) {
-    // Count moves on board for phase detection
+    if (prepareSearch(board) === 0) {
+        return { row: 7, col: 7 };
+    }
+
+    try {
+        const rootMoves = getValidMovesSmart(board, null, 1, 2);
+        if (rootMoves.length === 0) return null;
+        if (rootMoves.length === 1) return rootMoves[0];
+
+        return getAIMoveIterativeDeepening(board, timeLimit || 1000);
+    } finally {
+        // The flat mirror is only valid while this search owns the board
+        flatOwner = null;
+    }
+}
+
+// Count stones, reset per-search state and point the flat mirror at `board`.
+// Returns the stone count; the caller must clear flatOwner when done.
+const prepareSearch = function (board) {
     currentMoveCount = 0;
     for (let i = 0; i < 15; i++) {
         for (let j = 0; j < 15; j++) {
@@ -967,12 +990,10 @@ function getAIMove(board, timeLimit) {
 
     searchStats.nodes = searchStats.leafEvals = searchStats.uncachedEvals = searchStats.depth = 0;
     searchStats.ms = 0;
+    lastRootScore = 0;
 
-    if (currentMoveCount === 0) {
-        return { row: 7, col: 7 };
-    }
+    if (currentMoveCount === 0) return 0;
 
-    // Reset state for new search
     transpositionTable.clear();
     for (let i = 0; i <= MAX_KILLER_DEPTH; i++) {
         killerMoves[i][0] = null;
@@ -983,15 +1004,55 @@ function getAIMove(board, timeLimit) {
     lineScoreCache.clear();
     clusterScoreCache.clear();
     leafCache.clear();
+    return currentMoveCount;
+};
+
+// ─── Candidate Analysis (for the Jev intuition layer) ──────────────────────────
+// Runs the normal search, then re-scores the top root candidates with a
+// full-window search of one common depth so their scores are comparable.
+// `forced: true` means tactics decide the move (five, blocking a four or an open
+// three, a proven win/loss): the caller must play `move` and skip any intuition.
+// Candidate scores are from the AI's point of view; `notes` describe the shape
+// each move makes for the AI (me) and denies the human (opp).
+const GRADE_NAMES = ['none', 'three', 'four', 'double-three', 'four-three', 'winning', 'five'];
+
+function getAIMoveAnalysis(board, timeLimit, opts) {
+    opts = opts || {};
+    const maxCandidates = opts.candidates || 8;
+    const maxScoreDepth = opts.scoreDepth || 4;
+    timeLimit = timeLimit || 1000;
+    const scoreBudget = opts.scoreTimeMs || Math.max(150, timeLimit * 0.5);
+    const forced = move => ({ move, forced: true, candidates: [], depth: searchStats.depth });
+
+    if (prepareSearch(board) === 0) return forced({ row: 7, col: 7 });
 
     try {
         const rootMoves = getValidMovesSmart(board, null, 1, 2);
-        if (rootMoves.length === 0) return null;
-        if (rootMoves.length === 1) return rootMoves[0];
+        const quiet = lastMovesQuiet;
+        if (rootMoves.length === 0) return forced(null);
+        if (rootMoves.length === 1) return forced(rootMoves[0]);
+        if (!quiet) return forced(getAIMoveIterativeDeepening(board, timeLimit));
 
-        return getAIMoveIterativeDeepening(board, timeLimit || 1000);
+        const best = getAIMoveIterativeDeepening(board, timeLimit);
+        if (!best || Math.abs(lastRootScore) >= CERTAIN_WIN) return forced(best);
+
+        const list = [best].concat(rootMoves.filter(m => !movesEqual(m, best))).slice(0, maxCandidates);
+        const depth = Math.max(1, Math.min(searchStats.depth - 1, maxScoreDepth));
+        const startTime = Date.now();
+        const candidates = [];
+        for (const m of list) {
+            applyMoveIncremental(board, m.row, m.col, 2);
+            const r = minimax(board, depth - 1, -Infinity, Infinity, false, startTime, scoreBudget, 0, m);
+            undoMoveIncremental(board, m.row, m.col, 2);
+            if (r.timeout) break;
+            const me = gradeOfBits(threatBits(board, m.row, m.col, 2));
+            const opp = gradeOfBits(threatBits(board, m.row, m.col, 1));
+            candidates.push({ row: m.row, col: m.col, score: r.score, me: GRADE_NAMES[me], opp: GRADE_NAMES[opp] });
+        }
+        // The best move must be part of a comparable set, otherwise skip intuition
+        if (candidates.length < 2) return forced(best);
+        return { move: best, forced: false, candidates, depth };
     } finally {
-        // The flat mirror is only valid while this search owns the board
         flatOwner = null;
     }
 }
@@ -1009,6 +1070,7 @@ const getAIMoveIterativeDeepening = function (board, timeLimitMs) {
             previousBestMove = result.move;
         }
         if (result.timeout) break;
+        lastRootScore = result.score;
         searchStats.depth = depth;
         if (Math.abs(result.score) >= CERTAIN_WIN) break;
     }
@@ -1202,6 +1264,7 @@ const getValidMovesSmart = function (board, previousBestMove, depth, player, wid
     width = width || 12;
     const opp = 3 - player;
     const size = board.length;
+    lastMovesQuiet = false;
     const keys = collectCandidates(board);
     if (keys.length === 0) return [];
 
@@ -1264,6 +1327,7 @@ const getValidMovesSmart = function (board, previousBestMove, depth, player, wid
         return withReserve(selected.slice(0, MAX_FORCED_MOVES), MAX_FORCED_MOVES);
     }
     // 5. quiet position
+    lastMovesQuiet = true;
     return strip(scored.slice(0, width));
 };
 
