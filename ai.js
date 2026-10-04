@@ -1,7 +1,8 @@
 // ─── AI Engine for Omok ────────────────────────────────────────────────────────
 // Minimax with alpha-beta pruning, iterative deepening, Zobrist hashing,
-// transposition table, killer moves, incremental evaluation,
-// and bidirectional learned pattern weights (attack/defense).
+// transposition table, killer moves, a tactical threat layer that restricts
+// candidates at every node, cached leaf evaluation, and bidirectional learned
+// pattern weights (attack/defense) for positional evaluation.
 
 // ─── Learned Weights (loaded from server) ──────────────────────────────────────
 let patternWeights = null; // { attack: {pattern: weight}, defense: {pattern: weight} }
@@ -104,41 +105,41 @@ async function loadPatternWeights() {
     }
 }
 
-function getClusterWeight(patternId, perspective) {
+const getClusterWeight = function (patternId, perspective) {
     if (clusterWeights && clusterWeights[perspective] && clusterWeights[perspective][patternId] !== undefined) {
         return clusterWeights[perspective][patternId];
     }
     return CLUSTER_PATTERNS[patternId] || 1000;
-}
+};
 
-function getClusterConnectionWeight(connType, perspective) {
+const getClusterConnectionWeight = function (connType, perspective) {
     if (clusterConnectionWeights && clusterConnectionWeights[perspective] && clusterConnectionWeights[perspective][connType] !== undefined) {
         return clusterConnectionWeights[perspective][connType];
     }
     return CLUSTER_CONNECTION_PATTERNS[connType] || 1000;
-}
+};
 
 // perspective: 'attack' for AI stones, 'defense' for player stones
-function getPatternWeight(pattern, perspective) {
+const getPatternWeight = function (pattern, perspective) {
     if (patternWeights && perspective && patternWeights[perspective] && patternWeights[perspective][pattern] !== undefined) {
         return patternWeights[perspective][pattern];
     }
     return BASE_WEIGHTS[pattern] || 0;
-}
+};
 
 // ─── Game Phase Detection ──────────────────────────────────────────────────────
 let currentMoveCount = 0;
 
-function getGamePhase() {
+const getGamePhase = function () {
     if (currentMoveCount <= 10) return 'opening';
     if (currentMoveCount <= 30) return 'midgame';
     return 'endgame';
-}
+};
 
 // ─── Exclusive Pattern Matching (no double-counting) ───────────────────────────
 // Matches patterns greedily by priority (longest/highest-weight first).
 // Once a region of the line is matched, it cannot be matched again.
-function evaluateLine(line, perspective) {
+const evaluateLine = function (line, perspective) {
     let score = 0;
     const len = line.length;
     const matched = new Uint8Array(len); // 0 = free, 1 = matched
@@ -166,7 +167,7 @@ function evaluateLine(line, perspective) {
         }
     }
     return score;
-}
+};
 
 // ─── Zobrist Hashing (dual 32-bit for reduced collisions) ──────────────────────
 const ZOBRIST_TABLE = Array.from({length: 15}, () =>
@@ -179,12 +180,30 @@ const ZOBRIST_TABLE = Array.from({length: 15}, () =>
 let zobristHashHi = 0;
 let zobristHashLo = 0;
 
-function updateZobristHash(row, col, player) {
-    zobristHashHi ^= ZOBRIST_TABLE[row][col][player - 1][0];
-    zobristHashLo ^= ZOBRIST_TABLE[row][col][player - 1][1];
-}
+// Per-player hashes (index 1 and 2) of the same table, used by evaluation caches
+const zobristPlayerHi = [0, 0, 0];
+const zobristPlayerLo = [0, 0, 0];
 
-function computeFullHash(board) {
+const updateZobristHash = function (row, col, player) {
+    const z = ZOBRIST_TABLE[row][col][player - 1];
+    zobristHashHi ^= z[0];
+    zobristHashLo ^= z[1];
+    zobristPlayerHi[player] ^= z[0];
+    zobristPlayerLo[player] ^= z[1];
+};
+
+const resetSearchHashes = function (board) {
+    zobristHashHi = 0; zobristHashLo = 0;
+    zobristPlayerHi[1] = zobristPlayerHi[2] = 0;
+    zobristPlayerLo[1] = zobristPlayerLo[2] = 0;
+    for (let i = 0; i < board.length; i++) {
+        for (let j = 0; j < board.length; j++) {
+            if (board[i][j] !== 0) updateZobristHash(i, j, board[i][j]);
+        }
+    }
+};
+
+const computeFullHash = function (board) {
     let hi = 0, lo = 0;
     for (let i = 0; i < 15; i++) {
         for (let j = 0; j < 15; j++) {
@@ -195,12 +214,12 @@ function computeFullHash(board) {
         }
     }
     return [hi, lo];
-}
+};
 
-function getHashKey() {
+const getHashKey = function () {
     // Combine into a single string key for Map lookup
     return zobristHashHi + '|' + zobristHashLo;
-}
+};
 
 // ─── Transposition Table (depth-based replacement) ─────────────────────────────
 const TT_EXACT = 0;
@@ -209,7 +228,7 @@ const TT_UPPER = 2;
 const TT_MAX_SIZE = 500000;
 const transpositionTable = new Map();
 
-function storeTT(depth, score, move, flag) {
+const storeTT = function (depth, score, move, flag) {
     const key = getHashKey();
     const existing = transpositionTable.get(key);
     // Depth-based replacement: only overwrite if new depth >= existing depth
@@ -222,58 +241,50 @@ function storeTT(depth, score, move, flag) {
         }
     }
     transpositionTable.set(key, { depth, score, move, flag });
-}
+};
 
-function lookupTT() {
+const lookupTT = function () {
     return transpositionTable.get(getHashKey()) || null;
-}
+};
 
 // ─── Killer Moves ──────────────────────────────────────────────────────────────
 const MAX_KILLER_DEPTH = 12;
 const killerMoves = Array.from({length: MAX_KILLER_DEPTH + 1}, () => [null, null]);
 
-function updateKillerMove(depth, move) {
+const updateKillerMove = function (depth, move) {
     if (depth <= MAX_KILLER_DEPTH && !movesEqual(killerMoves[depth][0], move)) {
         killerMoves[depth][1] = killerMoves[depth][0];
         killerMoves[depth][0] = { row: move.row, col: move.col };
     }
-}
+};
 
-function movesEqual(a, b) {
+const movesEqual = function (a, b) {
     if (!a || !b) return false;
     return a.row === b.row && a.col === b.col;
-}
+};
 
-// ─── Incremental Evaluation ────────────────────────────────────────────────────
-// Instead of re-scanning the entire board, we maintain a running score
-// and only recalculate the delta when a stone is placed or removed.
+// ─── Move Application & Evaluation Caching ─────────────────────────────────────
+// The evaluation is not incremental: the board is scored from scratch at leaf
+// nodes only. What is kept up to date per move is cheap state (Zobrist hashes,
+// the padded flat board), and the expensive parts are memoised instead:
+// line scores by line contents, cluster shapes by per-player hash and whole
+// leaf results by position hash.
 
-let incrementalScore = 0;
-
-function initIncrementalScore(board) {
-    incrementalScore = fullEvaluateBoard(board);
-}
-
-// Incremental evaluation: we track the board and recompute the full score at leaf nodes.
-// True incremental (delta-only) is complex to keep in sync with line-based fullEvaluateBoard,
-// so we use the board mutation + full eval approach only at depth=0.
-// For interior nodes, we simply update the board state and rely on the score at depth=0.
-
-function applyMoveIncremental(board, row, col, player) {
+const applyMoveIncremental = function (board, row, col, player) {
     board[row][col] = player;
+    setFlatCell(board, row, col, player);
     updateZobristHash(row, col, player);
-    // incrementalScore is refreshed at depth=0 via fullEvaluateBoard; no delta needed here.
-}
+};
 
-function undoMoveIncremental(board, row, col, player) {
+const undoMoveIncremental = function (board, row, col, player) {
     board[row][col] = 0;
+    setFlatCell(board, row, col, 0);
     updateZobristHash(row, col, player);
-    // incrementalScore is refreshed at depth=0 via fullEvaluateBoard; no delta needed here.
-}
+};
 
 // Build a full-length line string along direction (dr,dc) starting at (r0,c0).
 // Uses board boundaries as line ends (no fixed window).
-function getFullLine(r0, c0, dr, dc, player, board) {
+const getFullLine = function (r0, c0, dr, dc, player, board) {
     const size = board.length;
     let line = '';
     // Walk from start to end of the board in this direction
@@ -283,13 +294,13 @@ function getFullLine(r0, c0, dr, dc, player, board) {
         else line += 'X';
     }
     return line;
-}
+};
 
 // Gapped fours (OO_OO, O_OOO, OOO_O): one stone completes five through the gap.
 // evaluateLine has no key for them, so each gap is scored like a closed four
 // using the learned 'OOOO_' weight. Contiguous fours are left to evaluateLine,
 // so no shape is counted twice.
-function countGappedFours(line) {
+const countGappedFours = function (line) {
     let n = 0;
     for (let i = 1; i < line.length - 1; i++) {
         if (line[i] !== '_' || line[i - 1] !== 'O' || line[i + 1] !== 'O') continue;
@@ -299,57 +310,84 @@ function countGappedFours(line) {
         if (run >= 4) n++;
     }
     return n;
-}
+};
 
-function scoreLine(line, perspective) {
+const scoreLine = function (line, perspective) {
     let score = evaluateLine(line, perspective);
     if (line.indexOf('O_O') !== -1) {
         const gapped = countGappedFours(line);
         if (gapped) score += gapped * getPatternWeight('OOOO_', perspective);
     }
     return score;
-}
+};
+
+// Line scores are memoised by line contents (base-3 code + length + perspective).
+// Most lines are unchanged between leaves, so the pattern scan runs rarely.
+// The cache is cleared at the start of every getAIMove() so newly loaded
+// learned weights are always used.
+const lineScoreCache = new Map();
+const LINE_CACHE_MAX = 200000;
+
+const lineScoreCached = function (r0, c0, dr, dc, player, board, perspective) {
+    const size = board.length;
+    let code = 0, len = 0;
+    for (let r = r0, c = c0; r >= 0 && r < size && c >= 0 && c < size; r += dr, c += dc) {
+        const v = board[r][c];
+        code = code * 3 + (v === player ? 1 : (v === 0 ? 0 : 2));
+        len++;
+    }
+    const key = ((code * 16 + len) * 2) + (perspective === 'attack' ? 1 : 0);
+    let score = lineScoreCache.get(key);
+    if (score === undefined) {
+        score = scoreLine(getFullLine(r0, c0, dr, dc, player, board), perspective);
+        if (lineScoreCache.size >= LINE_CACHE_MAX) lineScoreCache.clear();
+        lineScoreCache.set(key, score);
+    }
+    return score;
+};
 
 // Score all unique lines on the board once per direction.
 // Horizontal: 15 rows, Vertical: 15 cols, Diag \: top-row + left-col, Diag /: bottom-row + left-col.
-function evaluateAllLines(board, player, perspective) {
+const evaluateAllLines = function (board, player, perspective) {
     const size = board.length;
     let score = 0;
 
     // Horizontal lines (dr=0, dc=1) – one per row
     for (let r = 0; r < size; r++) {
-        const line = getFullLine(r, 0, 0, 1, player, board);
-        score += scoreLine(line, perspective);
+        score += lineScoreCached(r, 0, 0, 1, player, board, perspective);
     }
     // Vertical lines (dr=1, dc=0) – one per col
     for (let c = 0; c < size; c++) {
-        const line = getFullLine(0, c, 1, 0, player, board);
-        score += scoreLine(line, perspective);
+        score += lineScoreCached(0, c, 1, 0, player, board, perspective);
     }
     // Diagonal \ (dr=1, dc=1) – top row + left col (excluding corner double-count)
     for (let c = 0; c < size; c++) {
-        const line = getFullLine(0, c, 1, 1, player, board);
-        score += scoreLine(line, perspective);
+        score += lineScoreCached(0, c, 1, 1, player, board, perspective);
     }
     for (let r = 1; r < size; r++) {
-        const line = getFullLine(r, 0, 1, 1, player, board);
-        score += scoreLine(line, perspective);
+        score += lineScoreCached(r, 0, 1, 1, player, board, perspective);
     }
     // Diagonal / (dr=-1, dc=1) – bottom row + left col
     for (let c = 0; c < size; c++) {
-        const line = getFullLine(size - 1, c, -1, 1, player, board);
-        score += scoreLine(line, perspective);
+        score += lineScoreCached(size - 1, c, -1, 1, player, board, perspective);
     }
     for (let r = 0; r < size - 1; r++) {
-        const line = getFullLine(r, 0, -1, 1, player, board);
-        score += scoreLine(line, perspective);
+        score += lineScoreCached(r, 0, -1, 1, player, board, perspective);
     }
 
     return score;
-}
+};
 
 // ─── Full Board Evaluation (used for initialization) ───────────────────────────
-function fullEvaluateBoard(board) {
+// `connections` (optional): [_, defense score, attack score] already computed by
+// the leaf scan, so the candidate cells are not classified twice.
+// Internal helpers are script-scoped consts rather than function declarations:
+// behaviour in the browser is the same, but in a Node vm context (used by the
+// tests and the match harness) calls to global function declarations go
+// through the sandbox's property interceptor and are several times slower.
+// The public API (getAIMove, loadPatternWeights, fullEvaluateBoard,
+// classifyMove, linePoints, countThreats, ...) stays global.
+const evaluatePositional = function (board, connections) {
     let score = 0;
 
     // Line-based scan: each line evaluated exactly once per direction, no double-counting
@@ -358,14 +396,22 @@ function fullEvaluateBoard(board) {
 
     score += evaluateClusterPatterns(board, 2, 'attack');
     score -= evaluateClusterPatterns(board, 1, 'defense');
-    score += evaluateClusterConnections(board, 2, 'attack');
-    score -= evaluateClusterConnections(board, 1, 'defense');
-    
+    if (connections) {
+        score += connections[2] - connections[1];
+    } else {
+        score += evaluateClusterConnections(board, 2, 'attack');
+        score -= evaluateClusterConnections(board, 1, 'defense');
+    }
+
     return score;
+};
+
+function fullEvaluateBoard(board) {
+    return evaluatePositional(board);
 }
 
 // ─── Cluster Pattern Detection ──────────────────────────────────────────────────
-function findClusters(board, player) {
+const findClusters = function (board, player) {
     const size = board.length;
     const visited = Array(size).fill(null).map(() => Array(size).fill(false));
     const clusters = [];
@@ -397,15 +443,15 @@ function findClusters(board, player) {
         }
     }
     return clusters;
-}
+};
 
-function getClusterBounds(cluster) {
+const getClusterBounds = function (cluster) {
     const rows = cluster.map(p => p[0]);
     const cols = cluster.map(p => p[1]);
     return [Math.min(...rows), Math.max(...rows), Math.min(...cols), Math.max(...cols)];
-}
+};
 
-function identifyClusterPattern(cluster, board) {
+const identifyClusterPattern = function (cluster, board) {
     if (cluster.length < 3) return null;
     
     const clusterSet = new Set(cluster.map(p => `${p[0]},${p[1]}`));
@@ -451,9 +497,24 @@ function identifyClusterPattern(cluster, board) {
     }
     
     return null;
-}
+};
 
-function evaluateClusterPatterns(board, player, perspective) {
+// Cluster shapes depend only on one player's stones, so they are cached by that
+// player's Zobrist hash (cleared every getAIMove).
+const clusterScoreCache = new Map();
+
+const evaluateClusterPatterns = function (board, player, perspective) {
+    const key = player + '|' + perspective + '|' + zobristPlayerHi[player] + '|' + zobristPlayerLo[player];
+    let score = clusterScoreCache.get(key);
+    if (score === undefined) {
+        score = evaluateClusterPatternsUncached(board, player, perspective);
+        if (clusterScoreCache.size >= LINE_CACHE_MAX) clusterScoreCache.clear();
+        clusterScoreCache.set(key, score);
+    }
+    return score;
+};
+
+const evaluateClusterPatternsUncached = function (board, player, perspective) {
     const clusters = findClusters(board, player);
     let score = 0;
     const counted = new Set();
@@ -467,76 +528,71 @@ function evaluateClusterPatterns(board, player, perspective) {
     }
     
     return score;
-}
+};
 
 // ─── Influence Map & Connection Detection ────────────────────────────────────────
-function buildInfluenceMap(board, player) {
+// Influence of `player` on an empty cell: sum of (5 - chebyshev distance) over
+// own stones within 4 cells. A connection is scored at the first cell (row-major)
+// with influence >= 4 for each connection type.
+//
+// Any cell where a stone makes a three or four has an own stone within 2 cells,
+// so only the move candidates (radius 2 around stones) need to be classified,
+// and influence is computed only for cells that have a connection type.
+const CONNECTION_TYPES = ['pincer_threat', 'bridge_threat', 'nearby_threes', 'supporting_threat'];
+
+const influenceAt = function (board, r, c, player) {
     const size = board.length;
-    const influence = Array(size).fill(null).map(() => Array(size).fill(0));
-    
-    for (let r = 0; r < size; r++) {
-        for (let c = 0; c < size; c++) {
-            if (board[r][c] === player) {
-                for (let dr = -4; dr <= 4; dr++) {
-                    for (let dc = -4; dc <= 4; dc++) {
-                        const nr = r + dr, nc = c + dc;
-                        if (0 <= nr && nr < size && 0 <= nc && nc < size && board[nr][nc] === 0) {
-                            const dist = Math.max(Math.abs(dr), Math.abs(dc));
-                            influence[nr][nc] += 5 - dist;
-                        }
-                    }
-                }
-            }
+    let inf = 0;
+    const r0 = Math.max(0, r - 4), r1 = Math.min(size - 1, r + 4);
+    const c0 = Math.max(0, c - 4), c1 = Math.min(size - 1, c + 4);
+    for (let nr = r0; nr <= r1; nr++) {
+        const row = board[nr];
+        const adr = nr > r ? nr - r : r - nr;
+        for (let nc = c0; nc <= c1; nc++) {
+            if (row[nc] !== player) continue;
+            const adc = nc > c ? nc - c : c - nc;
+            inf += 5 - (adr > adc ? adr : adc);
         }
     }
-    return influence;
-}
+    return inf;
+};
 
-function classifyConnection(board, row, col, player) {
-    // Temporarily place a stone at this empty cell so pattern detection is meaningful
-    board[row][col] = player;
+// Index into CONNECTION_TYPES for a threatBits() summary, or -1
+const connectionIndexFromBits = function (bits) {
+    if (!bits) return -1;
+    const fours = (bits & 7) * 2 + ((bits >> 3) & 7) + ((bits & 512) ? 1 : 0);
+    const openThrees = (bits >> 6) & 7;
+    if (fours >= 2) return 0;
+    if (fours >= 1 && openThrees >= 1) return 1;
+    if (openThrees >= 2) return 2;
+    if (openThrees >= 1) return 3;
+    return -1;
+};
 
-    const directions = [[0,1],[1,0],[1,1],[1,-1]];
-    let openThrees = 0;
-    let fours = 0;
+// Connection type a `player` stone at empty (row,col) would create.
+// Shapes come from the tactical layer (gapped fours/threes included).
+const classifyConnection = function (board, row, col, player) {
+    const idx = connectionIndexFromBits(threatBits(board, row, col, player));
+    return idx < 0 ? null : CONNECTION_TYPES[idx];
+};
 
-    for (const [dr, dc] of directions) {
-        const line = getLine(row, col, dr, dc, player, board);
-        if (line.includes('_OOOO_')) fours += 2;
-        else if (line.includes('OOOO')) fours += 1;
-        if (line.includes('_OOO_')) openThrees += 1;
-    }
-
-    // Restore the cell
-    board[row][col] = 0;
-
-    if (fours >= 2) return 'pincer_threat';
-    if (fours >= 1 && openThrees >= 1) return 'bridge_threat';
-    if (openThrees >= 2) return 'nearby_threes';
-    if (openThrees >= 1) return 'supporting_threat';
-    return null;
-}
-
-function evaluateClusterConnections(board, player, perspective) {
-    const influence = buildInfluenceMap(board, player);
+const evaluateClusterConnections = function (board, player, perspective) {
+    const size = board.length;
+    const keys = collectCandidates(board).sort((x, y) => x - y);
     let score = 0;
-    const counted = new Set();
-    const size = board.length;
-    
-    for (let r = 0; r < size; r++) {
-        for (let c = 0; c < size; c++) {
-            if (influence[r][c] >= 4 && board[r][c] === 0) {
-                const connType = classifyConnection(board, r, c, player);
-                if (connType && !counted.has(connType)) {
-                    score += getClusterConnectionWeight(connType, perspective) * (influence[r][c] / 5);
-                    counted.add(connType);
-                }
-            }
-        }
+    let counted = 0; // bit per connection type, each type scored once
+    for (const key of keys) {
+        const r = (key / size) | 0, c = key % size;
+        const idx = connectionIndexFromBits(threatBits(board, r, c, player));
+        if (idx < 0 || (counted & (1 << idx))) continue;
+        const inf = influenceAt(board, r, c, player);
+        if (inf < 4) continue;
+        score += getClusterConnectionWeight(CONNECTION_TYPES[idx], perspective) * (inf / 5);
+        counted |= 1 << idx;
+        if (counted === 15) break;
     }
-    
     return score;
-}
+};
 
 function evaluatePoint(row, col, player, board, perspective) {
     const directions = [[0,1],[1,0],[1,1],[1,-1]];
@@ -596,7 +652,39 @@ const G_FIVE = 6;
 // Index 4 is the move itself and is always treated as own.
 const _win = new Int8Array(9);
 
-function readWindow(board, r, c, dr, dc, player, out) {
+// Padded flat copy of the board being searched (4-cell wall of 3s around the
+// 15x15 board). It is kept in sync by applyMoveIncremental/undoMoveIncremental
+// so window reads need no bounds checks. Any other board takes the slow path.
+const FLAT_PAD = 4;
+const FLAT_W = 15 + 2 * FLAT_PAD;
+const flatBoard = new Int8Array(FLAT_W * FLAT_W);
+let flatOwner = null;
+
+const setSearchBoard = function (board) {
+    flatBoard.fill(3);
+    for (let r = 0; r < 15; r++) {
+        for (let c = 0; c < 15; c++) flatBoard[(r + FLAT_PAD) * FLAT_W + c + FLAT_PAD] = board[r][c];
+    }
+    flatOwner = board;
+};
+
+const setFlatCell = function (board, r, c, v) {
+    if (board === flatOwner) flatBoard[(r + FLAT_PAD) * FLAT_W + c + FLAT_PAD] = v;
+};
+
+const readWindow = function (board, r, c, dr, dc, player, out) {
+    if (board === flatOwner) {
+        const base = (r + FLAT_PAD) * FLAT_W + c + FLAT_PAD;
+        const step = dr * FLAT_W + dc;
+        let own = 1;
+        for (let k = -4; k <= 4; k++) {
+            if (k === 0) { out[4] = 1; continue; }
+            const v = flatBoard[base + k * step];
+            if (v === player) { out[k + 4] = 1; own++; }
+            else out[k + 4] = v === 0 ? 0 : 2;
+        }
+        return own;
+    }
     const size = board.length;
     for (let k = -4; k <= 4; k++) {
         if (k === 0) { out[4] = 1; continue; }
@@ -607,12 +695,15 @@ function readWindow(board, r, c, dr, dc, player, out) {
             out[k + 4] = v === player ? 1 : (v === 0 ? 0 : 2);
         }
     }
-}
+    let own = 0;
+    for (let k = 0; k < 9; k++) if (out[k] === 1) own++;
+    return own;
+};
 
 // Bitmask of empty window cells that complete five-or-more through the centre.
 // Overlines count as wins (free gomoku). A ±4 window is enough: any winning run
 // that touches the window edge already spans five cells.
-function windowWinMask(a) {
+const windowWinMask = function (a) {
     let mask = 0;
     for (let i = 0; i < 9; i++) {
         if (i === 4 || a[i] !== 0) continue;
@@ -626,15 +717,15 @@ function windowWinMask(a) {
         if (R - L + 1 >= 5) mask |= 1 << i;
     }
     return mask;
-}
+};
 
-function popcount9(m) {
+const popcount9 = function (m) {
     let n = 0;
     while (m) { m &= m - 1; n++; }
     return n;
-}
+};
 
-function classifyWindow(a) {
+const classifyWindow = function (a) {
     let L = 4, R = 4;
     while (L > 0 && a[L - 1] === 1) L--;
     while (R < 8 && a[R + 1] === 1) R++;
@@ -662,16 +753,31 @@ function classifyWindow(a) {
         if (popcount9(m2) >= 2) return D_THREE;
     }
     return D_NONE;
-}
+};
 
 // Packed threat summary: bit 9 five, bits 0-2 open fours, 3-5 fours, 6-8 threes
-// Shape potential of the last threatBits() call: for every five-cell window
-// through the move that holds no opponent stone, POTENTIAL[own stones] is added.
-// Only used to order quiet moves.
+const threatBits = function (board, r, c, player) {
+    let bits = 0;
+    for (let d = 0; d < 4; d++) {
+        // fewer than 3 own stones in the window: nothing to classify
+        if (readWindow(board, r, c, DIRS4[d][0], DIRS4[d][1], player, _win) < 3) continue;
+        switch (classifyWindow(_win)) {
+            case D_FIVE: bits |= 512; break;
+            case D_OPEN_FOUR: bits += 1; break;
+            case D_FOUR: bits += 8; break;
+            case D_THREE: bits += 64; break;
+        }
+    }
+    return bits;
+};
+
+// Same as threatBits, and also stores the move's shape potential in
+// lastPotential: for every five-cell window through the move holding no
+// opponent stone, POTENTIAL[own stones] is added. Used to order quiet moves.
 const POTENTIAL = [0, 1, 6, 30, 150, 0];
 let lastPotential = 0;
 
-function threatBits(board, r, c, player) {
+const threatBitsWithPotential = function (board, r, c, player) {
     let bits = 0;
     let potential = 0;
     for (let d = 0; d < 4; d++) {
@@ -694,9 +800,9 @@ function threatBits(board, r, c, player) {
     }
     lastPotential = potential;
     return bits;
-}
+};
 
-function gradeOfBits(bits) {
+const gradeOfBits = function (bits) {
     if (bits & 512) return G_FIVE;
     const openFour = bits & 7, four = (bits >> 3) & 7, three = (bits >> 6) & 7;
     if (openFour > 0 || four >= 2) return G_WINNING;
@@ -705,7 +811,7 @@ function gradeOfBits(bits) {
     if (four >= 1) return G_FOUR;
     if (three >= 1) return G_THREE;
     return G_NONE;
-}
+};
 
 // Empty cells on the line through (r,c) in direction (dr,dc) where one more
 // `player` stone completes five or more together with (r,c).
@@ -735,12 +841,15 @@ function classifyMove(board, r, c, player) {
 // ─── Search Scores & Side-to-move Aware Leaf ───────────────────────────────────
 // A won game scores WIN + remaining depth (faster wins score higher), a lost one
 // -(WIN + depth). Scores are always from the AI's (player 2) point of view.
+// Depth-adjusted win scores and the single-reply extension below follow
+// Gomoku-MiniMax minimax() (https://github.com/yups1199/Gomoku-MiniMax,
+// MIT License, Copyright (c) 2026 JeongYupKim).
 const WIN = 1e9;
 const CERTAIN_WIN = WIN - 100;   // |score| >= this: the result is proven
 const NEAR_WIN = 1e7;            // winning attack available to the side to move
 
 // Would a `player` stone at empty (r,c) make five or more?
-function makesFive(board, r, c, player) {
+const makesFive = function (board, r, c, player) {
     const size = board.length;
     for (let d = 0; d < 4; d++) {
         const dr = DIRS4[d][0], dc = DIRS4[d][1];
@@ -758,39 +867,89 @@ function makesFive(board, r, c, player) {
         if (n >= 5) return true;
     }
     return false;
-}
+};
 
-// Tactical verdict at a leaf, from `side`'s point of view:
-//   +2  side has a five point (wins next move)
-//   -2  opponent has two or more five points that side cannot all block
-//   +1  side can make an open four / 쌍사 / 사삼 and the opponent has no four
-//    0  no verdict, use the positional evaluation
-function leafTactics(board, side) {
+// One pass over the candidate cells at a leaf. For both players it classifies
+// the move at every cell once and derives
+//   - the tactical verdict from `side`'s point of view:
+//       +2  side has a five point (wins next move)
+//       -2  opponent has two or more five points that side cannot all block
+//       +1  side can make an open four / 쌍사 / 사삼 and the opponent has no four
+//        0  no verdict, use the positional evaluation
+//   - the cluster connection scores (same result as evaluateClusterConnections)
+const _leafConn = [0, 0, 0];
+
+const leafScan = function (board, side) {
     const opp = 3 - side;
     const size = board.length;
-    const keys = collectCandidates(board);
+    const keys = collectCandidates(board).sort((x, y) => x - y);
     let oppFives = 0;
     let strong = false;
+    let counted1 = 0, counted2 = 0;
+    _leafConn[1] = 0; _leafConn[2] = 0;
     for (const key of keys) {
         const r = (key / size) | 0, c = key % size;
-        if (makesFive(board, r, c, side)) return 2;
-        if (makesFive(board, r, c, opp)) oppFives++;
-        if (!strong && gradeOfBits(threatBits(board, r, c, side)) >= G_FOUR_THREE) strong = true;
+        for (let p = 1; p <= 2; p++) {
+            const bits = threatBits(board, r, c, p);
+            if (!bits) continue;
+            if (p === side) {
+                if (bits & 512) return 2;
+                if (!strong && gradeOfBits(bits) >= G_FOUR_THREE) strong = true;
+            } else if (bits & 512) {
+                oppFives++;
+            }
+            const idx = connectionIndexFromBits(bits);
+            if (idx < 0) continue;
+            const bit = 1 << idx;
+            if ((p === 1 ? counted1 : counted2) & bit) continue;
+            const inf = influenceAt(board, r, c, p);
+            if (inf < 4) continue;
+            _leafConn[p] += getClusterConnectionWeight(CONNECTION_TYPES[idx], p === 2 ? 'attack' : 'defense') * (inf / 5);
+            if (p === 1) counted1 |= bit; else counted2 |= bit;
+        }
     }
     if (oppFives >= 2) return -2;
     if (strong && oppFives === 0) return 1;
     return 0;
+};
+
+// Tactical verdict only (see leafScan)
+const leafTactics = function (board, side) {
+    return leafScan(board, side);
+};
+
+// Leaf results cached by position + side to move (cleared every getAIMove)
+const leafCache = new Map();
+
+// Counters of the last getAIMove() search, for benchmarks
+const searchStats = { nodes: 0, leafEvals: 0, uncachedEvals: 0, depth: 0, ms: 0 };
+
+function getSearchStats() {
+    return Object.assign({}, searchStats);
 }
 
-function evaluateLeaf(board, side) {
+const evaluateLeaf = function (board, side) {
+    searchStats.leafEvals++;
+    const key = getHashKey() + '|' + side;
+    let score = leafCache.get(key);
+    if (score === undefined) {
+        searchStats.uncachedEvals++;
+        score = evaluateLeafUncached(board, side);
+        if (leafCache.size >= TT_MAX_SIZE) leafCache.clear();
+        leafCache.set(key, score);
+    }
+    return score;
+};
+
+const evaluateLeafUncached = function (board, side) {
     const sign = side === 2 ? 1 : -1;
-    const verdict = leafTactics(board, side);
+    const verdict = leafScan(board, side);
     if (verdict === 2) return sign * (WIN - 1);
     if (verdict === -2) return -sign * (WIN - 2);
-    const positional = fullEvaluateBoard(board);
+    const positional = evaluatePositional(board, _leafConn);
     if (verdict === 1) return sign * NEAR_WIN + positional;
     return positional;
-}
+};
 
 // ─── Entry Point ───────────────────────────────────────────────────────────────
 // Forced replies (own five, blocking the opponent's five) come out of
@@ -806,6 +965,9 @@ function getAIMove(board, timeLimit) {
         }
     }
 
+    searchStats.nodes = searchStats.leafEvals = searchStats.uncachedEvals = searchStats.depth = 0;
+    searchStats.ms = 0;
+
     if (currentMoveCount === 0) {
         return { row: 7, col: 7 };
     }
@@ -816,20 +978,25 @@ function getAIMove(board, timeLimit) {
         killerMoves[i][0] = null;
         killerMoves[i][1] = null;
     }
-    const [hi, lo] = computeFullHash(board);
-    zobristHashHi = hi;
-    zobristHashLo = lo;
+    resetSearchHashes(board);
+    setSearchBoard(board);
+    lineScoreCache.clear();
+    clusterScoreCache.clear();
+    leafCache.clear();
 
-    const rootMoves = getValidMovesSmart(board, null, 1, 2);
-    if (rootMoves.length === 0) return null;
-    if (rootMoves.length === 1) return rootMoves[0];
+    try {
+        const rootMoves = getValidMovesSmart(board, null, 1, 2);
+        if (rootMoves.length === 0) return null;
+        if (rootMoves.length === 1) return rootMoves[0];
 
-    initIncrementalScore(board);
-
-    return getAIMoveIterativeDeepening(board, timeLimit || 1000);
+        return getAIMoveIterativeDeepening(board, timeLimit || 1000);
+    } finally {
+        // The flat mirror is only valid while this search owns the board
+        flatOwner = null;
+    }
 }
 
-function getAIMoveIterativeDeepening(board, timeLimitMs) {
+const getAIMoveIterativeDeepening = function (board, timeLimitMs) {
     const startTime = Date.now();
     let bestMove = null;
     let previousBestMove = null;
@@ -842,12 +1009,14 @@ function getAIMoveIterativeDeepening(board, timeLimitMs) {
             previousBestMove = result.move;
         }
         if (result.timeout) break;
+        searchStats.depth = depth;
         if (Math.abs(result.score) >= CERTAIN_WIN) break;
     }
+    searchStats.ms = Date.now() - startTime;
     return bestMove;
-}
+};
 
-function minimaxRoot(board, depth, startTime, timeLimitMs, previousBestMove) {
+const minimaxRoot = function (board, depth, startTime, timeLimitMs, previousBestMove) {
     const moves = getValidMovesSmart(board, previousBestMove, depth, 2);
     if (moves.length === 0) return { score: 0, move: null, timeout: false };
 
@@ -861,13 +1030,11 @@ function minimaxRoot(board, depth, startTime, timeLimitMs, previousBestMove) {
             return { score: bestScore, move: bestMove, timeout: true };
         }
 
-        const savedScore = incrementalScore;
         applyMoveIncremental(board, move.row, move.col, 2);
 
         const result = minimax(board, childDepth, bestScore, Infinity, false, startTime, timeLimitMs, childExt, move);
 
         undoMoveIncremental(board, move.row, move.col, 2);
-        incrementalScore = savedScore;
 
         if (result.timeout) {
             return { score: bestScore, move: bestMove, timeout: true };
@@ -880,9 +1047,10 @@ function minimaxRoot(board, depth, startTime, timeLimitMs, previousBestMove) {
     }
 
     return { score: bestScore, move: bestMove, timeout: false };
-}
+};
 
-function minimax(board, depth, alpha, beta, isMaximizing, startTime, timeLimitMs, ext, lastMove) {
+const minimax = function (board, depth, alpha, beta, isMaximizing, startTime, timeLimitMs, ext, lastMove) {
+    searchStats.nodes++;
     if (Date.now() - startTime > timeLimitMs) {
         return { score: 0, move: null, timeout: true };
     }
@@ -933,14 +1101,12 @@ function minimax(board, depth, alpha, beta, isMaximizing, startTime, timeLimitMs
         let maxScore = -Infinity;
 
         for (const move of moves) {
-            const savedScore = incrementalScore;
-            applyMoveIncremental(board, move.row, move.col, 2);
+                applyMoveIncremental(board, move.row, move.col, 2);
 
             const result = minimax(board, childDepth, alpha, beta, false, startTime, timeLimitMs, childExt, move);
 
             undoMoveIncremental(board, move.row, move.col, 2);
-            incrementalScore = savedScore;
-
+    
             if (result.timeout) return { score: maxScore, move: bestMove, timeout: true };
 
             if (result.score > maxScore) {
@@ -963,14 +1129,12 @@ function minimax(board, depth, alpha, beta, isMaximizing, startTime, timeLimitMs
         let minScore = Infinity;
 
         for (const move of moves) {
-            const savedScore = incrementalScore;
-            applyMoveIncremental(board, move.row, move.col, 1);
+                applyMoveIncremental(board, move.row, move.col, 1);
 
             const result = minimax(board, childDepth, alpha, beta, true, startTime, timeLimitMs, childExt, move);
 
             undoMoveIncremental(board, move.row, move.col, 1);
-            incrementalScore = savedScore;
-
+    
             if (result.timeout) return { score: minScore, move: bestMove, timeout: true };
 
             if (result.score < minScore) {
@@ -989,7 +1153,7 @@ function minimax(board, depth, alpha, beta, isMaximizing, startTime, timeLimitMs
         storeTT(depth, minScore, bestMove, flag);
         return { score: minScore, move: bestMove, timeout: false };
     }
-}
+};
 
 // ─── Move Generation: threat-restricted candidates ─────────────────────────────
 // Every node (root and interior) uses the same rules, `player` being the side to
@@ -1010,7 +1174,7 @@ const RESERVE_MOVES = 5;
 const MAX_FORCED_MOVES = 20;
 const _candMark = new Uint8Array(225);
 
-function collectCandidates(board) {
+const collectCandidates = function (board) {
     const size = board.length;
     const out = [];
     _candMark.fill(0);
@@ -1031,9 +1195,9 @@ function collectCandidates(board) {
         }
     }
     return out;
-}
+};
 
-function getValidMovesSmart(board, previousBestMove, depth, player, width) {
+const getValidMovesSmart = function (board, previousBestMove, depth, player, width) {
     player = player || 2;
     width = width || 12;
     const opp = 3 - player;
@@ -1045,9 +1209,9 @@ function getValidMovesSmart(board, previousBestMove, depth, player, width) {
     let myBest = G_NONE, oppBest = G_NONE;
     for (const key of keys) {
         const row = (key / size) | 0, col = key % size;
-        const myBits = threatBits(board, row, col, player);
+        const myBits = threatBitsWithPotential(board, row, col, player);
         const myPot = lastPotential;
-        const oppBits = threatBits(board, row, col, opp);
+        const oppBits = threatBitsWithPotential(board, row, col, opp);
         const oppPot = lastPotential;
         const myGrade = gradeOfBits(myBits), oppGrade = gradeOfBits(oppBits);
         if (myGrade === G_FIVE) return [{ row, col }];
@@ -1101,7 +1265,7 @@ function getValidMovesSmart(board, previousBestMove, depth, player, width) {
     }
     // 5. quiet position
     return strip(scored.slice(0, width));
-}
+};
 
 function scoreMoveForOrdering(row, col, board, previousBestMove, depth) {
     let score = 0;
@@ -1129,7 +1293,7 @@ function countThreats(row, col, player, board) {
     return threatScoreFromBits(threatBits(board, row, col, player), player);
 }
 
-function threatScoreFromBits(bits, player) {
+const threatScoreFromBits = function (bits, player) {
     const perspective = player === 2 ? 'attack' : 'defense';
     if (bits & 512) return getPatternWeight('OOOOO', perspective);
     const openFour = bits & 7, blockedFour = (bits >> 3) & 7, openThree = (bits >> 6) & 7;
@@ -1139,7 +1303,7 @@ function threatScoreFromBits(bits, player) {
     }
     if (openThree >= 2) return getPatternWeight('_OOO_', perspective) * 2; // 쌍삼
     return openThree * (getPatternWeight('_OOO_', perspective) * 0.6) + blockedFour * (getPatternWeight('OOOO_', perspective) * 0.1);
-}
+};
 
 // ─── Utility Functions ─────────────────────────────────────────────────────────
 function isEmpty(board) {
@@ -1166,7 +1330,7 @@ function findImmediateWin(board, player) {
     return null;
 }
 
-function checkWinSimple(row, col, player, board) {
+const checkWinSimple = function (row, col, player, board) {
     const directions = [[0,1],[1,0],[1,1],[1,-1]];
     const size = board.length;
 
@@ -1187,7 +1351,7 @@ function checkWinSimple(row, col, player, board) {
         if (count >= 5) return true;
     }
     return false;
-}
+};
 
 // Legacy compatibility: evaluateBoard for any external callers
 function evaluateBoard(board) {
