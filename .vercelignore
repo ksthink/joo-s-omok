@@ -1,0 +1,3 @@
+# development-only files (AI tests and match harness)
+tests/
+tools/
