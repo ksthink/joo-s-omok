@@ -640,10 +640,26 @@ function classifyWindow(a) {
 }
 
 // Packed threat summary: bit 9 five, bits 0-2 open fours, 3-5 fours, 6-8 threes
+// Shape potential of the last threatBits() call: for every five-cell window
+// through the move that holds no opponent stone, POTENTIAL[own stones] is added.
+// Only used to order quiet moves.
+const POTENTIAL = [0, 1, 6, 30, 150, 0];
+let lastPotential = 0;
+
 function threatBits(board, r, c, player) {
     let bits = 0;
+    let potential = 0;
     for (let d = 0; d < 4; d++) {
         readWindow(board, r, c, DIRS4[d][0], DIRS4[d][1], player, _win);
+        for (let s = 0; s <= 4; s++) {
+            let cnt = 0;
+            for (let k = s; k < s + 5; k++) {
+                const v = _win[k];
+                if (v === 2) { cnt = -1; break; }
+                cnt += v;
+            }
+            if (cnt > 0) potential += POTENTIAL[cnt];
+        }
         switch (classifyWindow(_win)) {
             case D_FIVE: bits |= 512; break;
             case D_OPEN_FOUR: bits += 1; break;
@@ -651,6 +667,7 @@ function threatBits(board, r, c, player) {
             case D_THREE: bits += 64; break;
         }
     }
+    lastPotential = potential;
     return bits;
 }
 
@@ -691,6 +708,10 @@ function classifyMove(board, r, c, player) {
 }
 
 // ─── Entry Point ───────────────────────────────────────────────────────────────
+// Forced replies (own five, blocking the opponent's five) come out of
+// getValidMovesSmart as a single candidate and are returned without searching.
+const MAX_EXTENSIONS = 8; // single-reply extensions allowed on one search path
+
 function getAIMove(board, timeLimit) {
     // Count moves on board for phase detection
     currentMoveCount = 0;
@@ -704,12 +725,6 @@ function getAIMove(board, timeLimit) {
         return { row: 7, col: 7 };
     }
 
-    const winMove = findImmediateWin(board, 2);
-    if (winMove) return winMove;
-
-    const blockMove = findImmediateWin(board, 1);
-    if (blockMove) return blockMove;
-
     // Reset state for new search
     transpositionTable.clear();
     for (let i = 0; i <= MAX_KILLER_DEPTH; i++) {
@@ -719,6 +734,11 @@ function getAIMove(board, timeLimit) {
     const [hi, lo] = computeFullHash(board);
     zobristHashHi = hi;
     zobristHashLo = lo;
+
+    const rootMoves = getValidMovesSmart(board, null, 1, 2);
+    if (rootMoves.length === 0) return null;
+    if (rootMoves.length === 1) return rootMoves[0];
+
     initIncrementalScore(board);
 
     return getAIMoveIterativeDeepening(board, timeLimit || 1000);
@@ -743,11 +763,13 @@ function getAIMoveIterativeDeepening(board, timeLimitMs) {
 }
 
 function minimaxRoot(board, depth, startTime, timeLimitMs, previousBestMove) {
-    const moves = getValidMovesSmart(board, previousBestMove, depth);
+    const moves = getValidMovesSmart(board, previousBestMove, depth, 2);
     if (moves.length === 0) return { score: 0, move: null, timeout: false };
 
     let bestMove = moves[0];
     let bestScore = -Infinity;
+    const childDepth = moves.length === 1 ? depth : depth - 1;
+    const childExt = moves.length === 1 ? 1 : 0;
 
     for (const move of moves) {
         if (Date.now() - startTime > timeLimitMs) {
@@ -757,7 +779,7 @@ function minimaxRoot(board, depth, startTime, timeLimitMs, previousBestMove) {
         const savedScore = incrementalScore;
         applyMoveIncremental(board, move.row, move.col, 2);
 
-        const result = minimax(board, depth - 1, -Infinity, Infinity, false, startTime, timeLimitMs);
+        const result = minimax(board, childDepth, bestScore, Infinity, false, startTime, timeLimitMs, childExt);
 
         undoMoveIncremental(board, move.row, move.col, 2);
         incrementalScore = savedScore;
@@ -775,10 +797,11 @@ function minimaxRoot(board, depth, startTime, timeLimitMs, previousBestMove) {
     return { score: bestScore, move: bestMove, timeout: false };
 }
 
-function minimax(board, depth, alpha, beta, isMaximizing, startTime, timeLimitMs) {
+function minimax(board, depth, alpha, beta, isMaximizing, startTime, timeLimitMs, ext) {
     if (Date.now() - startTime > timeLimitMs) {
         return { score: 0, move: null, timeout: true };
     }
+    ext = ext || 0;
 
     // Transposition table lookup
     const ttEntry = lookupTT();
@@ -792,14 +815,22 @@ function minimax(board, depth, alpha, beta, isMaximizing, startTime, timeLimitMs
     // At leaf nodes, compute the accurate full board score.
     // fullEvaluateBoard uses line-based evaluation (no double-counting).
     const score = fullEvaluateBoard(board);
-    if (depth === 0 || Math.abs(score) >= 100000) {
+    if (depth <= 0 || Math.abs(score) >= 100000) {
         return { score, move: null, timeout: false };
     }
 
+    const player = isMaximizing ? 2 : 1;
     const ttBestMove = ttEntry ? ttEntry.move : null;
-    const moves = getValidMovesSmart(board, ttBestMove, depth);
+    const moves = getValidMovesSmart(board, ttBestMove, depth, player);
     if (moves.length === 0) {
         return { score: 0, move: null, timeout: false };
+    }
+
+    // Single forced reply: search it without spending depth (bounded per path)
+    let childDepth = depth - 1, childExt = ext;
+    if (moves.length === 1 && ext < MAX_EXTENSIONS) {
+        childDepth = depth;
+        childExt = ext + 1;
     }
 
     let bestMove = moves[0];
@@ -812,7 +843,7 @@ function minimax(board, depth, alpha, beta, isMaximizing, startTime, timeLimitMs
             const savedScore = incrementalScore;
             applyMoveIncremental(board, move.row, move.col, 2);
 
-            const result = minimax(board, depth - 1, alpha, beta, false, startTime, timeLimitMs);
+            const result = minimax(board, childDepth, alpha, beta, false, startTime, timeLimitMs, childExt);
 
             undoMoveIncremental(board, move.row, move.col, 2);
             incrementalScore = savedScore;
@@ -842,7 +873,7 @@ function minimax(board, depth, alpha, beta, isMaximizing, startTime, timeLimitMs
             const savedScore = incrementalScore;
             applyMoveIncremental(board, move.row, move.col, 1);
 
-            const result = minimax(board, depth - 1, alpha, beta, true, startTime, timeLimitMs);
+            const result = minimax(board, childDepth, alpha, beta, true, startTime, timeLimitMs, childExt);
 
             undoMoveIncremental(board, move.row, move.col, 1);
             incrementalScore = savedScore;
@@ -867,44 +898,116 @@ function minimax(board, depth, alpha, beta, isMaximizing, startTime, timeLimitMs
     }
 }
 
-// ─── Move Ordering with Learned Weights ────────────────────────────────────────
+// ─── Move Generation: threat-restricted candidates ─────────────────────────────
+// Every node (root and interior) uses the same rules, `player` being the side to
+// move ("me") and 3 - player the opponent:
+//   1. me can make five               -> only that move
+//   2. opp has a five point           -> only a block (if several, the game is lost)
+//   3. me can make an open four/쌍사   -> only those
+//      me can make 사삼               -> those + up to RESERVE_MOVES best others
+//   4. opp threatens an open four/쌍사/사삼/쌍삼 next move
+//                                     -> blocks + my fours (+ my threes if opp's
+//                                        threat is only a 쌍삼) + RESERVE_MOVES
+//   5. otherwise                      -> best `width` moves by ordering score
+// Thresholds and reserve size follow Gomoku-MiniMax moves_in_priority /
+// determine_threshold (https://github.com/yups1199/Gomoku-MiniMax, MIT License,
+// Copyright (c) 2026 JeongYupKim).
 const AI_THREAT_WEIGHT = 1.1;
+const RESERVE_MOVES = 5;
+const MAX_FORCED_MOVES = 20;
+const _candMark = new Uint8Array(225);
 
-function getValidMovesSmart(board, previousBestMove, depth) {
+function collectCandidates(board) {
     const size = board.length;
-    const candidates = [];
-    const checked = new Set();
-
+    const out = [];
+    _candMark.fill(0);
     for (let i = 0; i < size; i++) {
         for (let j = 0; j < size; j++) {
-            if (board[i][j] !== 0) {
-                for (let di = -2; di <= 2; di++) {
-                    for (let dj = -2; dj <= 2; dj++) {
-                        const ni = i + di;
-                        const nj = j + dj;
-                        const key = ni * size + nj;
-                        if (ni >= 0 && ni < size && nj >= 0 && nj < size &&
-                            board[ni][nj] === 0 && !checked.has(key)) {
-                            checked.add(key);
-                            candidates.push({ row: ni, col: nj });
-                        }
+            if (board[i][j] === 0) continue;
+            const i0 = Math.max(0, i - 2), i1 = Math.min(size - 1, i + 2);
+            const j0 = Math.max(0, j - 2), j1 = Math.min(size - 1, j + 2);
+            for (let ni = i0; ni <= i1; ni++) {
+                for (let nj = j0; nj <= j1; nj++) {
+                    const key = ni * size + nj;
+                    if (board[ni][nj] === 0 && !_candMark[key]) {
+                        _candMark[key] = 1;
+                        out.push(key);
                     }
                 }
             }
         }
     }
+    return out;
+}
 
-    if (candidates.length === 0) return candidates;
+function getValidMovesSmart(board, previousBestMove, depth, player, width) {
+    player = player || 2;
+    width = width || 12;
+    const opp = 3 - player;
+    const size = board.length;
+    const keys = collectCandidates(board);
+    if (keys.length === 0) return [];
 
-    const scored = candidates.map(m => ({
-        row: m.row,
-        col: m.col,
-        score: scoreMoveForOrdering(m.row, m.col, board, previousBestMove, depth)
-    }));
+    const scored = [];
+    let myBest = G_NONE, oppBest = G_NONE;
+    for (const key of keys) {
+        const row = (key / size) | 0, col = key % size;
+        const myBits = threatBits(board, row, col, player);
+        const myPot = lastPotential;
+        const oppBits = threatBits(board, row, col, opp);
+        const oppPot = lastPotential;
+        const myGrade = gradeOfBits(myBits), oppGrade = gradeOfBits(oppBits);
+        if (myGrade === G_FIVE) return [{ row, col }];
+        if (myGrade > myBest) myBest = myGrade;
+        if (oppGrade > oppBest) oppBest = oppGrade;
+
+        let score = 0;
+        if (previousBestMove && previousBestMove.row === row && previousBestMove.col === col) score += 1000000;
+        if (depth !== undefined && depth <= MAX_KILLER_DEPTH) {
+            const km = killerMoves[depth];
+            if (km[0] && km[0].row === row && km[0].col === col) score += 900000;
+            else if (km[1] && km[1].row === row && km[1].col === col) score += 800000;
+        }
+        score += threatScoreFromBits(myBits, player) * AI_THREAT_WEIGHT;
+        score += threatScoreFromBits(oppBits, opp);
+        score += myPot + oppPot * 0.8;
+        scored.push({ row, col, score, myGrade, oppGrade });
+    }
 
     scored.sort((a, b) => b.score - a.score);
+    const strip = list => list.map(m => ({ row: m.row, col: m.col }));
+    const withReserve = (selected, limit) => {
+        let reserve = RESERVE_MOVES;
+        for (const m of scored) {
+            if (selected.length >= limit || reserve <= 0) break;
+            if (!selected.includes(m)) { selected.push(m); reserve--; }
+        }
+        return strip(selected);
+    };
 
-    return scored.slice(0, 12).map(m => ({ row: m.row, col: m.col }));
+    // 2. opponent already has a five point: block it
+    if (oppBest === G_FIVE) {
+        return strip([scored.find(m => m.oppGrade === G_FIVE)]);
+    }
+    // 3. my own winning / composite attack
+    if (myBest === G_WINNING) {
+        return strip(scored.filter(m => m.myGrade === G_WINNING));
+    }
+    if (myBest === G_FOUR_THREE) {
+        return withReserve(scored.filter(m => m.myGrade >= G_FOUR_THREE), MAX_FORCED_MOVES);
+    }
+    // 4. opponent threatens a winning shape on the next move
+    if (oppBest >= G_DOUBLE_THREE) {
+        // Against a mere 쌍삼 threat my own threes still win the race; against an
+        // open three (or worse) only fours keep the initiative.
+        const counters = oppBest === G_DOUBLE_THREE
+            ? m => m.myGrade >= G_THREE
+            : m => m.myGrade === G_FOUR || m.myGrade >= G_FOUR_THREE;
+        const selected = scored.filter(m => m.oppGrade >= G_DOUBLE_THREE || counters(m));
+        return withReserve(selected.slice(0, MAX_FORCED_MOVES), MAX_FORCED_MOVES);
+    }
+    // 5. quiet position
+    return strip(scored.slice(0, width));
 }
 
 function scoreMoveForOrdering(row, col, board, previousBestMove, depth) {
