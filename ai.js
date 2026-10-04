@@ -285,6 +285,31 @@ function getFullLine(r0, c0, dr, dc, player, board) {
     return line;
 }
 
+// Gapped fours (OO_OO, O_OOO, OOO_O): one stone completes five through the gap.
+// evaluateLine has no key for them, so each gap is scored like a closed four
+// using the learned 'OOOO_' weight. Contiguous fours are left to evaluateLine,
+// so no shape is counted twice.
+function countGappedFours(line) {
+    let n = 0;
+    for (let i = 1; i < line.length - 1; i++) {
+        if (line[i] !== '_' || line[i - 1] !== 'O' || line[i + 1] !== 'O') continue;
+        let run = 0;
+        for (let k = i - 1; k >= 0 && line[k] === 'O'; k--) run++;
+        for (let k = i + 1; k < line.length && line[k] === 'O'; k++) run++;
+        if (run >= 4) n++;
+    }
+    return n;
+}
+
+function scoreLine(line, perspective) {
+    let score = evaluateLine(line, perspective);
+    if (line.indexOf('O_O') !== -1) {
+        const gapped = countGappedFours(line);
+        if (gapped) score += gapped * getPatternWeight('OOOO_', perspective);
+    }
+    return score;
+}
+
 // Score all unique lines on the board once per direction.
 // Horizontal: 15 rows, Vertical: 15 cols, Diag \: top-row + left-col, Diag /: bottom-row + left-col.
 function evaluateAllLines(board, player, perspective) {
@@ -294,30 +319,30 @@ function evaluateAllLines(board, player, perspective) {
     // Horizontal lines (dr=0, dc=1) – one per row
     for (let r = 0; r < size; r++) {
         const line = getFullLine(r, 0, 0, 1, player, board);
-        score += evaluateLine(line, perspective);
+        score += scoreLine(line, perspective);
     }
     // Vertical lines (dr=1, dc=0) – one per col
     for (let c = 0; c < size; c++) {
         const line = getFullLine(0, c, 1, 0, player, board);
-        score += evaluateLine(line, perspective);
+        score += scoreLine(line, perspective);
     }
     // Diagonal \ (dr=1, dc=1) – top row + left col (excluding corner double-count)
     for (let c = 0; c < size; c++) {
         const line = getFullLine(0, c, 1, 1, player, board);
-        score += evaluateLine(line, perspective);
+        score += scoreLine(line, perspective);
     }
     for (let r = 1; r < size; r++) {
         const line = getFullLine(r, 0, 1, 1, player, board);
-        score += evaluateLine(line, perspective);
+        score += scoreLine(line, perspective);
     }
     // Diagonal / (dr=-1, dc=1) – bottom row + left col
     for (let c = 0; c < size; c++) {
         const line = getFullLine(size - 1, c, -1, 1, player, board);
-        score += evaluateLine(line, perspective);
+        score += scoreLine(line, perspective);
     }
     for (let r = 0; r < size - 1; r++) {
         const line = getFullLine(r, 0, -1, 1, player, board);
-        score += evaluateLine(line, perspective);
+        score += scoreLine(line, perspective);
     }
 
     return score;
@@ -707,6 +732,66 @@ function classifyMove(board, r, c, player) {
     };
 }
 
+// ─── Search Scores & Side-to-move Aware Leaf ───────────────────────────────────
+// A won game scores WIN + remaining depth (faster wins score higher), a lost one
+// -(WIN + depth). Scores are always from the AI's (player 2) point of view.
+const WIN = 1e9;
+const CERTAIN_WIN = WIN - 100;   // |score| >= this: the result is proven
+const NEAR_WIN = 1e7;            // winning attack available to the side to move
+
+// Would a `player` stone at empty (r,c) make five or more?
+function makesFive(board, r, c, player) {
+    const size = board.length;
+    for (let d = 0; d < 4; d++) {
+        const dr = DIRS4[d][0], dc = DIRS4[d][1];
+        let n = 1;
+        for (let k = 1; k < 5; k++) {
+            const rr = r + dr * k, cc = c + dc * k;
+            if (rr < 0 || rr >= size || cc < 0 || cc >= size || board[rr][cc] !== player) break;
+            n++;
+        }
+        for (let k = 1; k < 5; k++) {
+            const rr = r - dr * k, cc = c - dc * k;
+            if (rr < 0 || rr >= size || cc < 0 || cc >= size || board[rr][cc] !== player) break;
+            n++;
+        }
+        if (n >= 5) return true;
+    }
+    return false;
+}
+
+// Tactical verdict at a leaf, from `side`'s point of view:
+//   +2  side has a five point (wins next move)
+//   -2  opponent has two or more five points that side cannot all block
+//   +1  side can make an open four / 쌍사 / 사삼 and the opponent has no four
+//    0  no verdict, use the positional evaluation
+function leafTactics(board, side) {
+    const opp = 3 - side;
+    const size = board.length;
+    const keys = collectCandidates(board);
+    let oppFives = 0;
+    let strong = false;
+    for (const key of keys) {
+        const r = (key / size) | 0, c = key % size;
+        if (makesFive(board, r, c, side)) return 2;
+        if (makesFive(board, r, c, opp)) oppFives++;
+        if (!strong && gradeOfBits(threatBits(board, r, c, side)) >= G_FOUR_THREE) strong = true;
+    }
+    if (oppFives >= 2) return -2;
+    if (strong && oppFives === 0) return 1;
+    return 0;
+}
+
+function evaluateLeaf(board, side) {
+    const sign = side === 2 ? 1 : -1;
+    const verdict = leafTactics(board, side);
+    if (verdict === 2) return sign * (WIN - 1);
+    if (verdict === -2) return -sign * (WIN - 2);
+    const positional = fullEvaluateBoard(board);
+    if (verdict === 1) return sign * NEAR_WIN + positional;
+    return positional;
+}
+
 // ─── Entry Point ───────────────────────────────────────────────────────────────
 // Forced replies (own five, blocking the opponent's five) come out of
 // getValidMovesSmart as a single candidate and are returned without searching.
@@ -757,7 +842,7 @@ function getAIMoveIterativeDeepening(board, timeLimitMs) {
             previousBestMove = result.move;
         }
         if (result.timeout) break;
-        if (result.score >= 100000) break;
+        if (Math.abs(result.score) >= CERTAIN_WIN) break;
     }
     return bestMove;
 }
@@ -779,7 +864,7 @@ function minimaxRoot(board, depth, startTime, timeLimitMs, previousBestMove) {
         const savedScore = incrementalScore;
         applyMoveIncremental(board, move.row, move.col, 2);
 
-        const result = minimax(board, childDepth, bestScore, Infinity, false, startTime, timeLimitMs, childExt);
+        const result = minimax(board, childDepth, bestScore, Infinity, false, startTime, timeLimitMs, childExt, move);
 
         undoMoveIncremental(board, move.row, move.col, 2);
         incrementalScore = savedScore;
@@ -797,11 +882,20 @@ function minimaxRoot(board, depth, startTime, timeLimitMs, previousBestMove) {
     return { score: bestScore, move: bestMove, timeout: false };
 }
 
-function minimax(board, depth, alpha, beta, isMaximizing, startTime, timeLimitMs, ext) {
+function minimax(board, depth, alpha, beta, isMaximizing, startTime, timeLimitMs, ext, lastMove) {
     if (Date.now() - startTime > timeLimitMs) {
         return { score: 0, move: null, timeout: true };
     }
     ext = ext || 0;
+
+    // Terminal check: did the move that led here make five?
+    if (lastMove) {
+        const lastPlayer = isMaximizing ? 1 : 2;
+        if (checkWinSimple(lastMove.row, lastMove.col, lastPlayer, board)) {
+            const score = lastPlayer === 2 ? WIN + depth : -(WIN + depth);
+            return { score, move: null, timeout: false };
+        }
+    }
 
     // Transposition table lookup
     const ttEntry = lookupTT();
@@ -812,14 +906,13 @@ function minimax(board, depth, alpha, beta, isMaximizing, startTime, timeLimitMs
         if (alpha >= beta) return { score: ttEntry.score, move: ttEntry.move, timeout: false };
     }
 
-    // At leaf nodes, compute the accurate full board score.
-    // fullEvaluateBoard uses line-based evaluation (no double-counting).
-    const score = fullEvaluateBoard(board);
-    if (depth <= 0 || Math.abs(score) >= 100000) {
-        return { score, move: null, timeout: false };
+    const player = isMaximizing ? 2 : 1;
+
+    // Leaf: side-to-move aware evaluation (the only place the board is scored)
+    if (depth <= 0) {
+        return { score: evaluateLeaf(board, player), move: null, timeout: false };
     }
 
-    const player = isMaximizing ? 2 : 1;
     const ttBestMove = ttEntry ? ttEntry.move : null;
     const moves = getValidMovesSmart(board, ttBestMove, depth, player);
     if (moves.length === 0) {
@@ -843,7 +936,7 @@ function minimax(board, depth, alpha, beta, isMaximizing, startTime, timeLimitMs
             const savedScore = incrementalScore;
             applyMoveIncremental(board, move.row, move.col, 2);
 
-            const result = minimax(board, childDepth, alpha, beta, false, startTime, timeLimitMs, childExt);
+            const result = minimax(board, childDepth, alpha, beta, false, startTime, timeLimitMs, childExt, move);
 
             undoMoveIncremental(board, move.row, move.col, 2);
             incrementalScore = savedScore;
@@ -873,7 +966,7 @@ function minimax(board, depth, alpha, beta, isMaximizing, startTime, timeLimitMs
             const savedScore = incrementalScore;
             applyMoveIncremental(board, move.row, move.col, 1);
 
-            const result = minimax(board, childDepth, alpha, beta, true, startTime, timeLimitMs, childExt);
+            const result = minimax(board, childDepth, alpha, beta, true, startTime, timeLimitMs, childExt, move);
 
             undoMoveIncremental(board, move.row, move.col, 1);
             incrementalScore = savedScore;
