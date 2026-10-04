@@ -542,6 +542,154 @@ function getLine(row, col, dr, dc, player, board) {
     return line;
 }
 
+// ─── Tactical Layer (independent of learned weights) ───────────────────────────
+// Threat detection used for move generation, forced-move handling and the
+// side-to-move aware leaf check. It never reads patternWeights: learned weights
+// only affect positional evaluation, while these definitions are fixed rules.
+//
+// The threat grades and the idea of treating one-gap shapes (OO_OO, O_OOO,
+// _O_OO_ ...) as real fours/threes are adapted from Gomoku-MiniMax
+// (https://github.com/yups1199/Gomoku-MiniMax, model.py get_info_from_line /
+// moves_in_priority, heuristic_weights.py PRIORITY), MIT License,
+// Copyright (c) 2026 JeongYupKim. The implementation below is a rewrite that
+// works on a 9-cell window around the move instead of line segments.
+const DIRS4 = [[0, 1], [1, 0], [1, 1], [1, -1]];
+
+// Per-direction shape of a move
+const D_NONE = 0, D_THREE = 1, D_FOUR = 2, D_OPEN_FOUR = 3, D_FIVE = 4;
+
+// Move grades (higher = stronger), mirrors Gomoku-MiniMax PRIORITY ordering
+const G_NONE = 0;
+const G_THREE = 1;        // one open three
+const G_FOUR = 2;         // one four (closed or one-gap)
+const G_DOUBLE_THREE = 3; // 쌍삼
+const G_FOUR_THREE = 4;   // 사삼
+const G_WINNING = 5;      // open four or 쌍사
+const G_FIVE = 6;
+
+// Window cells: 0 = empty, 1 = own stone, 2 = opponent stone or off-board.
+// Index 4 is the move itself and is always treated as own.
+const _win = new Int8Array(9);
+
+function readWindow(board, r, c, dr, dc, player, out) {
+    const size = board.length;
+    for (let k = -4; k <= 4; k++) {
+        if (k === 0) { out[4] = 1; continue; }
+        const rr = r + dr * k, cc = c + dc * k;
+        if (rr < 0 || rr >= size || cc < 0 || cc >= size) out[k + 4] = 2;
+        else {
+            const v = board[rr][cc];
+            out[k + 4] = v === player ? 1 : (v === 0 ? 0 : 2);
+        }
+    }
+}
+
+// Bitmask of empty window cells that complete five-or-more through the centre.
+// Overlines count as wins (free gomoku). A ±4 window is enough: any winning run
+// that touches the window edge already spans five cells.
+function windowWinMask(a) {
+    let mask = 0;
+    for (let i = 0; i < 9; i++) {
+        if (i === 4 || a[i] !== 0) continue;
+        const lo = i < 4 ? i : 4, hi = i < 4 ? 4 : i;
+        let ok = true;
+        for (let k = lo + 1; k < hi; k++) if (a[k] !== 1) { ok = false; break; }
+        if (!ok) continue;
+        let L = lo, R = hi;
+        while (L > 0 && a[L - 1] === 1) L--;
+        while (R < 8 && a[R + 1] === 1) R++;
+        if (R - L + 1 >= 5) mask |= 1 << i;
+    }
+    return mask;
+}
+
+function popcount9(m) {
+    let n = 0;
+    while (m) { m &= m - 1; n++; }
+    return n;
+}
+
+function classifyWindow(a) {
+    let L = 4, R = 4;
+    while (L > 0 && a[L - 1] === 1) L--;
+    while (R < 8 && a[R + 1] === 1) R++;
+    if (R - L + 1 >= 5) return D_FIVE;
+
+    // Free segment around the centre (bounded by opponent / edge)
+    let s = 4, e = 4;
+    while (s > 0 && a[s - 1] !== 2) s--;
+    while (e < 8 && a[e + 1] !== 2) e++;
+    if (e - s + 1 < 5) return D_NONE;
+    let own = 0;
+    for (let k = s; k <= e; k++) if (a[k] === 1) own++;
+    if (own < 3) return D_NONE;
+
+    const n = popcount9(windowWinMask(a));
+    if (n >= 2) return D_OPEN_FOUR;
+    if (n === 1) return D_FOUR;
+
+    // Open three: one more stone makes an open four (two winning points)
+    for (let j = s; j <= e; j++) {
+        if (a[j] !== 0) continue;
+        a[j] = 1;
+        const m2 = windowWinMask(a);
+        a[j] = 0;
+        if (popcount9(m2) >= 2) return D_THREE;
+    }
+    return D_NONE;
+}
+
+// Packed threat summary: bit 9 five, bits 0-2 open fours, 3-5 fours, 6-8 threes
+function threatBits(board, r, c, player) {
+    let bits = 0;
+    for (let d = 0; d < 4; d++) {
+        readWindow(board, r, c, DIRS4[d][0], DIRS4[d][1], player, _win);
+        switch (classifyWindow(_win)) {
+            case D_FIVE: bits |= 512; break;
+            case D_OPEN_FOUR: bits += 1; break;
+            case D_FOUR: bits += 8; break;
+            case D_THREE: bits += 64; break;
+        }
+    }
+    return bits;
+}
+
+function gradeOfBits(bits) {
+    if (bits & 512) return G_FIVE;
+    const openFour = bits & 7, four = (bits >> 3) & 7, three = (bits >> 6) & 7;
+    if (openFour > 0 || four >= 2) return G_WINNING;
+    if (four >= 1 && three >= 1) return G_FOUR_THREE;
+    if (three >= 2) return G_DOUBLE_THREE;
+    if (four >= 1) return G_FOUR;
+    if (three >= 1) return G_THREE;
+    return G_NONE;
+}
+
+// Empty cells on the line through (r,c) in direction (dr,dc) where one more
+// `player` stone completes five or more together with (r,c).
+// (r,c) itself is assumed to hold a `player` stone.
+function linePoints(board, r, c, dr, dc, player) {
+    readWindow(board, r, c, dr, dc, player, _win);
+    const mask = windowWinMask(_win);
+    const pts = [];
+    for (let i = 0; i < 9; i++) {
+        if (mask & (1 << i)) pts.push({ row: r + dr * (i - 4), col: c + dc * (i - 4) });
+    }
+    return pts;
+}
+
+// Assume a `player` stone at (r,c) and describe the threats it makes.
+function classifyMove(board, r, c, player) {
+    const bits = threatBits(board, r, c, player);
+    return {
+        five: (bits & 512) !== 0,
+        openFour: bits & 7,
+        fourCount: (bits >> 3) & 7,
+        openThreeCount: (bits >> 6) & 7,
+        grade: gradeOfBits(bits)
+    };
+}
+
 // ─── Entry Point ───────────────────────────────────────────────────────────────
 function getAIMove(board, timeLimit) {
     // Count moves on board for phase detection
@@ -779,25 +927,17 @@ function scoreMoveForOrdering(row, col, board, previousBestMove, depth) {
 }
 
 // ─── Threat Counting with Learned Weights ──────────────────────────────────────
+// Threat shapes come from the tactical layer (gapped fours/threes included);
+// learned weights only set the ordering scale, which is unchanged.
 function countThreats(row, col, player, board) {
-    board[row][col] = player;
-    let openFour = 0, openThree = 0, blockedFour = 0;
+    return threatScoreFromBits(threatBits(board, row, col, player), player);
+}
 
-    for (const [dr, dc] of [[0,1],[1,0],[1,1],[1,-1]]) {
-        const line = getLine(row, col, dr, dc, player, board);
-        if (line.includes('_OOOO_')) {
-            openFour++;
-        } else if (line.includes('OOOO')) {
-            blockedFour++;
-        }
-        if (line.includes('_OOO_')) openThree++;
-    }
-
-    board[row][col] = 0;
-
-    // Use learned weights for threat values instead of hardcoded constants
+function threatScoreFromBits(bits, player) {
     const perspective = player === 2 ? 'attack' : 'defense';
-    if (openFour >= 1) return getPatternWeight('_OOOO_', perspective);
+    if (bits & 512) return getPatternWeight('OOOOO', perspective);
+    const openFour = bits & 7, blockedFour = (bits >> 3) & 7, openThree = (bits >> 6) & 7;
+    if (openFour >= 1 || blockedFour >= 2) return getPatternWeight('_OOOO_', perspective);
     if (blockedFour >= 1 && openThree >= 1) {
         return getPatternWeight('OOOO_', perspective) + getPatternWeight('_OOO_', perspective); // 사삼
     }
