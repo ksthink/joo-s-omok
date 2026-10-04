@@ -1,0 +1,5 @@
+# match harness outputs and vendored opponent
+tools/match/*.jsonl
+tools/match/results/
+tools/match/vendor/
+__pycache__/
