@@ -1,3 +1,6 @@
+// 앱 버전: 첫 화면에 표시됨. 배포할 때 함께 올린다.
+const APP_VERSION = '2.0.0';
+
 const BOARD_SIZE = 15;
 const EMPTY = 0;
 const PLAYER = 1;
@@ -48,6 +51,9 @@ function escapeHtml(str) {
 }
 
 function init() {
+    const versionEl = document.getElementById('appVersion');
+    if (versionEl) versionEl.textContent = 'v' + APP_VERSION;
+
     canvas = document.getElementById('board');
     ctx = canvas.getContext('2d');
 
