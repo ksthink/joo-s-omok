@@ -1,4 +1,4 @@
-// Tactical tests for ai.js. Run with: node --test tests/
+// Tactical tests for ai.js. Run with: node --test tests/ai.test.js
 // ai.js is a browser global script, so it is loaded into a vm context.
 'use strict';
 const test = require('node:test');

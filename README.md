@@ -90,7 +90,7 @@ omok/
 ├── ai.js                # AI 엔진 (MiniMax + 학습 + 군집 패턴)
 ├── board-renderer.js    # 공통 보드 렌더링 모듈
 ├── server.py            # 게임 백엔드 서버
-├── tests/ai.test.js     # AI 전술 테스트 (node --test tests/)
+├── tests/ai.test.js     # AI 전술 테스트 (node --test tests/ai.test.js)
 ├── tools/match/         # Gomoku-MiniMax 대국 하네스 (match.py, summary.py, bench.js)
 ├── weights_config.json  # 패턴 가중치 설정 (단일 소스)
 ├── weights.json         # 동적 학습 가중치
@@ -404,7 +404,7 @@ cluster_connection_stats (
 ## AI 테스트와 대국 측정
 
 ```bash
-node --test tests/                             # 전술 테스트
+node --test tests/ai.test.js                    # 전술 테스트
 python3 tools/match/match.py 50 2200 3         # 시작 국면 50개 × 흑백 = 100판
 python3 tools/match/summary.py tools/match/*.jsonl
 node tools/match/bench.js ai.js 2200           # 초당 평가 횟수와 도달 깊이
