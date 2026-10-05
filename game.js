@@ -1,5 +1,5 @@
 // 앱 버전: 첫 화면에 표시됨. 배포할 때 함께 올린다.
-const APP_VERSION = '2.1.0';
+const APP_VERSION = '2.2.0';
 
 const BOARD_SIZE = 15;
 const EMPTY = 0;
@@ -108,7 +108,89 @@ function initBoard() {
     const turnEl = document.getElementById('turn');
     if (turnEl) turnEl.textContent = '당신의 차례 (흑)';
 
+    resetJevOverlay();
     drawBoard();
+}
+
+// ─── Jev Overlay ───────────────────────────────────────────────────────────────
+// Live view of Jev's judgement on each AI move (practice mode only).
+const JEV_OVERLAY_ROWS = 4;
+
+function jevCoord(m) {
+    return m ? 'ABCDEFGHIJKLMNO'[m.col] + (m.row + 1) : '-';
+}
+
+function escapeHtml(text) {
+    return String(text).replace(/[&<>"']/g, ch => `&#${ch.charCodeAt(0)};`);
+}
+
+function sameCell(a, b) {
+    return !!a && !!b && a.row === b.row && a.col === b.col;
+}
+
+function setJevOverlay(status, tone, html) {
+    const el = document.getElementById('jevOverlay');
+    if (!el) return;
+    el.dataset.tone = tone;
+    document.getElementById('jevStatus').textContent = status;
+    document.getElementById('jevBody').innerHTML = html;
+}
+
+function resetJevOverlay() {
+    const el = document.getElementById('jevOverlay');
+    if (!el) return;
+    const on = typeof JEV_CONFIG !== 'undefined' && JEV_CONFIG.enabled && JEV_CONFIG.modes.includes(gameMode);
+    el.classList.toggle('hidden', !on);
+    setJevOverlay('대기 중', 'idle', '<div class="jev-note">AI 차례에 Jev의 판단이 표시됩니다</div>');
+}
+
+function renderJevOverlay(info) {
+    if (info.state === 'thinking') {
+        setJevOverlay('판단 중…', 'busy',
+            `<div class="jev-note">엔진 후보 ${info.candidates.length}수 평가 요청 · 엔진 1순위 ${jevCoord(info.engineMove)}</div>`);
+        return;
+    }
+    if (info.state === 'forced') {
+        setJevOverlay('엔진 단독', 'idle',
+            `<div class="jev-note">강제수 국면 → 엔진이 ${jevCoord(info.move)}에 둠 (Jev 미사용)</div>`);
+        return;
+    }
+    if (info.state === 'fallback' || info.state === 'paused') {
+        const what = info.state === 'paused' ? '일시 중지' : '응답 실패';
+        const move = info.move ? ` → 엔진 수 ${jevCoord(info.move)}` : '';
+        setJevOverlay(what, 'error',
+            `<div class="jev-note">${escapeHtml(info.error || '알 수 없는 오류')}${move}</div>`);
+        return;
+    }
+
+    // done: candidates ranked by Jev's probability
+    const best = info.candidates[0];
+    const pOf = c => {
+        const hit = info.probabilities.find(p => p.row === c.row && p.col === c.col);
+        return hit ? hit.p : 0;
+    };
+    const rows = info.candidates
+        .map(c => ({ c, p: pOf(c), unsafe: c.score < best.score - JEV_CONFIG.safetyMargin }))
+        .sort((a, b) => b.p - a.p)
+        .slice(0, JEV_OVERLAY_ROWS)
+        .map(({ c, p, unsafe }) => {
+            const tags = [];
+            if (sameCell(c, info.move)) tags.push('<span class="jev-chip pick">착수</span>');
+            if (sameCell(c, info.engineMove)) tags.push('<span class="jev-chip">엔진</span>');
+            if (unsafe) tags.push('<span class="jev-chip warn">제외</span>');
+            const pct = Math.round(p * 100);
+            return `<div class="jev-row${sameCell(c, info.move) ? ' picked' : ''}">
+                <span class="jev-cell">${jevCoord(c)}</span>
+                <span class="jev-bar"><span style="width:${pct}%"></span></span>
+                <span class="jev-pct">${pct}%</span>
+                <span class="jev-tags">${tags.join('')}</span>
+            </div>`;
+        }).join('');
+    const conf = info.confidence != null ? ` · 확신 ${Math.round(info.confidence * 100)}%` : '';
+    const verdict = info.override
+        ? `Jev가 엔진 ${jevCoord(info.engineMove)} 대신 ${jevCoord(info.move)} 선택`
+        : `엔진 1순위 ${jevCoord(info.move)} 유지`;
+    setJevOverlay(verdict + conf, info.override ? 'override' : 'agree', rows);
 }
 
 function drawBoard() {
@@ -440,6 +522,9 @@ function aiTurn() {
     if (gameOver) return;
     document.getElementById('turn').textContent = 'AI 생각 중...';
     const serial = gameSerial;
+    if (typeof jevListener !== 'undefined') {
+        jevListener = info => { if (serial === gameSerial) renderJevOverlay(info); };
+    }
     setTimeout(async () => {
         const timeLimit = gameMode === 'challenge' ? LEVEL_CONFIG[currentLevel].timeLimit : 700;
         const move = await chooseAIMove(board, timeLimit, gameMode, lastMove);

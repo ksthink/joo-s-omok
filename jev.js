@@ -18,6 +18,15 @@ const JEV_CONFIG = {
 const jevStats = { calls: 0, overrides: 0, fallbacks: 0, lastError: null };
 let jevPausedUntil = 0;
 
+// Optional UI hook: receives { state, ... } at each step of an AI move in a Jev mode.
+// state: 'thinking' | 'done' | 'forced' | 'fallback' | 'paused'
+let jevListener = null;
+
+function jevReport(info) {
+    if (!jevListener) return;
+    try { jevListener(info); } catch (e) { /* the overlay must never break a move */ }
+}
+
 function jevActive(mode) {
     return JEV_CONFIG.enabled && JEV_CONFIG.modes.includes(mode) && Date.now() >= jevPausedUntil;
 }
@@ -68,7 +77,7 @@ async function requestJevProbabilities(board, candidates, lastMove) {
             if (err === 'jev_disabled' || res.status === 404) jevPausedUntil = Infinity;
             throw new Error(err);
         }
-        return data.probabilities;
+        return data;
     } finally {
         clearTimeout(timer);
     }
@@ -76,21 +85,36 @@ async function requestJevProbabilities(board, candidates, lastMove) {
 
 // Entry point used by the game. Always resolves to a legal move (or null on a full board).
 async function chooseAIMove(board, timeLimit, mode, lastMove) {
-    if (!jevActive(mode)) return getAIMove(board, timeLimit);
+    if (!jevActive(mode)) {
+        if (JEV_CONFIG.enabled && JEV_CONFIG.modes.includes(mode)) {
+            jevReport({ state: 'paused', error: jevStats.lastError });
+        }
+        return getAIMove(board, timeLimit);
+    }
 
     const analysis = getAIMoveAnalysis(board, timeLimit, { candidates: JEV_CONFIG.candidates });
-    if (analysis.forced) return analysis.move;
+    if (analysis.forced) {
+        jevReport({ state: 'forced', move: analysis.move });
+        return analysis.move;
+    }
 
     jevStats.calls++;
+    jevReport({ state: 'thinking', candidates: analysis.candidates, engineMove: analysis.move });
     try {
-        const probs = await requestJevProbabilities(board, analysis.candidates, lastMove);
-        const move = blendJevChoice(analysis.candidates, probs);
-        if (move.row !== analysis.move.row || move.col !== analysis.move.col) jevStats.overrides++;
+        const data = await requestJevProbabilities(board, analysis.candidates, lastMove);
+        const move = blendJevChoice(analysis.candidates, data.probabilities);
+        const override = move.row !== analysis.move.row || move.col !== analysis.move.col;
+        if (override) jevStats.overrides++;
+        jevReport({
+            state: 'done', candidates: analysis.candidates, probabilities: data.probabilities,
+            confidence: data.confidence, engineMove: analysis.move, move, override,
+        });
         return move;
     } catch (e) {
         jevStats.fallbacks++;
         jevStats.lastError = String(e && e.message || e);
         if (jevPausedUntil !== Infinity) jevPausedUntil = Date.now() + JEV_CONFIG.retryAfterMs;
+        jevReport({ state: 'fallback', error: jevStats.lastError, move: analysis.move });
         return analysis.move;
     }
 }

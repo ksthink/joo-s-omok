@@ -526,3 +526,103 @@ h1 {
         font-size: 9px;
     }
 }
+
+/* ─── Jev Overlay ─────────────────────────────────────────────────────────── */
+.jev-overlay {
+    position: fixed;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 32px);
+    max-width: 404px;
+    z-index: 50;
+    padding: 8px 10px;
+    background-color: rgba(13, 13, 13, 0.92);
+    border: 1px solid #404040;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+    font-size: 11px;
+    pointer-events: none;
+    transition: border-color 0.2s;
+}
+
+.jev-overlay[data-tone="busy"] { border-color: #6a8caf; }
+.jev-overlay[data-tone="agree"] { border-color: #5a8a5a; }
+.jev-overlay[data-tone="override"] { border-color: #c9a227; }
+.jev-overlay[data-tone="error"] { border-color: #a04040; }
+
+.jev-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.jev-tag {
+    padding: 1px 5px;
+    background-color: #e0e0e0;
+    color: #0a0a0a;
+    font-size: 10px;
+    letter-spacing: 1px;
+}
+
+.jev-status {
+    color: #ffffff;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.jev-overlay[data-tone="busy"] .jev-status { animation: jev-pulse 1s ease-in-out infinite; }
+
+@keyframes jev-pulse {
+    50% { opacity: 0.4; }
+}
+
+.jev-body:not(:empty) { margin-top: 6px; }
+
+.jev-note { color: #9a9a9a; }
+
+.jev-row {
+    display: grid;
+    grid-template-columns: 30px 1fr 32px 70px;
+    align-items: center;
+    gap: 6px;
+    padding: 1px 0;
+    color: #b0b0b0;
+}
+
+.jev-row.picked { color: #ffffff; }
+
+.jev-bar {
+    height: 6px;
+    background-color: #202020;
+}
+
+.jev-bar span {
+    display: block;
+    height: 100%;
+    background-color: #6a8caf;
+}
+
+.jev-row.picked .jev-bar span { background-color: #c9a227; }
+
+.jev-pct { text-align: right; }
+
+.jev-tags {
+    display: flex;
+    gap: 3px;
+    min-width: 0;
+}
+
+.jev-chip {
+    padding: 0 4px;
+    border: 1px solid #404040;
+    color: #9a9a9a;
+    font-size: 10px;
+}
+
+.jev-chip.pick { border-color: #c9a227; color: #c9a227; }
+.jev-chip.warn { border-color: #a04040; color: #d07070; }
+
+@media (prefers-reduced-motion: reduce) {
+    .jev-overlay[data-tone="busy"] .jev-status { animation: none; }
+}
