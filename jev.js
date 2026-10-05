@@ -22,7 +22,7 @@ const jevStats = { calls: 0, overrides: 0, fallbacks: 0, lastError: null };
 let jevPausedUntil = 0;
 
 // Optional UI hook: receives { state, ... } at each step of an AI move in a Jev mode.
-// state: 'thinking' | 'done' | 'forced' | 'fallback' | 'paused'
+// state: 'engine' (Rapfi started) | 'thinking' | 'done' | 'forced' | 'fallback' | 'paused'
 let jevListener = null;
 
 function jevReport(info) {
@@ -112,6 +112,7 @@ async function chooseAIMove(board, timeLimit, mode, lastMove) {
     let analysis = null;
 
     if (typeof rapfiActive === 'function' && rapfiActive(mode) && rapfiReady()) {
+        if (jevMode) jevReport({ state: 'engine', engine: 'rapfi' });
         try {
             analysis = await rapfiAnalysis(board);
         } catch (e) {

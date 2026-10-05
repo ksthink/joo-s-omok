@@ -527,16 +527,41 @@ h1 {
     }
 }
 
-/* ─── Jev Note (under the turn status) ────────────────────────────────────── */
-.jev-note {
-    display: block;
-    margin-top: 3px;
-    font-size: 10px;
-    color: #8a8a8a;
+/* ─── Engine Dots (in the turn status box) ────────────────────────────────── */
+.status { position: relative; }
+
+.engine-dots {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 8px;
+    line-height: 1;
+    color: #5a5a5a;
+    text-align: left;
 }
 
-.jev-note[data-tone="override"] { color: #c9a227; }
-.jev-note[data-tone="error"] { color: #d07070; }
+.engine-dot {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.engine-dot i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #2a2a2a;
+    transition: background-color 0.15s, box-shadow 0.15s;
+}
+
+.engine-dot i[data-state="on"] { box-shadow: 0 0 5px currentColor; }
+#rapfiDot[data-state="on"] { background-color: #7fa8d6; color: #7fa8d6; }
+#jevDot[data-state="on"] { background-color: #4fd1c5; color: #4fd1c5; }
+#jevDot[data-state="error"] { background-color: #a04040; }
 
 /* ─── Win Probability Bar ─────────────────────────────────────────────────── */
 .win-rate {

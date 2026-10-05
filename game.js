@@ -1,5 +1,5 @@
 // 앱 버전: 첫 화면에 표시됨. 배포할 때 함께 올린다.
-const APP_VERSION = '3.0.1';
+const APP_VERSION = '3.1.0';
 
 const BOARD_SIZE = 15;
 const EMPTY = 0;
@@ -121,50 +121,45 @@ let jevGhosts = null; // { phase: 'thinking' | 'done', candidates, probabilities
 let lastAnalysis = null;   // engine analysis behind the current AI move (see chooseAIMove)
 let lastJevOutcome = null; // Jev's win probabilities for the current AI move, if it answered
 
-function jevCoord(m) {
-    return m ? 'ABCDEFGHIJKLMNO'[m.col] + (m.row + 1) : '-';
-}
-
 function sameCell(a, b) {
     return !!a && !!b && a.row === b.row && a.col === b.col;
 }
 
-function setJevNote(text, tone) {
-    const el = document.getElementById('jevNote');
-    if (!el) return;
-    el.classList.toggle('hidden', !text);
-    el.textContent = text || '';
-    el.dataset.tone = tone || '';
+// Two small dots in the status box: lit while that part is working.
+// state: 'off' | 'on' | 'error' (Jev only: the last request failed)
+function setEngineDot(id, state) {
+    const el = document.getElementById(id);
+    if (el) el.dataset.state = state;
 }
 
 function clearJevGhosts() {
     jevGhosts = null;
-    setJevNote('');
+    setEngineDot('rapfiDot', 'off');
+    setEngineDot('jevDot', 'off');
+    const dots = document.getElementById('engineDots');
+    if (dots) dots.classList.toggle('hidden', gameMode !== 'practice');
 }
 
 function handleJevUpdate(info) {
+    if (info.state === 'engine') {
+        setEngineDot('rapfiDot', 'on');
+        return;
+    }
     lastAnalysis = info.analysis || null;
-    const engine = lastAnalysis && lastAnalysis.engine === 'rapfi' ? 'Rapfi' : '엔진';
+    setEngineDot('rapfiDot', 'off');
     if (info.state === 'thinking') {
         jevGhosts = { phase: 'thinking', candidates: info.candidates, engineMove: info.engineMove };
-        setJevNote(`Jev가 ${engine} 후보 ${info.candidates.length}수를 판단 중…`);
+        setEngineDot('jevDot', 'on');
     } else if (info.state === 'done') {
         lastJevOutcome = info.outcome || null;
         jevGhosts = {
             phase: 'done', candidates: info.candidates, probabilities: info.probabilities,
             engineMove: info.engineMove, move: info.move, safetyMargin: info.safetyMargin,
         };
-        const conf = info.confidence != null ? ` · 확신 ${Math.round(info.confidence * 100)}%` : '';
-        setJevNote(info.override
-            ? `Jev: ${engine} ${jevCoord(info.engineMove)} 대신 ${jevCoord(info.move)}${conf}`
-            : `Jev: ${engine} 1순위 ${jevCoord(info.move)}에 동의${conf}`,
-            info.override ? 'override' : '');
-    } else if (info.state === 'forced') {
-        jevGhosts = null;
-        setJevNote(`강제수 국면 · ${engine} 단독`);
     } else {
+        // forced: the engine decided alone; fallback / paused: Jev did not answer
         jevGhosts = null;
-        setJevNote(`Jev ${info.state === 'paused' ? '일시 중지' : '응답 실패'} (${info.error || '알 수 없음'}) · ${engine} 수`, 'error');
+        setEngineDot('jevDot', info.state === 'forced' ? 'off' : 'error');
     }
     drawBoard();
 }
@@ -630,6 +625,8 @@ function aiTurn() {
             if (serial !== gameSerial || gameOver) return;
         }
         jevGhosts = null;
+        setEngineDot('rapfiDot', 'off');
+        if (document.getElementById('jevDot').dataset.state === 'on') setEngineDot('jevDot', 'off');
         if (move) {
             makeMove(move.row, move.col, AI);
         } else {
