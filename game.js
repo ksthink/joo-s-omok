@@ -1,5 +1,5 @@
 // 앱 버전: 첫 화면에 표시됨. 배포할 때 함께 올린다.
-const APP_VERSION = '2.5.0';
+const APP_VERSION = '2.5.1';
 
 const BOARD_SIZE = 15;
 const EMPTY = 0;
@@ -118,7 +118,7 @@ function initBoard() {
 // ─── Jev Ghost Stones ──────────────────────────────────────────────────────────
 // Shows Jev's judgement on the board (practice mode): translucent white stones on
 // the engine's candidates while Jev thinks, then each candidate's probability.
-// Ghosts stay until the player's next move.
+// Ghosts disappear as soon as the AI places its stone.
 let jevGhosts = null; // { phase: 'thinking' | 'done', candidates, probabilities, engineMove, move }
 let expectedLine = null; // engine's expected continuation after the AI's move: [{row, col, player}]
 let showExpectedLine = false;
@@ -176,10 +176,12 @@ function handleJevUpdate(info) {
 // percentage inside, no fill. Solid blue ring = engine's first choice,
 // dashed red ring = outside the safety margin.
 const GHOST_COLOR = '#4fd1c5';
+const JEV_REVEAL_MS = 450; // how long Jev's percentages stay up before the AI stone lands
 
 function drawJevGhosts() {
-    if (showExpectedLine && gameMode === 'practice') {
-        if (expectedLine) drawExpectedLine();
+    // Ghosts only exist while the AI is thinking; the expected line only after it moved
+    if (showExpectedLine && gameMode === 'practice' && expectedLine) {
+        drawExpectedLine();
         return;
     }
     if (!jevGhosts) return;
@@ -228,7 +230,7 @@ function drawJevGhosts() {
 // ─── Expected Line ─────────────────────────────────────────────────────────────
 // Numbered squares (not discs, so they never read as stones) for the moves the
 // engine expects after its own: dark = black (player), light = white (AI).
-// Replaces the Jev ghosts while the toggle is on.
+// Shown after the AI has moved, while the toggle is on.
 function drawExpectedLine() {
     const line = expectedLine.slice(1); // the first move is the AI stone just played
     const half = CELL_SIZE * 0.3;
@@ -650,8 +652,16 @@ function aiTurn() {
             expectedLine = move && searchStats.depth > 0 && typeof getPrincipalVariation === 'function'
                 ? getPrincipalVariation(board, move, 10) : null;
         }
+        // Let Jev's percentages show briefly, then the stone replaces the ghosts
+        if (jevGhosts && jevGhosts.phase === 'done') {
+            await new Promise(resolve => setTimeout(resolve, JEV_REVEAL_MS));
+            if (serial !== gameSerial || gameOver) return;
+        }
+        jevGhosts = null;
         if (move) {
             makeMove(move.row, move.col, AI);
+        } else {
+            drawBoard();
         }
         if (!gameOver) {
             currentPlayer = PLAYER;
