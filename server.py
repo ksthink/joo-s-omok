@@ -12,15 +12,19 @@ from zoneinfo import ZoneInfo
 
 # Configure logging
 LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
-os.makedirs(LOG_DIR, exist_ok=True)
+
+# Serverless hosts (Vercel) have a read-only filesystem: log to stdout only there.
+_log_handlers = [logging.StreamHandler()]
+try:
+    os.makedirs(LOG_DIR, exist_ok=True)
+    _log_handlers.insert(0, logging.FileHandler(os.path.join(LOG_DIR, 'server.log')))
+except OSError:
+    pass
 
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(os.path.join(LOG_DIR, 'server.log')),
-        logging.StreamHandler()
-    ]
+    handlers=_log_handlers
 )
 logger = logging.getLogger('omok_server')
 
