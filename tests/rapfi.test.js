@@ -74,6 +74,12 @@ test('engine: quiet position gives several ranked candidates', async () => {
     assert.ok(res.depth >= 4, `depth ${res.depth}`);
 });
 
+test('engine: evaluates for the side to move (two black stones vs one far white stone)', async () => {
+    const think = await startEngine();
+    const res = await think(makeBoard({ human: [[7, 7], [6, 6]], ai: [[10, 6]] }), 400, 6);
+    assert.ok(res.candidates[0].winrate < 0.5, `white win rate ${res.candidates[0].winrate}`);
+});
+
 test('engine: blocks a four', async () => {
     const think = await startEngine();
     const res = await think(MUST_BLOCK, 300, 6);
@@ -107,9 +113,14 @@ test('parser: keeps the latest report per PV and converts x,y to row/col', () =>
     assert.strictEqual(res.depth, 4);
 });
 
-test('commands: own stones are side 1, coordinates are x,y', () => {
-    const cmds = rapfiThinkCommands([{ row: 7, col: 3, own: true }, { row: 2, col: 9, own: false }], 700.4, 6);
-    assert.deepStrictEqual(cmds, ['INFO TIMEOUT_TURN 700', 'YXBOARD 3,7,1 9,2,2 DONE', 'YXNBEST 6']);
+test('commands: own stones are side 1, coordinates are x,y, moves alternate ending with the opponent', () => {
+    const cmds = rapfiThinkCommands([
+        { row: 6, col: 6, own: false }, { row: 7, col: 7, own: false }, { row: 10, col: 6, own: true },
+    ], 700.4, 6);
+    assert.deepStrictEqual(cmds, ['INFO TIMEOUT_TURN 700', 'YXBOARD 6,6,2 6,10,1 7,7,2 DONE', 'YXNBEST 6']);
+    // equal counts: the side to move placed first
+    assert.strictEqual(rapfiThinkCommands([{ row: 1, col: 2, own: false }, { row: 3, col: 4, own: true }], 100, 1)[1],
+        'YXBOARD 4,3,1 2,1,2 DONE');
 });
 
 // ─── chooseAIMove with Rapfi candidates ────────────────────────────────────────

@@ -76,8 +76,19 @@ function createRapfiParser() {
 }
 
 // Protocol commands for one search. `own` stones belong to the side to move.
+// The engine replays YXBOARD stones as a move sequence, so they are sent in
+// alternating order ending with the opponent's stone; any other order makes it
+// evaluate the position for the wrong side.
 function rapfiThinkCommands(stones, timeMs, nbest) {
-    const board = stones.map(s => `${s.col},${s.row},${s.own ? 1 : 2}`).join(' ');
+    const own = stones.filter(s => s.own), opp = stones.filter(s => !s.own);
+    const first = opp.length > own.length ? opp : own;
+    const second = first === opp ? own : opp;
+    const ordered = [];
+    for (let i = 0; i < Math.max(first.length, second.length); i++) {
+        if (i < first.length) ordered.push(first[i]);
+        if (i < second.length) ordered.push(second[i]);
+    }
+    const board = ordered.map(s => `${s.col},${s.row},${s.own ? 1 : 2}`).join(' ');
     return [
         `INFO TIMEOUT_TURN ${Math.max(50, Math.round(timeMs))}`,
         `YXBOARD ${board} DONE`,
