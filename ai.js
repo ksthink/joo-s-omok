@@ -1057,34 +1057,6 @@ function getAIMoveAnalysis(board, timeLimit, opts) {
     }
 }
 
-// ─── Principal Variation ───────────────────────────────────────────────────────
-// The line the last search expects: `firstMove` for the AI, then the best move
-// stored in the transposition table for each following position. Costs no
-// search; the line ends where the table has no move (beyond the searched depth).
-// Call it with the board the last search ran on, before any other search.
-function getPrincipalVariation(board, firstMove, maxLength) {
-    maxLength = maxLength || 10;
-    const line = [];
-    resetSearchHashes(board);
-    let move = firstMove, player = 2;
-    try {
-        while (move && line.length < maxLength) {
-            if (board[move.row][move.col] !== 0) break;
-            applyMoveIncremental(board, move.row, move.col, player);
-            line.push({ row: move.row, col: move.col, player });
-            if (checkWinSimple(move.row, move.col, player, board)) break;
-            const entry = lookupTT();
-            move = entry && entry.move;
-            player = 3 - player;
-        }
-    } finally {
-        for (let i = line.length - 1; i >= 0; i--) {
-            undoMoveIncremental(board, line[i].row, line[i].col, line[i].player);
-        }
-    }
-    return line;
-}
-
 const getAIMoveIterativeDeepening = function (board, timeLimitMs) {
     const startTime = Date.now();
     let bestMove = null;
