@@ -578,3 +578,9 @@ h1 {
 @media (prefers-reduced-motion: reduce) {
     .win-bar span { transition: none; }
 }
+
+/* ─── Toggle Button ───────────────────────────────────────────────────────── */
+.btn.toggle.active {
+    border-color: #c9a227;
+    color: #c9a227;
+}

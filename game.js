@@ -1,5 +1,5 @@
 // 앱 버전: 첫 화면에 표시됨. 배포할 때 함께 올린다.
-const APP_VERSION = '2.4.0';
+const APP_VERSION = '2.5.0';
 
 const BOARD_SIZE = 15;
 const EMPTY = 0;
@@ -110,6 +110,8 @@ function initBoard() {
 
     clearJevGhosts();
     setWinRate(null);
+    const lineBtn = document.getElementById('lineBtn');
+    if (lineBtn) lineBtn.classList.toggle('hidden', gameMode !== 'practice');
     drawBoard();
 }
 
@@ -118,6 +120,9 @@ function initBoard() {
 // the engine's candidates while Jev thinks, then each candidate's probability.
 // Ghosts stay until the player's next move.
 let jevGhosts = null; // { phase: 'thinking' | 'done', candidates, probabilities, engineMove, move }
+let expectedLine = null; // engine's expected continuation after the AI's move: [{row, col, player}]
+let showExpectedLine = false;
+try { showExpectedLine = localStorage.getItem('omok.expectedLine') === '1'; } catch (e) { /* storage blocked */ }
 let lastJevOutcome = null; // Jev's win probabilities for the current AI move, if it answered
 
 function jevCoord(m) {
@@ -138,6 +143,7 @@ function setJevNote(text, tone) {
 
 function clearJevGhosts() {
     jevGhosts = null;
+    expectedLine = null;
     setJevNote('');
 }
 
@@ -172,6 +178,10 @@ function handleJevUpdate(info) {
 const GHOST_COLOR = '#4fd1c5';
 
 function drawJevGhosts() {
+    if (showExpectedLine && gameMode === 'practice') {
+        if (expectedLine) drawExpectedLine();
+        return;
+    }
     if (!jevGhosts) return;
     const { phase, candidates, probabilities, engineMove } = jevGhosts;
     const best = candidates[0];
@@ -213,6 +223,44 @@ function drawJevGhosts() {
         ctx.globalAlpha = 1;
     }
     ctx.restore();
+}
+
+// ─── Expected Line ─────────────────────────────────────────────────────────────
+// Numbered squares (not discs, so they never read as stones) for the moves the
+// engine expects after its own: dark = black (player), light = white (AI).
+// Replaces the Jev ghosts while the toggle is on.
+function drawExpectedLine() {
+    const line = expectedLine.slice(1); // the first move is the AI stone just played
+    const half = CELL_SIZE * 0.3;
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = `bold ${Math.max(8, Math.round(CELL_SIZE * 0.4))}px sans-serif`;
+    line.forEach((m, i) => {
+        if (board[m.row][m.col] !== EMPTY) return;
+        const x = CELL_SIZE / 2 + m.col * CELL_SIZE;
+        const y = CELL_SIZE / 2 + m.row * CELL_SIZE;
+        ctx.globalAlpha = Math.max(0.45, 1 - i * 0.07); // further ahead = less certain
+        ctx.fillStyle = m.player === PLAYER ? '#000000' : '#e8e8e8';
+        ctx.fillRect(x - half, y - half, half * 2, half * 2);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = m.player === PLAYER ? '#c9a227' : '#7a5f10';
+        ctx.strokeRect(x - half, y - half, half * 2, half * 2);
+        ctx.fillStyle = m.player === PLAYER ? '#ffffff' : '#000000';
+        ctx.fillText(String(i + 1), x, y + 0.5);
+    });
+    ctx.restore();
+}
+
+function setExpectedLineToggle(on) {
+    showExpectedLine = on;
+    try { localStorage.setItem('omok.expectedLine', on ? '1' : '0'); } catch (e) { /* storage blocked */ }
+    const btn = document.getElementById('lineBtn');
+    if (btn) {
+        btn.classList.toggle('active', on);
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+    drawBoard();
 }
 
 // ─── Win Probability Bar ───────────────────────────────────────────────────────
@@ -595,7 +643,13 @@ function aiTurn() {
         const move = await chooseAIMove(board, timeLimit, gameMode, lastMove);
         // A new game may have started while Jev was answering
         if (serial !== gameSerial || gameOver) return;
-        if (gameMode === 'practice') updateWinRate(lastJevOutcome);
+        if (gameMode === 'practice') {
+            updateWinRate(lastJevOutcome);
+            // Read the line from the search tables before the board changes
+            // (only after a real search: otherwise the tables are stale)
+            expectedLine = move && searchStats.depth > 0 && typeof getPrincipalVariation === 'function'
+                ? getPrincipalVariation(board, move, 10) : null;
+        }
         if (move) {
             makeMove(move.row, move.col, AI);
         }
@@ -820,6 +874,11 @@ function bindEvents() {
     document.getElementById('backFromRankBtn').addEventListener('click', () => {
         showScreen('main');
     });
+
+    document.getElementById('lineBtn').addEventListener('click', () => {
+        setExpectedLineToggle(!showExpectedLine);
+    });
+    setExpectedLineToggle(showExpectedLine);
 
     document.getElementById('surrenderBtn').addEventListener('click', () => {
         gameOver = true;
