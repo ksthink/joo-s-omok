@@ -1434,7 +1434,11 @@ def jev_note(cand):
         parts.append(f'makes {me} for O')
     if opp:
         parts.append(f'blocks X from {opp}')
-    return '; '.join(parts) or 'quiet developing move'
+    note = '; '.join(parts) or 'quiet developing move'
+    winrate = cand.get('winrate')
+    if isinstance(winrate, (int, float)) and not isinstance(winrate, bool) and 0 <= winrate <= 1:
+        note += f' (engine win estimate {round(winrate * 100)}%)'
+    return note
 
 def jev_parse_request(data):
     """Validate the client payload. Returns (board, last_move, candidates) or raises ValueError."""
@@ -1464,7 +1468,7 @@ def jev_parse_request(data):
         if board[r][c] != 0 or (r, c) in seen:
             raise ValueError('candidate must be a distinct empty cell')
         seen.add((r, c))
-        candidates.append({'row': r, 'col': c, 'me': m.get('me'), 'opp': m.get('opp')})
+        candidates.append({'row': r, 'col': c, 'me': m.get('me'), 'opp': m.get('opp'), 'winrate': m.get('winrate')})
     return board, last_move, candidates
 
 @app.route('/api/jev-move', methods=['POST', 'OPTIONS'])
@@ -1546,7 +1550,7 @@ def jev_move():
     })
 
 # ─── Static File Serving ─────────────────────────────────────────────────────────
-ALLOWED_EXTENSIONS = {'.html', '.js', '.css', '.woff2', '.wav', '.json', '.png', '.ico'}
+ALLOWED_EXTENSIONS = {'.html', '.js', '.css', '.woff2', '.wav', '.json', '.png', '.ico', '.wasm', '.data'}
 
 @app.route('/')
 def index():

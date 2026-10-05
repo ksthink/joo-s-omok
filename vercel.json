@@ -1,5 +1,14 @@
 {
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index" }
-  ]
+  ],
+  "headers": [
+    {
+      "source": "/rapfi/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800" }]
+    }
+  ],
+  "functions": {
+    "api/index.py": { "excludeFiles": "{rapfi,logs,dashboard,tests,tools}/**" }
+  }
 }

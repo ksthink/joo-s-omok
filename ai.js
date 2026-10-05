@@ -1057,6 +1057,15 @@ function getAIMoveAnalysis(board, timeLimit, opts) {
     }
 }
 
+// Shape names for a move at (row, col): what it makes for the AI (`me`) and what
+// it denies the human (`opp`). Standalone: does not need a prepared search.
+function describeMoveThreats(board, row, col) {
+    return {
+        me: GRADE_NAMES[gradeOfBits(threatBits(board, row, col, 2))],
+        opp: GRADE_NAMES[gradeOfBits(threatBits(board, row, col, 1))],
+    };
+}
+
 const getAIMoveIterativeDeepening = function (board, timeLimitMs) {
     const startTime = Date.now();
     let bestMove = null;

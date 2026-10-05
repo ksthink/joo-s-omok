@@ -1,5 +1,5 @@
 // 앱 버전: 첫 화면에 표시됨. 배포할 때 함께 올린다.
-const APP_VERSION = '2.5.2';
+const APP_VERSION = '3.0.0';
 
 const BOARD_SIZE = 15;
 const EMPTY = 0;
@@ -118,6 +118,7 @@ function initBoard() {
 // the engine's candidates while Jev thinks, then each candidate's probability.
 // Ghosts disappear as soon as the AI places its stone.
 let jevGhosts = null; // { phase: 'thinking' | 'done', candidates, probabilities, engineMove, move }
+let lastAnalysis = null;   // engine analysis behind the current AI move (see chooseAIMove)
 let lastJevOutcome = null; // Jev's win probabilities for the current AI move, if it answered
 
 function jevCoord(m) {
@@ -142,26 +143,28 @@ function clearJevGhosts() {
 }
 
 function handleJevUpdate(info) {
+    lastAnalysis = info.analysis || null;
+    const engine = lastAnalysis && lastAnalysis.engine === 'rapfi' ? 'Rapfi' : '엔진';
     if (info.state === 'thinking') {
         jevGhosts = { phase: 'thinking', candidates: info.candidates, engineMove: info.engineMove };
-        setJevNote(`Jev가 후보 ${info.candidates.length}수를 판단 중…`);
+        setJevNote(`Jev가 ${engine} 후보 ${info.candidates.length}수를 판단 중…`);
     } else if (info.state === 'done') {
         lastJevOutcome = info.outcome || null;
         jevGhosts = {
             phase: 'done', candidates: info.candidates, probabilities: info.probabilities,
-            engineMove: info.engineMove, move: info.move,
+            engineMove: info.engineMove, move: info.move, safetyMargin: info.safetyMargin,
         };
         const conf = info.confidence != null ? ` · 확신 ${Math.round(info.confidence * 100)}%` : '';
         setJevNote(info.override
-            ? `Jev: 엔진 ${jevCoord(info.engineMove)} 대신 ${jevCoord(info.move)}${conf}`
-            : `Jev: 엔진 1순위 ${jevCoord(info.move)}에 동의${conf}`,
+            ? `Jev: ${engine} ${jevCoord(info.engineMove)} 대신 ${jevCoord(info.move)}${conf}`
+            : `Jev: ${engine} 1순위 ${jevCoord(info.move)}에 동의${conf}`,
             info.override ? 'override' : '');
     } else if (info.state === 'forced') {
         jevGhosts = null;
-        setJevNote('강제수 국면 · 엔진 단독');
+        setJevNote(`강제수 국면 · ${engine} 단독`);
     } else {
         jevGhosts = null;
-        setJevNote(`Jev ${info.state === 'paused' ? '일시 중지' : '응답 실패'} (${info.error || '알 수 없음'}) · 엔진 수`, 'error');
+        setJevNote(`Jev ${info.state === 'paused' ? '일시 중지' : '응답 실패'} (${info.error || '알 수 없음'}) · ${engine} 수`, 'error');
     }
     drawBoard();
 }
@@ -192,7 +195,8 @@ function drawJevGhosts() {
         const y = CELL_SIZE / 2 + c.row * CELL_SIZE;
         const p = pOf(c);
         const isEngine = sameCell(c, engineMove);
-        const excluded = phase === 'done' && c.score < best.score - JEV_CONFIG.safetyMargin;
+        const margin = jevGhosts.safetyMargin != null ? jevGhosts.safetyMargin : JEV_CONFIG.safetyMargin;
+        const excluded = phase === 'done' && c.score < best.score - margin;
         const color = excluded ? '#d07070' : isEngine ? '#7fa8d6' : GHOST_COLOR;
 
         // Dark backing hides the grid lines under the number
@@ -247,13 +251,35 @@ function setWinRate(white, source) {
     document.getElementById('winSource').textContent = source;
 }
 
-function updateWinRate(jevOutcome) {
-    if (jevOutcome) {
+function updateWinRate(jevOutcome, analysis, move) {
+    if (analysis && analysis.engine === 'rapfi') {
+        // Rapfi's own estimate for the move actually played (Jev may have picked another)
+        const played = analysis.candidates.find(c => sameCell(c, move)) || analysis.candidates[0];
+        if (played) {
+            setWinRate(played.winrate, played.mate != null
+                ? `Rapfi 확정 · ${Math.abs(played.mate)}수 안에 ${played.mate > 0 ? '백' : '흑'} 승`
+                : `Rapfi 평가 · ${analysis.depth}수 탐색`);
+        }
+    } else if (jevOutcome) {
         setWinRate(jevOutcome.white, 'Jev 판단');
     } else if (typeof searchStats !== 'undefined' && searchStats.depth > 0) {
         setWinRate(engineWhiteWinRate(lastRootScore), `엔진 추정 · ${searchStats.depth}수 탐색`);
     }
     // No search ran (opening move or a single forced reply): keep the last value
+}
+
+// Practice-mode label shows which engine is playing and Rapfi's download progress
+function updateEngineLabel() {
+    if (gameMode !== 'practice') return;
+    const el = document.getElementById('modeLabel');
+    if (!el) return;
+    let text = '연습 모드';
+    if (typeof rapfiState !== 'undefined' && rapfiActive('practice')) {
+        if (rapfiState.status === 'ready') text += ' · Rapfi';
+        else if (rapfiState.status === 'loading') text += ` · Rapfi 불러오는 중 ${Math.round(rapfiState.progress * 100)}%`;
+        else if (rapfiState.status === 'failed') text += ' · 기본 엔진';
+    }
+    el.textContent = text;
 }
 
 function drawBoard() {
@@ -593,10 +619,11 @@ function aiTurn() {
     setTimeout(async () => {
         const timeLimit = gameMode === 'challenge' ? LEVEL_CONFIG[currentLevel].timeLimit : 700;
         lastJevOutcome = null;
+        lastAnalysis = null;
         const move = await chooseAIMove(board, timeLimit, gameMode, lastMove);
         // A new game may have started while Jev was answering
         if (serial !== gameSerial || gameOver) return;
-        if (gameMode === 'practice') updateWinRate(lastJevOutcome);
+        if (gameMode === 'practice') updateWinRate(lastJevOutcome, lastAnalysis, move);
         // Let Jev's percentages show briefly, then the stone replaces the ghosts
         if (jevGhosts && jevGhosts.phase === 'done') {
             await new Promise(resolve => setTimeout(resolve, JEV_REVEAL_MS));
@@ -703,7 +730,11 @@ function startPracticeGame() {
         loadPatternWeights();
     }
 
-    document.getElementById('modeLabel').textContent = '연습 모드';
+    if (typeof rapfiLoad === 'function' && rapfiActive('practice')) {
+        rapfiListener = updateEngineLabel;
+        rapfiLoad();
+    }
+    updateEngineLabel();
     document.getElementById('levelLabel').classList.add('hidden');
     document.getElementById('scoreDisplay').textContent = '-';
     document.getElementById('timeDisplay').textContent = '00:00';

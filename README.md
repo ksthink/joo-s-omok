@@ -4,10 +4,11 @@
 
 ## 소개
 
-현재 버전: **v2.5.2** (첫 화면 하단에 표시, `game.js`의 `APP_VERSION`)
+현재 버전: **v3.0.0** (첫 화면 하단에 표시, `game.js`의 `APP_VERSION`)
 
 | 버전 | 변경 내용 |
 |---|---|
+| v3.0.0 | 연습 모드 엔진을 Rapfi(WebAssembly, NNUE)로 교체: Rapfi 상위 후보 중 Jev가 선택, 승률 막대는 Rapfi 평가. 로딩 전·실패 시 기본 MiniMax |
 | v2.5.2 | "예상 수순" 토글 제거 |
 | v2.5.1 | Jev 후보 고리는 AI가 생각하는 동안만 표시(확률 0.45초 노출 후 착수와 함께 제거) |
 | v2.5.0 | 연습 모드 "예상 수순" 토글: AI 착수 뒤 엔진이 예상하는 이후 수순을 번호 붙은 사각형으로 표시(트랜스포지션 테이블에서 추출, 추가 탐색 없음) |
@@ -172,6 +173,15 @@ omok/
 - 서버 환경변수 `TYPESAFE_API_KEY` (필수, TypeSafe 콘솔에서 발급). 선택: `JEV_MODEL` (기본 `jev-latest`), `JEV_API_URL`.
 - 동작 파라미터는 `jev.js`의 `JEV_CONFIG` (`modes`, `alpha`, `safetyMargin`, `candidates`, `timeoutMs`). 챌린지 모드는 점수 비교를 위해 순수 MiniMax로 둡니다.
 - 브라우저 콘솔의 `jevStats`에서 호출·교체·폴백 횟수를 볼 수 있습니다.
+
+### Rapfi 엔진 (연습 모드)
+
+연습 모드의 수는 [Rapfi](https://github.com/dhbloo/rapfi)(Gomocup 우승 엔진, `rapfi/`)가 계산합니다.
+
+- `rapfi-worker.js`가 Web Worker에서 WebAssembly 엔진을 띄우고 Gomocup/Yixin 텍스트 프로토콜로 대화합니다. 규칙은 자유룰(`INFO RULE 0`), 수당 0.7초, 상위 6수(`YXNBEST 6`)와 후보별 승률을 받습니다.
+- `rapfi.js`는 연습 모드를 처음 시작할 때 엔진(약 41MB, 신경망 가중치 포함)을 백그라운드로 내려받습니다. 준비 전이거나 실패하면 기본 MiniMax(`ai.js`)가 둡니다. 모드 표시에 진행률이 나옵니다.
+- `jev.js`의 `chooseAIMove()`가 Rapfi 후보를 Jev에 보냅니다. Rapfi 1순위보다 승률이 10%p 넘게 낮은 후보는 제외하고(`rapfiSafetyMargin`), 남은 후보가 하나뿐이거나 승패가 확정된 국면이면 Jev 없이 Rapfi 수를 둡니다.
+- 챌린지 모드는 점수 비교를 위해 기본 MiniMax만 씁니다.
 
 ### 대시보드 서버 (8082)
 
@@ -434,7 +444,7 @@ cluster_connection_stats (
 ## AI 테스트와 대국 측정
 
 ```bash
-node --test tests/ai.test.js                    # 전술 테스트
+node --test tests/                              # 전체 테스트 (전술, Jev, Rapfi 실제 엔진 구동)
 python3 tools/match/match.py 50 2200 3         # 시작 국면 50개 × 흑백 = 100판
 python3 tools/match/summary.py tools/match/*.jsonl
 node tools/match/bench.js ai.js 2200           # 초당 평가 횟수와 도달 깊이
@@ -443,7 +453,11 @@ node tools/match/bench.js ai.js 2200           # 초당 평가 횟수와 도달 
 
 ## 라이선스
 
-MIT License
+MIT License (이 프로젝트의 자체 코드)
+
+`rapfi/` 디렉터리의 Rapfi 엔진은 이 프로젝트의 코드가 아니며 **GPL-3.0**으로 배포됩니다.
+소스 위치와 받은 경로는 [rapfi/README.md](rapfi/README.md), 라이선스 전문은 [rapfi/COPYING.txt](rapfi/COPYING.txt)에 있습니다.
+게임은 Web Worker의 텍스트 프로토콜로만 엔진과 통신합니다.
 
 ### 출처
 AI의 위협 등급(5목 > 열린4 > 쌍사 > 사삼 > 쌍삼 > 4 > 열린3), 띈 모양을 4·3으로 보는 구간 분석,
