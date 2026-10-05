@@ -1491,7 +1491,12 @@ def jev_move():
                 'type': 'choice',
                 'instructions': 'Which candidate move gives O the best winning chances?',
                 'criteria': {cid: jev_note(c) for cid, c in ids.items()},
-            }
+            },
+            'outcome': {
+                'type': 'choice',
+                'instructions': 'With best play from here, which side is more likely to win this game?',
+                'criteria': {'O': 'O (white, you) wins', 'X': 'X (black, opponent) wins'},
+            },
         },
     }
 
@@ -1518,6 +1523,16 @@ def jev_move():
         return jsonify({'ok': False, 'error': 'jev_bad_answer'}), 502
 
     probs = answer.get('probabilities') or {}
+    # Optional second answer: Jev's win probability for each side (None if missing)
+    outcome = None
+    oprobs = ((body.get('answers') or {}).get('outcome') or {}).get('probabilities') or {}
+    try:
+        white, black = float(oprobs['O']), float(oprobs['X'])
+        if white >= 0 and black >= 0 and white + black > 0:
+            outcome = {'white': white / (white + black), 'black': black / (white + black)}
+    except (KeyError, TypeError, ValueError):
+        pass
+
     return jsonify({
         'ok': True,
         'choice': {'row': choice['row'], 'col': choice['col']},
@@ -1526,6 +1541,7 @@ def jev_move():
             {'row': c['row'], 'col': c['col'], 'p': float(probs.get(cid, 0) or 0)}
             for cid, c in ids.items()
         ],
+        'outcome': outcome,
         'usage': body.get('usage'),
     })
 

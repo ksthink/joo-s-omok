@@ -107,7 +107,8 @@ async function chooseAIMove(board, timeLimit, mode, lastMove) {
         if (override) jevStats.overrides++;
         jevReport({
             state: 'done', candidates: analysis.candidates, probabilities: data.probabilities,
-            confidence: data.confidence, engineMove: analysis.move, move, override,
+            confidence: data.confidence, outcome: data.outcome || null,
+            engineMove: analysis.move, move, override,
         });
         return move;
     } catch (e) {

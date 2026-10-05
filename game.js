@@ -1,5 +1,5 @@
 // 앱 버전: 첫 화면에 표시됨. 배포할 때 함께 올린다.
-const APP_VERSION = '2.3.0';
+const APP_VERSION = '2.4.0';
 
 const BOARD_SIZE = 15;
 const EMPTY = 0;
@@ -109,6 +109,7 @@ function initBoard() {
     if (turnEl) turnEl.textContent = '당신의 차례 (흑)';
 
     clearJevGhosts();
+    setWinRate(null);
     drawBoard();
 }
 
@@ -117,6 +118,7 @@ function initBoard() {
 // the engine's candidates while Jev thinks, then each candidate's probability.
 // Ghosts stay until the player's next move.
 let jevGhosts = null; // { phase: 'thinking' | 'done', candidates, probabilities, engineMove, move }
+let lastJevOutcome = null; // Jev's win probabilities for the current AI move, if it answered
 
 function jevCoord(m) {
     return m ? 'ABCDEFGHIJKLMNO'[m.col] + (m.row + 1) : '-';
@@ -144,6 +146,7 @@ function handleJevUpdate(info) {
         jevGhosts = { phase: 'thinking', candidates: info.candidates, engineMove: info.engineMove };
         setJevNote(`Jev가 후보 ${info.candidates.length}수를 판단 중…`);
     } else if (info.state === 'done') {
+        lastJevOutcome = info.outcome || null;
         jevGhosts = {
             phase: 'done', candidates: info.candidates, probabilities: info.probabilities,
             engineMove: info.engineMove, move: info.move,
@@ -163,11 +166,16 @@ function handleJevUpdate(info) {
     drawBoard();
 }
 
+// Ghosts are deliberately unlike stones: a small dashed teal ring with the
+// percentage inside, no fill. Solid blue ring = engine's first choice,
+// dashed red ring = outside the safety margin.
+const GHOST_COLOR = '#4fd1c5';
+
 function drawJevGhosts() {
     if (!jevGhosts) return;
     const { phase, candidates, probabilities, engineMove } = jevGhosts;
     const best = candidates[0];
-    const radius = CELL_SIZE / 2 - 2;
+    const radius = CELL_SIZE * 0.36;
     const pOf = c => {
         const hit = (probabilities || []).find(p => p.row === c.row && p.col === c.col);
         return hit ? hit.p : 0;
@@ -176,47 +184,75 @@ function drawJevGhosts() {
     ctx.save();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font = `bold ${Math.max(8, Math.round(CELL_SIZE * 0.4))}px sans-serif`;
+    ctx.font = `bold ${Math.max(8, Math.round(CELL_SIZE * 0.36))}px sans-serif`;
     for (const c of candidates) {
+        if (board[c.row][c.col] !== EMPTY) continue;
         const x = CELL_SIZE / 2 + c.col * CELL_SIZE;
         const y = CELL_SIZE / 2 + c.row * CELL_SIZE;
-        const occupied = board[c.row][c.col] !== EMPTY;
         const p = pOf(c);
-        const excluded = c.score < best.score - JEV_CONFIG.safetyMargin;
+        const isEngine = sameCell(c, engineMove);
+        const excluded = phase === 'done' && c.score < best.score - JEV_CONFIG.safetyMargin;
+        const color = excluded ? '#d07070' : isEngine ? '#7fa8d6' : GHOST_COLOR;
 
-        if (!occupied) {
-            // Stronger belief → more solid ghost
-            ctx.globalAlpha = phase === 'thinking' ? 0.22 : 0.18 + 0.55 * p;
-            ctx.beginPath();
-            ctx.arc(x, y, radius, 0, Math.PI * 2);
-            ctx.fillStyle = '#e0e0e0';
-            ctx.fill();
-            ctx.globalAlpha = 1;
-        }
+        // Dark backing hides the grid lines under the number
+        ctx.globalAlpha = 0.85;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = '#1a1a1a';
+        ctx.fill();
 
-        // Rings: engine's first choice (blue), excluded by the safety margin (red, dashed)
-        if (sameCell(c, engineMove) && !occupied) {
-            ctx.beginPath();
-            ctx.arc(x, y, radius, 0, Math.PI * 2);
-            ctx.strokeStyle = '#6a8caf';
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
-        } else if (excluded && phase === 'done') {
-            ctx.setLineDash([2, 2]);
-            ctx.beginPath();
-            ctx.arc(x, y, radius, 0, Math.PI * 2);
-            ctx.strokeStyle = '#d07070';
-            ctx.lineWidth = 1;
-            ctx.stroke();
-            ctx.setLineDash([]);
-        }
+        ctx.globalAlpha = phase === 'thinking' ? 0.6 : 0.45 + 0.55 * Math.min(1, p * 2);
+        ctx.setLineDash(isEngine && !excluded ? [] : [2, 2]);
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = color;
+        ctx.stroke();
+        ctx.setLineDash([]);
 
-        if (phase === 'done') {
-            ctx.fillStyle = occupied ? '#000000' : (p >= 0.3 ? '#0a0a0a' : '#ffffff');
-            ctx.fillText(String(Math.round(p * 100)), x, y + 0.5);
-        }
+        ctx.fillStyle = color;
+        ctx.fillText(phase === 'thinking' ? '?' : String(Math.round(p * 100)), x, y + 0.5);
+        ctx.globalAlpha = 1;
     }
     ctx.restore();
+}
+
+// ─── Win Probability Bar ───────────────────────────────────────────────────────
+// After each AI move: Jev's own estimate when Jev answered, otherwise the
+// engine's search score mapped through a logistic curve (an estimate, not a
+// calibrated probability). Proven wins/losses show 100.0 / 0.0.
+const ENGINE_WIN_SCALE = 6000;
+
+function engineWhiteWinRate(score) {
+    if (score >= CERTAIN_WIN) return 1;
+    if (score <= -CERTAIN_WIN) return 0;
+    const p = 1 / (1 + Math.exp(-score / ENGINE_WIN_SCALE));
+    return Math.min(0.999, Math.max(0.001, p));
+}
+
+function setWinRate(white, source) {
+    const el = document.getElementById('winRate');
+    if (!el) return;
+    el.classList.toggle('hidden', gameMode !== 'practice');
+    if (white == null) {
+        document.getElementById('winBlack').textContent = '흑 -';
+        document.getElementById('winWhite').textContent = '백 -';
+        document.getElementById('winFill').style.width = '50%';
+        document.getElementById('winSource').textContent = 'AI가 두면 표시';
+        return;
+    }
+    const black = 1 - white;
+    document.getElementById('winBlack').textContent = `흑 ${(black * 100).toFixed(1)}%`;
+    document.getElementById('winWhite').textContent = `백 ${(white * 100).toFixed(1)}%`;
+    document.getElementById('winFill').style.width = `${black * 100}%`;
+    document.getElementById('winSource').textContent = source;
+}
+
+function updateWinRate(jevOutcome) {
+    if (jevOutcome) {
+        setWinRate(jevOutcome.white, 'Jev 판단');
+    } else if (typeof searchStats !== 'undefined' && searchStats.depth > 0) {
+        setWinRate(engineWhiteWinRate(lastRootScore), `엔진 추정 · ${searchStats.depth}수 탐색`);
+    }
+    // No search ran (opening move or a single forced reply): keep the last value
 }
 
 function drawBoard() {
@@ -555,9 +591,11 @@ function aiTurn() {
     }
     setTimeout(async () => {
         const timeLimit = gameMode === 'challenge' ? LEVEL_CONFIG[currentLevel].timeLimit : 700;
+        lastJevOutcome = null;
         const move = await chooseAIMove(board, timeLimit, gameMode, lastMove);
         // A new game may have started while Jev was answering
         if (serial !== gameSerial || gameOver) return;
+        if (gameMode === 'practice') updateWinRate(lastJevOutcome);
         if (move) {
             makeMove(move.row, move.col, AI);
         }
