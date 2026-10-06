@@ -1,5 +1,5 @@
 // 앱 버전: 첫 화면에 표시됨. 배포할 때 함께 올린다.
-const APP_VERSION = '3.1.0';
+const APP_VERSION = '3.2.0';
 
 const BOARD_SIZE = 15;
 const EMPTY = 0;
@@ -14,6 +14,7 @@ let currentPlayer = PLAYER;
 let gameOver = false;
 
 let gameMode = 'practice';
+let playerColor = 'black'; // the player's stones; black moves first
 let playerName = '';
 let currentLevel = 1;
 let totalScore = 0;
@@ -26,8 +27,15 @@ let introAnimationId = null;
 let lastMove = null;
 let moveHistory = [];
 let gameSerial = 0; // bumped on every new board, so a late AI answer can be discarded
+let engineWaited = false; // this board already waited once for the Rapfi download
 let touchHandled = false; // prevent double-fire on mobile
 
+// How long the AI's move waits for the Rapfi download in challenge mode before the
+// built-in engine plays instead
+const CHALLENGE_ENGINE_WAIT_MS = 20000;
+
+// timeLimit: the built-in engine's thinking time, used only when Rapfi is unavailable
+// (Rapfi's strength per level is RAPFI_LEVELS in rapfi.js)
 const LEVEL_CONFIG = {
     1:  { timeLimit: 200,  baseScore: 100  },
     2:  { timeLimit: 300,  baseScore: 150  },
@@ -43,6 +51,36 @@ const LEVEL_CONFIG = {
 
 let canvas, ctx;
 let stoneAudio = null;
+
+// ─── Stone Colors ──────────────────────────────────────────────────────────────
+// Board cells hold PLAYER / AI; the color of each side depends on the player's pick.
+function isBlackStone(player) {
+    return (player === PLAYER) === (playerColor === 'black');
+}
+
+function aiColor() {
+    return playerColor === 'black' ? 'white' : 'black';
+}
+
+// A win rate for the AI as the white side's win rate (what the win bar shows)
+function aiToWhite(p) {
+    return aiColor() === 'white' ? p : 1 - p;
+}
+
+function loadPlayerColor() {
+    try {
+        const saved = localStorage.getItem('omokPlayerColor');
+        if (saved === 'black' || saved === 'white') playerColor = saved;
+    } catch (e) { /* storage unavailable: keep black */ }
+}
+
+function setPlayerColor(color) {
+    playerColor = color;
+    try { localStorage.setItem('omokPlayerColor', color); } catch (e) { /* not remembered */ }
+    document.querySelectorAll('.color-option').forEach(btn => {
+        btn.setAttribute('aria-checked', String(btn.dataset.color === color));
+    });
+}
 
 // ─── XSS Prevention ────────────────────────────────────────────────────────────
 function escapeHtml(str) {
@@ -64,8 +102,10 @@ function init() {
     }
 
     calculateCanvasSize();
+    loadPlayerColor();
     initBoard();
     bindEvents();
+    setPlayerColor(playerColor);
     showScreen('main');
 }
 
@@ -97,20 +137,49 @@ function initBoard() {
             board[i][j] = EMPTY;
         }
     }
-    currentPlayer = PLAYER;
+    currentPlayer = playerColor === 'black' ? PLAYER : AI;
     gameOver = false;
     levelStones = 0;
     levelStartTime = Date.now();
     lastMove = null;
     moveHistory = [];
     gameSerial++;
-
-    const turnEl = document.getElementById('turn');
-    if (turnEl) turnEl.textContent = '당신의 차례 (흑)';
+    engineWaited = false;
 
     clearJevGhosts();
     setWinRate(null);
+    updateStatus();
     drawBoard();
+}
+
+// New board for a game or level; the AI opens when it plays black.
+function startBoard() {
+    initBoard();
+    if (currentPlayer === AI) aiTurn();
+}
+
+// ─── Status Bar ────────────────────────────────────────────────────────────────
+// Practice: lights only (whose turn, move number). Challenge: the turn as text.
+// Both show the AI / Jev lights.
+function updateStatus() {
+    const bar = document.getElementById('statusBar');
+    if (!bar) return;
+    const compact = gameMode === 'practice';
+    bar.classList.toggle('compact', compact);
+    document.getElementById('turnDots').classList.toggle('hidden', !compact);
+    if (compact) {
+        const blackToMove = !gameOver && isBlackStone(currentPlayer);
+        const whiteToMove = !gameOver && !isBlackStone(currentPlayer);
+        document.getElementById('blackTurnDot').dataset.state = blackToMove ? 'on' : 'off';
+        document.getElementById('whiteTurnDot').dataset.state = whiteToMove ? 'on' : 'off';
+        document.getElementById('moveCount').textContent = `${moveHistory.length}수`;
+    } else if (gameOver) {
+        document.getElementById('turn').textContent = '게임 종료';
+    } else {
+        document.getElementById('turn').textContent = currentPlayer === PLAYER
+            ? `당신의 차례 (${playerColor === 'black' ? '흑' : '백'})`
+            : 'AI 생각 중...';
+    }
 }
 
 // ─── Jev Ghost Stones ──────────────────────────────────────────────────────────
@@ -134,19 +203,17 @@ function setEngineDot(id, state) {
 
 function clearJevGhosts() {
     jevGhosts = null;
-    setEngineDot('rapfiDot', 'off');
+    setEngineDot('aiDot', 'off');
     setEngineDot('jevDot', 'off');
-    const dots = document.getElementById('engineDots');
-    if (dots) dots.classList.toggle('hidden', gameMode !== 'practice');
 }
 
 function handleJevUpdate(info) {
     if (info.state === 'engine') {
-        setEngineDot('rapfiDot', 'on');
+        setEngineDot('aiDot', 'on');
         return;
     }
     lastAnalysis = info.analysis || null;
-    setEngineDot('rapfiDot', 'off');
+    setEngineDot('aiDot', 'off');
     if (info.state === 'thinking') {
         jevGhosts = { phase: 'thinking', candidates: info.candidates, engineMove: info.engineMove };
         setEngineDot('jevDot', 'on');
@@ -221,7 +288,8 @@ function drawJevGhosts() {
 // calibrated probability). Proven wins/losses show 100.0 / 0.0.
 const ENGINE_WIN_SCALE = 6000;
 
-function engineWhiteWinRate(score) {
+// The AI's win rate for a MiniMax score (scores are from the AI's point of view)
+function engineAiWinRate(score) {
     if (score >= CERTAIN_WIN) return 1;
     if (score <= -CERTAIN_WIN) return 0;
     const p = 1 / (1 + Math.exp(-score / ENGINE_WIN_SCALE));
@@ -251,25 +319,25 @@ function updateWinRate(jevOutcome, analysis, move) {
         // Rapfi's own estimate for the move actually played (Jev may have picked another)
         const played = analysis.candidates.find(c => sameCell(c, move)) || analysis.candidates[0];
         if (played) {
-            setWinRate(played.winrate, played.mate != null
-                ? `Rapfi 확정 · ${Math.abs(played.mate)}수 안에 ${played.mate > 0 ? '백' : '흑'} 승`
+            const winner = (played.mate > 0) === (aiColor() === 'white') ? '백' : '흑';
+            setWinRate(aiToWhite(played.winrate), played.mate != null
+                ? `Rapfi 확정 · ${Math.abs(played.mate)}수 안에 ${winner} 승`
                 : `Rapfi 평가 · ${analysis.depth}수 탐색`);
         }
     } else if (jevOutcome) {
         setWinRate(jevOutcome.white, 'Jev 판단');
     } else if (typeof searchStats !== 'undefined' && searchStats.depth > 0) {
-        setWinRate(engineWhiteWinRate(lastRootScore), `엔진 추정 · ${searchStats.depth}수 탐색`);
+        setWinRate(aiToWhite(engineAiWinRate(lastRootScore)), `엔진 추정 · ${searchStats.depth}수 탐색`);
     }
     // No search ran (opening move or a single forced reply): keep the last value
 }
 
-// Practice-mode label shows which engine is playing and Rapfi's download progress
+// Mode label shows which engine is playing and Rapfi's download progress
 function updateEngineLabel() {
-    if (gameMode !== 'practice') return;
     const el = document.getElementById('modeLabel');
     if (!el) return;
-    let text = '연습 모드';
-    if (typeof rapfiState !== 'undefined' && rapfiActive('practice')) {
+    let text = gameMode === 'practice' ? '연습 모드' : '챌린지 모드';
+    if (typeof rapfiState !== 'undefined' && rapfiActive(gameMode)) {
         if (rapfiState.status === 'ready') text += ' · Rapfi';
         else if (rapfiState.status === 'loading') text += ` · Rapfi 불러오는 중 ${Math.round(rapfiState.progress * 100)}%`;
         else if (rapfiState.status === 'failed') text += ' · 기본 엔진';
@@ -309,13 +377,14 @@ function drawBoard() {
         for (let j = 0; j < BOARD_SIZE; j++) {
             if (board[i][j] !== EMPTY) {
                 const isLast = lastMove && lastMove.row === i && lastMove.col === j;
-                drawStone(i, j, board[i][j], isLast);
+                drawStone(i, j, isBlackStone(board[i][j]) ? PLAYER : AI, isLast);
             }
         }
     }
     drawJevGhosts();
 }
 
+// `player`: PLAYER draws a black stone, AI a white one (callers map sides to colors)
 function drawStone(row, col, player, isLast = false) {
     if (typeof BoardRenderer !== 'undefined') {
         BoardRenderer.drawStone(ctx, row, col, player, CELL_SIZE, isLast);
@@ -562,11 +631,14 @@ function makeMove(row, col, player) {
         }
     }
 
+    currentPlayer = player === PLAYER ? AI : PLAYER;
     playStoneSound();
     drawBoard();
+    updateStatus();
 
     if (checkWin(row, col, player)) {
         gameOver = true;
+        updateStatus();
         stopTimer();
         saveGameRecord(player);
         if (player === PLAYER) {
@@ -595,6 +667,7 @@ function makeMove(row, col, player) {
 
     if (isBoardFull()) {
         gameOver = true;
+        updateStatus();
         stopTimer();
         saveGameRecord(0);
         showFinalResult(false, true);
@@ -606,16 +679,30 @@ function makeMove(row, col, player) {
 
 function aiTurn() {
     if (gameOver) return;
-    document.getElementById('turn').textContent = 'AI 생각 중...';
+    currentPlayer = AI;
+    updateStatus();
+    setEngineDot('aiDot', 'on');
     const serial = gameSerial;
     if (typeof jevListener !== 'undefined') {
         jevListener = info => { if (serial === gameSerial) handleJevUpdate(info); };
     }
     setTimeout(async () => {
+        // Challenge levels are tuned for Rapfi: give a download in progress one wait per
+        // board, and keep that wait out of the level time used for the score
+        if (gameMode === 'challenge' && !engineWaited && typeof rapfiWaitReady === 'function' && rapfiActive('challenge')) {
+            engineWaited = true;
+            const waitStart = Date.now();
+            await rapfiWaitReady(CHALLENGE_ENGINE_WAIT_MS);
+            if (serial !== gameSerial || gameOver) return;
+            levelStartTime += Date.now() - waitStart;
+        }
         const timeLimit = gameMode === 'challenge' ? LEVEL_CONFIG[currentLevel].timeLimit : 700;
         lastJevOutcome = null;
         lastAnalysis = null;
-        const move = await chooseAIMove(board, timeLimit, gameMode, lastMove);
+        const move = await chooseAIMove(board, timeLimit, gameMode, lastMove, {
+            level: gameMode === 'challenge' ? currentLevel : null,
+            aiColor: aiColor(),
+        });
         // A new game may have started while Jev was answering
         if (serial !== gameSerial || gameOver) return;
         if (gameMode === 'practice') updateWinRate(lastJevOutcome, lastAnalysis, move);
@@ -625,7 +712,7 @@ function aiTurn() {
             if (serial !== gameSerial || gameOver) return;
         }
         jevGhosts = null;
-        setEngineDot('rapfiDot', 'off');
+        setEngineDot('aiDot', 'off');
         if (document.getElementById('jevDot').dataset.state === 'on') setEngineDot('jevDot', 'off');
         if (move) {
             makeMove(move.row, move.col, AI);
@@ -634,7 +721,7 @@ function aiTurn() {
         }
         if (!gameOver) {
             currentPlayer = PLAYER;
-            document.getElementById('turn').textContent = '당신의 차례 (흑)';
+            updateStatus();
         }
     }, 300);
 }
@@ -727,17 +814,13 @@ function startPracticeGame() {
         loadPatternWeights();
     }
 
-    if (typeof rapfiLoad === 'function' && rapfiActive('practice')) {
-        rapfiListener = updateEngineLabel;
-        rapfiLoad();
-    }
-    updateEngineLabel();
+    startEngineDownload();
     document.getElementById('levelLabel').classList.add('hidden');
     document.getElementById('scoreDisplay').textContent = '-';
     document.getElementById('timeDisplay').textContent = '00:00';
     document.getElementById('stoneDisplay').textContent = '0';
-    initBoard();
     showScreen('game');
+    startBoard();
 }
 
 function startChallengeGame() {
@@ -752,21 +835,30 @@ function startChallengeGame() {
         loadPatternWeights();
     }
 
-    document.getElementById('modeLabel').textContent = '챌린지 모드';
+    startEngineDownload();
     document.getElementById('levelLabel').classList.remove('hidden');
     document.getElementById('levelLabel').textContent = `${currentLevel}단계 / 10`;
     document.getElementById('scoreDisplay').textContent = '0';
     document.getElementById('timeDisplay').textContent = '00:00';
     document.getElementById('stoneDisplay').textContent = '0';
-    initBoard();
     showScreen('game');
+    startBoard();
+}
+
+// Start (or keep) the Rapfi download and show its progress in the mode label
+function startEngineDownload() {
+    if (typeof rapfiLoad === 'function' && rapfiActive(gameMode)) {
+        rapfiListener = updateEngineLabel;
+        rapfiLoad();
+    }
+    updateEngineLabel();
 }
 
 function nextLevel() {
     document.getElementById('nextLevelModal').classList.remove('show');
     currentLevel++;
     document.getElementById('levelLabel').textContent = `${currentLevel}단계 / 10`;
-    initBoard();
+    startBoard();
 }
 
 function saveToLeaderboard() {
@@ -832,9 +924,19 @@ function renderLeaderboard() {
 }
 
 function bindEvents() {
-    document.getElementById('practiceBtn').addEventListener('click', startPracticeGame);
+    document.getElementById('practiceBtn').addEventListener('click', () => {
+        showScreen('setup');
+        if (typeof rapfiLoad === 'function') rapfiLoad(); // download while the player picks
+    });
+    document.getElementById('startPracticeBtn').addEventListener('click', startPracticeGame);
+    document.getElementById('backFromSetupBtn').addEventListener('click', () => showScreen('main'));
+
+    document.querySelectorAll('.color-option').forEach(btn => {
+        btn.addEventListener('click', () => setPlayerColor(btn.dataset.color));
+    });
 
     document.getElementById('challengeBtn').addEventListener('click', () => {
+        if (typeof rapfiLoad === 'function') rapfiLoad();
         showScreen('id');
         document.getElementById('playerId').value = '';
         document.getElementById('playerId').focus();
@@ -860,6 +962,7 @@ function bindEvents() {
 
     document.getElementById('surrenderBtn').addEventListener('click', () => {
         gameOver = true;
+        updateStatus();
         stopTimer(); // Fix: always stop timer on surrender
         if (gameMode === 'challenge') {
             showFinalResult(false);
@@ -917,7 +1020,8 @@ function saveGameRecord(winner) {
         moves: moveHistory,
         winner: winner,
         gameMode: gameMode,
-        level: currentLevel
+        level: currentLevel,
+        playerColor: playerColor
     };
 
     fetch('/api/game-record', {

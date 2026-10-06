@@ -3,7 +3,7 @@
 // the main thread and speaks its Gomocup / Yixin-Board text protocol.
 //
 // Messages in:  { type: 'init' }
-//               { type: 'think', id, stones: [{row, col, own}], timeMs, nbest }
+//               { type: 'think', id, stones: [{row, col, own}], timeMs, nbest, maxDepth }
 // Messages out: { type: 'loading', progress }            0..1 while rapfi.data downloads
 //               { type: 'ready' } | { type: 'error', error }
 //               { type: 'result', id, move, candidates, depth }
@@ -78,8 +78,9 @@ function createRapfiParser() {
 // Protocol commands for one search. `own` stones belong to the side to move.
 // The engine replays YXBOARD stones as a move sequence, so they are sent in
 // alternating order ending with the opponent's stone; any other order makes it
-// evaluate the position for the wrong side.
-function rapfiThinkCommands(stones, timeMs, nbest) {
+// evaluate the position for the wrong side. `maxDepth` caps the search (weaker
+// challenge levels); without it the engine searches as deep as time allows.
+function rapfiThinkCommands(stones, timeMs, nbest, maxDepth) {
     const own = stones.filter(s => s.own), opp = stones.filter(s => !s.own);
     const first = opp.length > own.length ? opp : own;
     const second = first === opp ? own : opp;
@@ -90,6 +91,7 @@ function rapfiThinkCommands(stones, timeMs, nbest) {
     }
     const board = ordered.map(s => `${s.col},${s.row},${s.own ? 1 : 2}`).join(' ');
     return [
+        `INFO MAX_DEPTH ${Math.max(1, Math.round(maxDepth || 100))}`,
         `INFO TIMEOUT_TURN ${Math.max(50, Math.round(timeMs))}`,
         `YXBOARD ${board} DONE`,
         `YXNBEST ${Math.max(1, nbest || 1)}`,
@@ -164,7 +166,7 @@ if (typeof importScripts === 'function') {
         } else if (msg.type === 'think' && engine) {
             activeId = msg.id;
             parser = createRapfiParser();
-            for (const cmd of rapfiThinkCommands(msg.stones, msg.timeMs, msg.nbest)) engine.sendCommand(cmd);
+            for (const cmd of rapfiThinkCommands(msg.stones, msg.timeMs, msg.nbest, msg.maxDepth)) engine.sendCommand(cmd);
         }
     };
 }

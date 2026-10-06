@@ -117,14 +117,69 @@ test('commands: own stones are side 1, coordinates are x,y, moves alternate endi
     const cmds = rapfiThinkCommands([
         { row: 6, col: 6, own: false }, { row: 7, col: 7, own: false }, { row: 10, col: 6, own: true },
     ], 700.4, 6);
-    assert.deepStrictEqual(cmds, ['INFO TIMEOUT_TURN 700', 'YXBOARD 6,6,2 6,10,1 7,7,2 DONE', 'YXNBEST 6']);
+    assert.deepStrictEqual(cmds, ['INFO MAX_DEPTH 100', 'INFO TIMEOUT_TURN 700', 'YXBOARD 6,6,2 6,10,1 7,7,2 DONE', 'YXNBEST 6']);
     // equal counts: the side to move placed first
-    assert.strictEqual(rapfiThinkCommands([{ row: 1, col: 2, own: false }, { row: 3, col: 4, own: true }], 100, 1)[1],
+    assert.strictEqual(rapfiThinkCommands([{ row: 1, col: 2, own: false }, { row: 3, col: 4, own: true }], 100, 1)[2],
         'YXBOARD 4,3,1 2,1,2 DONE');
+    // a depth cap (weaker challenge levels); every search sets it so practice is not left capped
+    assert.strictEqual(rapfiThinkCommands([], 100, 1, 3)[0], 'INFO MAX_DEPTH 3');
+});
+
+test('engine: an empty board (the AI opens as black) gets a move near the center', async () => {
+    const think = await startEngine();
+    const res = await think(makeBoard({}), 200, 1);
+    assert.ok(Math.abs(res.move.row - 7) <= 3 && Math.abs(res.move.col - 7) <= 3, JSON.stringify(res.move));
+});
+
+// ─── Challenge levels (rapfi.js) ───────────────────────────────────────────────
+function loadRapfiJs() {
+    const noop = () => {};
+    const ctx = vm.createContext({ console: { log: noop, warn: noop, error: noop }, fetch: async () => ({ ok: false }), setTimeout, clearTimeout });
+    for (const f of ['ai.js', 'rapfi.js']) {
+        const file = path.join(ROOT, f);
+        vm.runInContext(fs.readFileSync(file, 'utf8'), ctx, { filename: file });
+    }
+    return { pick: ctx.rapfiPickMove, levels: vm.runInContext('RAPFI_LEVELS', ctx) };
+}
+
+test('levels: ten levels, monotonically stronger', () => {
+    const { levels } = loadRapfiJs();
+    assert.deepStrictEqual(Object.keys(levels).map(Number), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    for (let n = 2; n <= 10; n++) {
+        const a = levels[n - 1], b = levels[n];
+        assert.ok(b.depth >= a.depth && b.timeMs >= a.timeMs, `depth/time at ${n}`);
+        assert.ok(b.tolerance <= a.tolerance && b.blunder <= a.blunder, `mistakes at ${n}`);
+    }
+    assert.ok(levels[10].tolerance === 0 && levels[10].blunder === 0 && levels[10].nbest === 1);
+});
+
+test('pick: within the tolerance only, any reported move on a blunder', () => {
+    const { pick } = loadRapfiJs();
+    const res = { move: { row: 8, col: 8 }, candidates: CANDS };
+    const level = { tolerance: 0.05, blunder: 0.5 };
+    // rand sequence: blunder roll, then the index roll
+    const seq = vals => { let i = 0; return () => vals[i++]; };
+    const b = () => QUIET.map(r => r.slice());
+    assert.deepStrictEqual({ ...pick(b(), res, level, seq([0.9, 0.99])) }, { row: 6, col: 7 }, 'no blunder: best two only');
+    assert.deepStrictEqual({ ...pick(b(), res, level, seq([0.9, 0.0])) }, { row: 8, col: 8 });
+    assert.deepStrictEqual({ ...pick(b(), res, level, seq([0.1, 0.99])) }, { row: 5, col: 5 }, 'blunder: any candidate');
+    assert.deepStrictEqual({ ...pick(b(), res, { tolerance: 0, blunder: 0 }, seq([0.99])) }, { row: 8, col: 8 });
+});
+
+test('pick: an immediate five is never left to chance', () => {
+    const { pick } = loadRapfiJs();
+    const wrong = { move: { row: 0, col: 0 }, candidates: [{ row: 0, col: 0, winrate: 0.5 }, { row: 0, col: 1, winrate: 0.5 }] };
+    const sloppy = { tolerance: 1, blunder: 1 };
+    // the opponent's four must be blocked
+    assert.deepStrictEqual({ ...pick(MUST_BLOCK.map(r => r.slice()), wrong, sloppy, () => 0.5) }, { row: 7, col: 10 });
+    // the AI's own four is completed
+    const own = makeBoard({ human: [[0, 5], [1, 5], [2, 9]], ai: [[7, 6], [7, 7], [7, 8], [7, 9]] });
+    const m = pick(own, wrong, sloppy, () => 0.5);
+    assert.ok(m.row === 7 && [5, 10].includes(m.col), JSON.stringify(m));
 });
 
 // ─── chooseAIMove with Rapfi candidates ────────────────────────────────────────
-function load({ fetchImpl, think, ready = true }) {
+function load({ fetchImpl, think, ready = true, extra = {} }) {
     const noop = () => {};
     const ctx = vm.createContext({
         console: { log: noop, warn: noop, error: noop, info: noop },
@@ -135,6 +190,7 @@ function load({ fetchImpl, think, ready = true }) {
         rapfiActive: mode => mode === 'practice',
         rapfiReady: () => ready,
         rapfiThink: think,
+        ...extra,
     });
     for (const f of ['ai.js', 'jev.js']) {
         const file = path.join(ROOT, f);
@@ -196,9 +252,33 @@ test('chooseAIMove: built-in engine plays when Rapfi fails or is not loaded', as
     assert.strictEqual(asked, false);
 });
 
-test('chooseAIMove: challenge mode never uses Rapfi', async () => {
-    let asked = false;
-    const ctx = load({ think: async () => { asked = true; return null; } });
-    await ctx.chooseAIMove(QUIET.map(r => r.slice()), 300, 'challenge', null);
-    assert.strictEqual(asked, false);
+test('chooseAIMove: a challenge level searches at its strength and never asks Jev', async () => {
+    const { pick, levels } = loadRapfiJs();
+    let fetched = false, asked = null;
+    const ctx = load({
+        fetchImpl: async () => { fetched = true; return { ok: false, status: 500, json: async () => null }; },
+        think: async (board, timeMs, nbest, depth) => { asked = { timeMs, nbest, depth }; return { move: { row: 8, col: 8 }, candidates: [CANDS[0]], depth }; },
+        extra: { rapfiActive: () => true, RAPFI_LEVELS: levels, rapfiPickMove: pick },
+    });
+    const m = await ctx.chooseAIMove(QUIET.map(r => r.slice()), 300, 'challenge', null, { level: 3 });
+    assert.deepStrictEqual({ ...m }, { row: 8, col: 8 });
+    assert.deepStrictEqual(asked, { timeMs: levels[3].timeMs, nbest: levels[3].nbest, depth: levels[3].depth });
+    assert.strictEqual(fetched, false);
+});
+
+test('chooseAIMove: a challenge level falls back to the built-in engine when Rapfi fails', async () => {
+    const { pick, levels } = loadRapfiJs();
+    const ctx = load({
+        think: async () => { throw new Error('engine timeout'); },
+        extra: { rapfiActive: () => true, RAPFI_LEVELS: levels, rapfiPickMove: pick },
+    });
+    const m = await ctx.chooseAIMove(QUIET.map(r => r.slice()), 300, 'challenge', null, { level: 5 });
+    assert.strictEqual(QUIET[m.row][m.col], 0);
+});
+
+test('chooseAIMove: Jev is told which color the AI plays', async () => {
+    const seen = [];
+    const ctx = load({ fetchImpl: jevAnswer(CANDS[0], seen), think: async () => ({ move: { row: 8, col: 8 }, candidates: CANDS, depth: 9 }) });
+    await ctx.chooseAIMove(QUIET.map(r => r.slice()), 300, 'practice', null, { aiColor: 'black' });
+    assert.strictEqual(seen[0].aiColor, 'black');
 });

@@ -32,6 +32,30 @@
             </div>
         </div>
 
+        <div id="setupScreen" class="screen hidden">
+            <div class="container">
+                <header>
+                    <h1>연습</h1>
+                    <p class="subtitle">돌 선택</p>
+                </header>
+
+                <div class="id-form">
+                    <div class="color-pick" role="radiogroup" aria-label="돌 선택">
+                        <button type="button" class="color-option" data-color="black" role="radio">
+                            <i class="pick-stone black"></i><span>흑</span><small>먼저 둠</small>
+                        </button>
+                        <button type="button" class="color-option" data-color="white" role="radio">
+                            <i class="pick-stone white"></i><span>백</span><small>AI가 먼저</small>
+                        </button>
+                    </div>
+                    <div class="form-buttons">
+                        <button id="startPracticeBtn" class="btn primary">시작</button>
+                        <button id="backFromSetupBtn" class="btn">뒤로</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div id="idScreen" class="screen hidden">
             <div class="container">
                 <header>
@@ -42,6 +66,14 @@
                 <div class="id-form">
                     <label for="playerId">아이디 입력</label>
                     <input type="text" id="playerId" maxlength="10" placeholder="최대 10자">
+                    <div class="color-pick" role="radiogroup" aria-label="돌 선택">
+                        <button type="button" class="color-option" data-color="black" role="radio">
+                            <i class="pick-stone black"></i><span>흑</span><small>먼저 둠</small>
+                        </button>
+                        <button type="button" class="color-option" data-color="white" role="radio">
+                            <i class="pick-stone white"></i><span>백</span><small>AI가 먼저</small>
+                        </button>
+                    </div>
                     <div class="form-buttons">
                         <button id="startChallengeBtn" class="btn primary">시작</button>
                         <button id="backFromIdBtn" class="btn">뒤로</button>
@@ -84,10 +116,15 @@
                     <div class="win-bar"><span id="winFill"></span></div>
                 </div>
 
-                <div class="status">
-                    <span id="turn">당신의 차례 (흑)</span>
-                    <span id="engineDots" class="engine-dots hidden" aria-hidden="true">
-                        <span class="engine-dot"><i id="rapfiDot" data-state="off"></i>Rapfi</span>
+                <div id="statusBar" class="status">
+                    <span id="turn">당신의 차례</span>
+                    <span id="turnDots" class="turn-dots hidden">
+                        <i id="blackTurnDot" class="turn-dot black" data-state="off" title="흑 차례"></i>
+                        <i id="whiteTurnDot" class="turn-dot white" data-state="off" title="백 차례"></i>
+                        <span id="moveCount" class="move-count">0수</span>
+                    </span>
+                    <span id="engineDots" class="engine-dots" aria-hidden="true">
+                        <span class="engine-dot"><i id="aiDot" data-state="off"></i>AI</span>
                         <span class="engine-dot"><i id="jevDot" data-state="off"></i>Jev</span>
                     </span>
                 </div>

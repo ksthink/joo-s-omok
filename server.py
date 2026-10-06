@@ -1243,16 +1243,15 @@ def save_game_record():
     stone_count = len(moves)
     date = get_kst_date()
 
-    # Validate winner based on stone count
-    # Winner 1 (player) needs at least 9 stones (5 player + 4 AI)
-    # Winner 2 (AI) needs at least 10 stones (5 AI + 5 player)
-    # Winner 0 (draw) should have full board (225 stones) or mutual agreement
-    if winner == 1 and stone_count < 9:
-        # Invalid: player can't win with less than 9 stones
-        return jsonify({'success': False, 'error': 'Invalid game: player win requires at least 9 stones'}), 400
-    if winner == 2 and stone_count < 10:
-        # Invalid: AI can't win with less than 10 stones
-        return jsonify({'success': False, 'error': 'Invalid game: AI win requires at least 10 stones'}), 400
+    # Validate winner based on stone count. Black moves first (the player, or the
+    # AI when the player picked white): black needs at least 9 stones to win
+    # (5 + 4), white at least 10 (5 + 5)
+    first = moves[0]['player'] if moves else 1
+    if winner in (1, 2):
+        min_stones = 9 if winner == first else 10
+        if stone_count < min_stones:
+            side = 'player' if winner == 1 else 'AI'
+            return jsonify({'success': False, 'error': f'Invalid game: {side} win requires at least {min_stones} stones'}), 400
 
     # Save game record
     conn = get_db()
@@ -1414,10 +1413,11 @@ JEV_GRADE_TEXT = {
 def jev_coord(row, col):
     return f'{JEV_COLS[col]}{row + 1}'
 
-def jev_board_text(board, last_move):
+def jev_board_text(board, last_move, ai_color='white'):
+    opp_color = 'black' if ai_color == 'white' else 'white'
     lines = [
         'Gomoku on a 15x15 board. Five or more in a row wins.',
-        'X = black (opponent). O = white (you). It is your move as O.',
+        f'X = {opp_color} (opponent). O = {ai_color} (you). It is your move as O.',
         'Columns A-O run left to right, rows 1-15 run top to bottom.',
         '    ' + ' '.join(JEV_COLS),
     ]
@@ -1441,7 +1441,7 @@ def jev_note(cand):
     return note
 
 def jev_parse_request(data):
-    """Validate the client payload. Returns (board, last_move, candidates) or raises ValueError."""
+    """Validate the client payload. Returns (board, last_move, candidates, ai_color) or raises ValueError."""
     board = data.get('board')
     if not (isinstance(board, list) and len(board) == 15 and
             all(isinstance(row, list) and len(row) == 15 and
@@ -1469,7 +1469,10 @@ def jev_parse_request(data):
             raise ValueError('candidate must be a distinct empty cell')
         seen.add((r, c))
         candidates.append({'row': r, 'col': c, 'me': m.get('me'), 'opp': m.get('opp'), 'winrate': m.get('winrate')})
-    return board, last_move, candidates
+    ai_color = data.get('aiColor', 'white')
+    if ai_color not in ('black', 'white'):
+        raise ValueError('aiColor must be black or white')
+    return board, last_move, candidates, ai_color
 
 @app.route('/api/jev-move', methods=['POST', 'OPTIONS'])
 @cross_origin
@@ -1482,14 +1485,15 @@ def jev_move():
         return jsonify({'ok': False, 'error': 'jev_disabled'}), 503
 
     try:
-        board, last_move, candidates = jev_parse_request(request.get_json(silent=True) or {})
+        board, last_move, candidates, ai_color = jev_parse_request(request.get_json(silent=True) or {})
+        opp_color = 'black' if ai_color == 'white' else 'white'
     except ValueError as e:
         return jsonify({'ok': False, 'error': str(e)}), 400
 
     ids = {jev_coord(c['row'], c['col']): c for c in candidates}
     payload = {
         'model': JEV_MODEL,
-        'state': jev_board_text(board, last_move),
+        'state': jev_board_text(board, last_move, ai_color),
         'questions': {
             'move': {
                 'type': 'choice',
@@ -1499,7 +1503,7 @@ def jev_move():
             'outcome': {
                 'type': 'choice',
                 'instructions': 'With best play from here, which side is more likely to win this game?',
-                'criteria': {'O': 'O (white, you) wins', 'X': 'X (black, opponent) wins'},
+                'criteria': {'O': f'O ({ai_color}, you) wins', 'X': f'X ({opp_color}, opponent) wins'},
             },
         },
     }
@@ -1531,9 +1535,9 @@ def jev_move():
     outcome = None
     oprobs = ((body.get('answers') or {}).get('outcome') or {}).get('probabilities') or {}
     try:
-        white, black = float(oprobs['O']), float(oprobs['X'])
-        if white >= 0 and black >= 0 and white + black > 0:
-            outcome = {'white': white / (white + black), 'black': black / (white + black)}
+        ai, opp = float(oprobs['O']), float(oprobs['X'])
+        if ai >= 0 and opp >= 0 and ai + opp > 0:
+            outcome = {ai_color: ai / (ai + opp), opp_color: opp / (ai + opp)}
     except (KeyError, TypeError, ValueError):
         pass
 

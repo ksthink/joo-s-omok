@@ -474,7 +474,8 @@ function renderBoard() {
     drawEmptyBoard();
     for (let i = 0; i < currentMoveIndex; i++) {
         const move = currentMoves[i];
-        drawStone(move.row, move.col, move.player, i === currentMoveIndex - 1, i + 1);
+        // Black always moves first (the AI opens when the player picked white)
+        drawStone(move.row, move.col, i % 2 === 0 ? 1 : 2, i === currentMoveIndex - 1, i + 1);
     }
     drawPatterns();
 }
@@ -542,6 +543,7 @@ function drawEmptyBoard() {
     }
 }
 
+// player: 1 draws a black stone, 2 a white one
 function drawStone(row, col, player, isLast, moveNumber) {
     const x = CELL_SIZE / 2 + col * CELL_SIZE;
     const y = CELL_SIZE / 2 + row * CELL_SIZE;

@@ -8,7 +8,7 @@
 
 const JEV_CONFIG = {
     enabled: true,
-    modes: ['practice'],     // challenge levels stay pure MiniMax so scores stay comparable
+    modes: ['practice'],     // challenge levels play the engine alone, tuned per level
     alpha: 0.4,              // weight of Jev's probability in the blend (0 = pure MiniMax)
     safetyMargin: 5000,      // drop candidates worse than the engine's best by more than this
     candidates: 8,           // how many engine candidates Jev chooses from
@@ -63,7 +63,7 @@ function blendJevChoice(candidates, probs, opts) {
     return { row: pick.row, col: pick.col };
 }
 
-async function requestJevProbabilities(board, candidates, lastMove) {
+async function requestJevProbabilities(board, candidates, lastMove, aiColor) {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), JEV_CONFIG.timeoutMs);
     try {
@@ -74,6 +74,7 @@ async function requestJevProbabilities(board, candidates, lastMove) {
             body: JSON.stringify({
                 board,
                 lastMove,
+                aiColor: aiColor || 'white',
                 candidates: candidates.map(c => ({ row: c.row, col: c.col, me: c.me, opp: c.opp, winrate: c.winrate })),
             }),
         });
@@ -107,9 +108,22 @@ async function rapfiAnalysis(board) {
 
 // Entry point used by the game. Always resolves to a legal move (or null on a full board).
 // Engine: Rapfi when it is loaded for this mode, otherwise the built-in MiniMax.
-async function chooseAIMove(board, timeLimit, mode, lastMove) {
+// opts.level: challenge level (Rapfi plays at that level's strength, see RAPFI_LEVELS);
+// opts.aiColor: 'black' | 'white', the AI's stones (for Jev's view of the board).
+async function chooseAIMove(board, timeLimit, mode, lastMove, opts) {
+    opts = opts || {};
     const jevMode = JEV_CONFIG.enabled && JEV_CONFIG.modes.includes(mode);
     let analysis = null;
+
+    if (opts.level && typeof RAPFI_LEVELS !== 'undefined' && rapfiActive(mode) && rapfiReady()) {
+        const level = RAPFI_LEVELS[opts.level];
+        try {
+            const res = await rapfiThink(board, level.timeMs, level.nbest, level.depth);
+            return rapfiPickMove(board, res, level);
+        } catch (e) {
+            return getAIMove(board, timeLimit); // engine failed: the built-in engine plays
+        }
+    }
 
     if (typeof rapfiActive === 'function' && rapfiActive(mode) && rapfiReady()) {
         if (jevMode) jevReport({ state: 'engine', engine: 'rapfi' });
@@ -137,7 +151,7 @@ async function chooseAIMove(board, timeLimit, mode, lastMove) {
     jevStats.calls++;
     jevReport({ state: 'thinking', candidates: analysis.candidates, engineMove: analysis.move, analysis });
     try {
-        const data = await requestJevProbabilities(board, analysis.candidates, lastMove);
+        const data = await requestJevProbabilities(board, analysis.candidates, lastMove, opts.aiColor);
         const move = blendJevChoice(analysis.candidates, data.probabilities, blendOpts);
         const override = move.row !== analysis.move.row || move.col !== analysis.move.col;
         if (override) jevStats.overrides++;
