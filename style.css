@@ -602,7 +602,10 @@ h1 {
     color: #5a5a5a;
 }
 
-#blackTurnDot[data-state="on"], #whiteTurnDot[data-state="on"] { background-color: #e8c46a; color: #e8c46a; }
+/* Turn lights: the side to move lights up in its own stone color */
+#blackTurnDot, #whiteTurnDot { box-sizing: border-box; border: 1px solid transparent; }
+#blackTurnDot[data-state="on"] { background-color: #000000; border-color: #ffffff; color: #ffffff; }
+#whiteTurnDot[data-state="on"] { background-color: #ffffff; border-color: #000000; color: #ffffff; }
 
 .win-pct {
     font-weight: normal;

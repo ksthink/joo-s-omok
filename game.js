@@ -1,5 +1,5 @@
 // 앱 버전: 첫 화면에 표시됨. 배포할 때 함께 올린다.
-const APP_VERSION = '3.2.1';
+const APP_VERSION = '3.2.2';
 
 const BOARD_SIZE = 15;
 const EMPTY = 0;
