@@ -584,28 +584,34 @@ h1 {
 
 .status.compact .engine-dot i { width: 8px; height: 8px; }
 
+/* Same width as the board (set from game.js, board plus its frame) */
+.status.compact {
+    width: var(--board-width, 100%);
+    max-width: 100%;
+    box-sizing: border-box;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 .turn-dots {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    font-size: 10px;
+    line-height: 1;
+    color: #5a5a5a;
 }
 
-.turn-dot {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    border: 1px solid #3a3a3a;
-    opacity: 0.25;
-    transition: opacity 0.15s, box-shadow 0.15s;
-}
+#blackTurnDot[data-state="on"], #whiteTurnDot[data-state="on"] { background-color: #e8c46a; color: #e8c46a; }
 
-.turn-dot.black { background: radial-gradient(circle at 35% 35%, #3a3a3a, #000000); border-color: #808080; }
-.turn-dot.white { background: radial-gradient(circle at 35% 35%, #ffffff, #c0c0c0); border-color: #909090; }
-.turn-dot[data-state="on"] { opacity: 1; box-shadow: 0 0 6px 1px rgba(255, 214, 120, 0.85); }
+.win-pct {
+    font-weight: normal;
+    color: #c0c0c0;
+    font-variant-numeric: tabular-nums;
+}
 
 .move-count {
-    min-width: 30px;
-    font-size: 12px;
+    font-size: 10px;
     color: #a0a0a0;
     font-variant-numeric: tabular-nums;
 }
@@ -645,44 +651,3 @@ h1 {
 
 .pick-stone.black { background: radial-gradient(circle at 35% 35%, #3a3a3a, #000000); border: 1px solid #808080; }
 .pick-stone.white { background: radial-gradient(circle at 35% 35%, #ffffff, #c0c0c0); border: 1px solid #909090; }
-
-/* ─── Win Probability Bar ─────────────────────────────────────────────────── */
-.win-rate {
-    margin-bottom: 8px;
-    padding: 6px 8px;
-    background-color: #101010;
-    border: 1px solid #252525;
-}
-
-.win-labels {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    font-size: 13px;
-    color: #e0e0e0;
-    font-variant-numeric: tabular-nums;
-}
-
-.win-source {
-    font-size: 10px;
-    color: #707070;
-}
-
-.win-bar {
-    height: 6px;
-    margin-top: 4px;
-    background-color: #d8d8d8;
-}
-
-.win-bar span {
-    display: block;
-    height: 100%;
-    width: 50%;
-    background-color: #000000;
-    border-right: 1px solid #606060;
-    transition: width 0.4s ease;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .win-bar span { transition: none; }
-}

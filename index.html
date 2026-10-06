@@ -107,20 +107,11 @@
                     </div>
                 </div>
 
-                <div id="winRate" class="win-rate">
-                    <div class="win-labels">
-                        <span id="winBlack">흑 -</span>
-                        <span id="winSource" class="win-source">AI가 두면 표시</span>
-                        <span id="winWhite">백 -</span>
-                    </div>
-                    <div class="win-bar"><span id="winFill"></span></div>
-                </div>
-
                 <div id="statusBar" class="status">
                     <span id="turn">당신의 차례</span>
                     <span id="turnDots" class="turn-dots hidden">
-                        <i id="blackTurnDot" class="turn-dot black" data-state="off" title="흑 차례"></i>
-                        <i id="whiteTurnDot" class="turn-dot white" data-state="off" title="백 차례"></i>
+                        <span class="engine-dot"><i id="blackTurnDot" data-state="off"></i>흑 <b id="winBlack" class="win-pct">-</b></span>
+                        <span class="engine-dot"><i id="whiteTurnDot" data-state="off"></i>백 <b id="winWhite" class="win-pct">-</b></span>
                         <span id="moveCount" class="move-count">0수</span>
                     </span>
                     <span id="engineDots" class="engine-dots" aria-hidden="true">

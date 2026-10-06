@@ -1,5 +1,5 @@
 // 앱 버전: 첫 화면에 표시됨. 배포할 때 함께 올린다.
-const APP_VERSION = '3.2.0';
+const APP_VERSION = '3.2.1';
 
 const BOARD_SIZE = 15;
 const EMPTY = 0;
@@ -115,6 +115,8 @@ function calculateCanvasSize() {
     CANVAS_SIZE = BOARD_SIZE * CELL_SIZE;
     canvas.width = CANVAS_SIZE;
     canvas.height = CANVAS_SIZE;
+    // The practice status bar matches the board's outer width (canvas + 1px padding + 2px border)
+    document.documentElement.style.setProperty('--board-width', `${CANVAS_SIZE + 6}px`);
 }
 
 function showScreen(screenId) {
@@ -296,22 +298,15 @@ function engineAiWinRate(score) {
     return Math.min(0.999, Math.max(0.001, p));
 }
 
+// Shown next to the turn lights in the practice status bar; `source` (where the
+// estimate came from) goes into the tooltip
 function setWinRate(white, source) {
-    const el = document.getElementById('winRate');
-    if (!el) return;
-    el.classList.toggle('hidden', gameMode !== 'practice');
-    if (white == null) {
-        document.getElementById('winBlack').textContent = '흑 -';
-        document.getElementById('winWhite').textContent = '백 -';
-        document.getElementById('winFill').style.width = '50%';
-        document.getElementById('winSource').textContent = 'AI가 두면 표시';
-        return;
-    }
-    const black = 1 - white;
-    document.getElementById('winBlack').textContent = `흑 ${(black * 100).toFixed(1)}%`;
-    document.getElementById('winWhite').textContent = `백 ${(white * 100).toFixed(1)}%`;
-    document.getElementById('winFill').style.width = `${black * 100}%`;
-    document.getElementById('winSource').textContent = source;
+    const blackEl = document.getElementById('winBlack');
+    const whiteEl = document.getElementById('winWhite');
+    if (!blackEl || !whiteEl) return;
+    blackEl.textContent = white == null ? '-' : `${((1 - white) * 100).toFixed(1)}%`;
+    whiteEl.textContent = white == null ? '-' : `${(white * 100).toFixed(1)}%`;
+    document.getElementById('turnDots').title = white == null ? '승률: AI가 두면 표시' : `승률: ${source}`;
 }
 
 function updateWinRate(jevOutcome, analysis, move) {
