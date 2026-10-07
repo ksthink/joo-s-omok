@@ -3,3 +3,8 @@ tools/match/*.jsonl
 tools/match/results/
 tools/match/vendor/
 __pycache__/
+
+# runtime artifacts
+logs/
+*.pid
+*.lock
