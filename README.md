@@ -56,7 +56,28 @@
 
 <img src="docs/screenshots/rank.png" width="300" alt="랭킹">
 
-### AI 특징
+### 대국 엔진: Rapfi 우선, MiniMax 예비
+
+실제로 수를 두는 엔진은 **Rapfi**(WebAssembly, NNUE)입니다. 직접 만든 **MiniMax**(`ai.js`)는 Rapfi를 쓸 수 없을 때만 대신 두는 예비 엔진입니다. 엔진 선택은 `jev.js`의 `chooseAIMove`에서 합니다.
+
+| 상황 | 두는 엔진 | 모드 표시 |
+|---|---|---|
+| 챌린지 모드 (정상) | Rapfi, 단계별 깊이·시간·실수 확률 적용 | `챌린지 모드 · Rapfi` |
+| 연습 모드 (정상) | Rapfi 후보 중 Jev가 선택, Jev가 꺼졌거나 실패하면 Rapfi 1순위 | `연습 모드 · Rapfi` |
+| Rapfi를 내려받는 중 (약 41MB) | MiniMax. 챌린지는 한 대국에 한 번, 최대 20초 기다린 뒤 대신 둠 | `· Rapfi 불러오는 중 N%` |
+| Rapfi 로딩 실패 (WebAssembly 미지원, 다운로드 실패 등) | MiniMax | `· 기본 엔진` |
+| Rapfi가 수 계산 중 오류 | 그 수만 MiniMax | 그대로 |
+| `RAPFI_CONFIG.enabled` / `modes`로 끈 경우 | MiniMax | 엔진 표시 없음 |
+
+보통의 대국에서는 Rapfi가 둡니다. MiniMax가 두는 건 첫 접속 직후 Rapfi가 아직 로딩 중일 때 정도입니다.
+
+<img src="docs/screenshots/practice.png" width="260" alt="Rapfi로 대국"> <img src="docs/screenshots/engine-loading.png" width="260" alt="Rapfi 로딩 중, MiniMax가 둠"> <img src="docs/screenshots/engine-fallback.png" width="260" alt="Rapfi 실패, 기본 엔진">
+
+왼쪽부터 Rapfi로 대국, Rapfi 로딩 중(그동안 MiniMax가 둠), Rapfi 로딩 실패(기본 엔진 = MiniMax)입니다.
+
+> **AI 학습과의 관계:** 서버의 패턴 학습(`/api/game-record`), `weights.json`, 학습 대시보드는 모두 **MiniMax의 평가 가중치**를 만듭니다. Rapfi는 자체 신경망으로 평가하므로 이 학습 결과를 쓰지 않습니다. 따라서 학습은 예비 엔진이 둘 때만 대국에 영향을 줍니다.
+
+### 예비 엔진(MiniMax) 특징
 - **MiniMax + Alpha-Beta**: 최적의 수 탐색
 - **양방향 학습**: 공격(Attack)과 방어(Defense) 가중치 분리 학습
 - **1차원 패턴 학습**: 선형 패턴(열린3, 열린4 등) 학습
