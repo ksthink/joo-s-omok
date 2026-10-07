@@ -4,7 +4,7 @@
 
 ## 소개
 
-현재 버전: **v3.1.0** (첫 화면 하단에 표시, `game.js`의 `APP_VERSION`)
+현재 버전: **v3.2.2** (첫 화면 하단에 표시, `game.js`의 `APP_VERSION`)
 
 | 버전 | 변경 내용 |
 |---|---|
@@ -29,10 +29,32 @@
 ## 기능
 
 ### 게임 모드
-- **연습 모드**: 자유롭게 AI와 대결하며 실력 향상
-- **챌린지 모드**: 10단계 난이도 도전(Rapfi 엔진, 단계별 강도 조정), 점수 기록
-- 두 모드 모두 시작할 때 흑(먼저 둠) 또는 백(AI가 먼저)을 고릅니다. 마지막 선택은 브라우저에 기억됩니다.
-- **랭킹**: 상위 10명 기록 확인
+
+<img src="docs/screenshots/main.png" width="300" alt="첫 화면">
+
+첫 화면에서 연습·챌린지·랭크를 고릅니다. 하단에 현재 버전이 표시됩니다.
+
+#### 돌 선택
+두 모드 모두 시작할 때 흑(먼저 둠) 또는 백(AI가 먼저)을 고릅니다. 마지막 선택은 브라우저에 기억됩니다.
+
+<img src="docs/screenshots/color-pick.png" width="300" alt="돌 선택">
+
+#### 연습 모드
+자유롭게 AI와 대결하며 실력을 키웁니다. 엔진은 Rapfi이고, 상태 칸에 흑·백 차례 불빛과 Rapfi가 평가한 승률(%), 수 번호, AI·Jev 작동 불빛이 표시됩니다.
+
+<img src="docs/screenshots/practice.png" width="300" alt="연습 모드">
+
+> 스크린샷은 `TYPESAFE_API_KEY` 없이 찍어 Jev 불빛이 빨간색(실패: Jev 없이 Rapfi 1순위로 착수)입니다.
+
+#### 챌린지 모드
+아이디를 입력하고 10단계 난이도에 도전합니다(Rapfi 엔진, 단계별 탐색 깊이·시간·실수 확률 조정). 단계 점수가 누적되고, 끝나면 결과를 랭킹에 저장할 수 있습니다.
+
+<img src="docs/screenshots/challenge-id.png" width="300" alt="챌린지 아이디 입력"> <img src="docs/screenshots/challenge.png" width="300" alt="챌린지 대국"> <img src="docs/screenshots/challenge-result.png" width="300" alt="챌린지 결과">
+
+#### 랭킹
+챌린지 상위 10명의 점수·도달 단계·날짜를 보여줍니다.
+
+<img src="docs/screenshots/rank.png" width="300" alt="랭킹">
 
 ### AI 특징
 - **MiniMax + Alpha-Beta**: 최적의 수 탐색
@@ -45,17 +67,40 @@
 - **평가 캐시**: 라인·군집·말단 평가를 해시로 캐싱해 깊은 탐색 가능
 
 ### 대시보드
-- **게임 통계**: 총 게임, 승률, 모드별 분포
+별도 서버(8082)에서 AI 학습 현황을 보여줍니다.
+
+- **게임 통계**: 총 게임, 승률, 모드별 분포, 일별 게임 수
+
+  <img src="docs/screenshots/dash-stats.png" width="700" alt="게임 통계">
+
 - **패턴 학습**: 1차원 선형 패턴의 Attack/Defense 가중치 변화 추적
+
+  <img src="docs/screenshots/dash-patterns.png" width="700" alt="패턴 학습">
+
 - **복합 위협**: 쌍삼/사삼/쌍사 발생 통계
+
+  <img src="docs/screenshots/dash-composites.png" width="700" alt="복합 위협">
+
 - **군집 패턴**: 2차원 군집 형태(ㅗ, +, X, L자 등) 학습 현황
+
+  <img src="docs/screenshots/dash-clusters.png" width="700" alt="군집 패턴">
+
 - **군집 연결**: 영향력 맵 기반 연결 패턴 통계
+
+  <img src="docs/screenshots/dash-connections.png" width="700" alt="군집 연결">
+
 - **학습 진행**: 패턴별 학습 문턱 도달 현황
+
+  <img src="docs/screenshots/dash-progress.png" width="700" alt="학습 진행">
+
+- **리더보드**: 게임 화면의 랭킹과 같은 기록
 - **기보 재생**: 저장된 게임 재생
   - 돌 안에 수 순서 표시 (1, 2, 3...)
   - 흑돌: 흰색 숫자, 백돌: 검정 숫자
   - 일반 패턴: 빨간색 라인 (rgba(255, 99, 71, 0.5))
   - 복합위협: 라임색 라인 (rgba(0, 255, 0, 0.5))
+
+  <img src="docs/screenshots/dash-replay.png" width="700" alt="기보 재생">
 
 ## 기술 스택
 
