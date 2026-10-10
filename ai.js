@@ -1,12 +1,10 @@
 // ─── AI Engine for Omok ────────────────────────────────────────────────────────
 // Minimax with alpha-beta pruning, iterative deepening, Zobrist hashing,
 // transposition table, killer moves, a tactical threat layer that restricts
-// candidates at every node, cached leaf evaluation, and bidirectional learned
-// pattern weights (attack/defense) for positional evaluation.
+// candidates at every node, cached leaf evaluation, and fixed pattern weights
+// for positional evaluation.
 
-// ─── Learned Weights (loaded from server) ──────────────────────────────────────
-let patternWeights = null; // { attack: {pattern: weight}, defense: {pattern: weight} }
-
+// ─── Pattern Weights ───────────────────────────────────────────────────────────
 const BASE_WEIGHTS = {
     "OOOOO": 100000,
     "_OOOO_": 50000,
@@ -52,78 +50,21 @@ const CLUSTER_CONNECTION_PATTERNS = {
     "pincer_threat": 3500
 };
 
-let clusterWeights = null;
-let clusterConnectionWeights = null;
-
 // Patterns sorted by length desc then weight desc for exclusive matching
 const SORTED_PATTERNS = Object.keys(BASE_WEIGHTS).sort((a, b) => {
     if (b.length !== a.length) return b.length - a.length;
     return BASE_WEIGHTS[b] - BASE_WEIGHTS[a];
 });
 
-// ─── Load Weights from Server (bidirectional: attack + defense) ────────────────
-async function loadPatternWeights() {
-    try {
-        const response = await fetch('/api/weights');
-        if (!response.ok) { patternWeights = null; return; }
-        const data = await response.json();
-        if (data && data.patterns) {
-            patternWeights = { attack: {}, defense: {} };
-            for (const [pattern, info] of Object.entries(data.patterns)) {
-                patternWeights.attack[pattern] = info.attack_weight != null ? info.attack_weight : (info.weight || BASE_WEIGHTS[pattern] || 0);
-                patternWeights.defense[pattern] = info.defense_weight != null ? info.defense_weight : (info.weight || BASE_WEIGHTS[pattern] || 0);
-            }
-        }
-    } catch (e) {
-        patternWeights = null;
-    }
-    
-    try {
-        const response = await fetch('/api/cluster-weights');
-        if (response.ok) {
-            const data = await response.json();
-            if (data) {
-                clusterWeights = { attack: {}, defense: {} };
-                clusterConnectionWeights = { attack: {}, defense: {} };
-                if (data.cluster_patterns) {
-                    for (const [patternId, info] of Object.entries(data.cluster_patterns)) {
-                        clusterWeights.attack[patternId] = info.attack_weight || CLUSTER_PATTERNS[patternId] || 1000;
-                        clusterWeights.defense[patternId] = info.defense_weight || CLUSTER_PATTERNS[patternId] || 1000;
-                    }
-                }
-                if (data.cluster_connections) {
-                    for (const [connType, info] of Object.entries(data.cluster_connections)) {
-                        clusterConnectionWeights.attack[connType] = info.attack_weight || CLUSTER_CONNECTION_PATTERNS[connType] || 1000;
-                        clusterConnectionWeights.defense[connType] = info.defense_weight || CLUSTER_CONNECTION_PATTERNS[connType] || 1000;
-                    }
-                }
-            }
-        }
-    } catch (e) {
-        clusterWeights = null;
-        clusterConnectionWeights = null;
-    }
-}
-
-const getClusterWeight = function (patternId, perspective) {
-    if (clusterWeights && clusterWeights[perspective] && clusterWeights[perspective][patternId] !== undefined) {
-        return clusterWeights[perspective][patternId];
-    }
+const getClusterWeight = function (patternId) {
     return CLUSTER_PATTERNS[patternId] || 1000;
 };
 
-const getClusterConnectionWeight = function (connType, perspective) {
-    if (clusterConnectionWeights && clusterConnectionWeights[perspective] && clusterConnectionWeights[perspective][connType] !== undefined) {
-        return clusterConnectionWeights[perspective][connType];
-    }
+const getClusterConnectionWeight = function (connType) {
     return CLUSTER_CONNECTION_PATTERNS[connType] || 1000;
 };
 
-// perspective: 'attack' for AI stones, 'defense' for player stones
-const getPatternWeight = function (pattern, perspective) {
-    if (patternWeights && perspective && patternWeights[perspective] && patternWeights[perspective][pattern] !== undefined) {
-        return patternWeights[perspective][pattern];
-    }
+const getPatternWeight = function (pattern) {
     return BASE_WEIGHTS[pattern] || 0;
 };
 
@@ -298,7 +239,7 @@ const getFullLine = function (r0, c0, dr, dc, player, board) {
 
 // Gapped fours (OO_OO, O_OOO, OOO_O): one stone completes five through the gap.
 // evaluateLine has no key for them, so each gap is scored like a closed four
-// using the learned 'OOOO_' weight. Contiguous fours are left to evaluateLine,
+// using the 'OOOO_' weight. Contiguous fours are left to evaluateLine,
 // so no shape is counted twice.
 const countGappedFours = function (line) {
     let n = 0;
@@ -323,8 +264,7 @@ const scoreLine = function (line, perspective) {
 
 // Line scores are memoised by line contents (base-3 code + length + perspective).
 // Most lines are unchanged between leaves, so the pattern scan runs rarely.
-// The cache is cleared at the start of every getAIMove() so newly loaded
-// learned weights are always used.
+// The cache is cleared at the start of every getAIMove().
 const lineScoreCache = new Map();
 const LINE_CACHE_MAX = 200000;
 
@@ -385,7 +325,7 @@ const evaluateAllLines = function (board, player, perspective) {
 // behaviour in the browser is the same, but in a Node vm context (used by the
 // tests and the match harness) calls to global function declarations go
 // through the sandbox's property interceptor and are several times slower.
-// The public API (getAIMove, loadPatternWeights, fullEvaluateBoard,
+// The public API (getAIMove, fullEvaluateBoard,
 // classifyMove, linePoints, countThreats, ...) stays global.
 const evaluatePositional = function (board, connections) {
     let score = 0;
@@ -623,10 +563,10 @@ function getLine(row, col, dr, dc, player, board) {
     return line;
 }
 
-// ─── Tactical Layer (independent of learned weights) ───────────────────────────
+// ─── Tactical Layer (independent of pattern weights) ───────────────────────────
 // Threat detection used for move generation, forced-move handling and the
-// side-to-move aware leaf check. It never reads patternWeights: learned weights
-// only affect positional evaluation, while these definitions are fixed rules.
+// side-to-move aware leaf check. It never reads the pattern weights: those only
+// affect positional evaluation, while these definitions are fixed rules.
 //
 // The threat grades and the idea of treating one-gap shapes (OO_OO, O_OOO,
 // _O_OO_ ...) as real fours/threes are adapted from Gomoku-MiniMax
@@ -1352,16 +1292,14 @@ function scoreMoveForOrdering(row, col, board, previousBestMove, depth) {
         else if (movesEqual(killerMoves[depth][1], { row, col })) score += 800000;
     }
 
-    // Use learned weights in threat counting
     score += countThreats(row, col, 2, board) * AI_THREAT_WEIGHT;
     score += countThreats(row, col, 1, board);
 
     return score;
 }
 
-// ─── Threat Counting with Learned Weights ──────────────────────────────────────
-// Threat shapes come from the tactical layer (gapped fours/threes included);
-// learned weights only set the ordering scale, which is unchanged.
+// ─── Threat Counting ───────────────────────────────────────────────────────────
+// Threat shapes come from the tactical layer (gapped fours/threes included).
 function countThreats(row, col, player, board) {
     return threatScoreFromBits(threatBits(board, row, col, player), player);
 }

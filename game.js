@@ -1,5 +1,5 @@
 // 앱 버전: 첫 화면에 표시됨. 배포할 때 함께 올린다.
-const APP_VERSION = '3.2.2';
+const APP_VERSION = '3.3.0';
 
 const BOARD_SIZE = 15;
 const EMPTY = 0;
@@ -805,10 +805,6 @@ function startPracticeGame() {
     elapsedSeconds = 0;
     totalStones = 0;
 
-    if (typeof loadPatternWeights === 'function') {
-        loadPatternWeights();
-    }
-
     startEngineDownload();
     document.getElementById('levelLabel').classList.add('hidden');
     document.getElementById('scoreDisplay').textContent = '-';
@@ -825,10 +821,6 @@ function startChallengeGame() {
     totalStones = 0;
     elapsedSeconds = 0;
     stopTimer(); // Fix: always clear before nulling
-
-    if (typeof loadPatternWeights === 'function') {
-        loadPatternWeights();
-    }
 
     startEngineDownload();
     document.getElementById('levelLabel').classList.remove('hidden');
@@ -1026,12 +1018,6 @@ function saveGameRecord(winner) {
     })
     .then(res => {
         if (!res.ok) throw new Error('Server error');
-        return res.json();
-    })
-    .then(result => {
-        if (result.learned) {
-            console.log('AI learned:', result.attack_patterns, 'attack,', result.defense_patterns, 'defense,', result.composites, 'composites');
-        }
     })
     .catch(err => console.error('Error saving game record:', err));
 }

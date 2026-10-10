@@ -1,13 +1,14 @@
 # 주군의 한수
 
-오목 AI와 대결하는 레트로 스타일의 웹 게임입니다. AI가 플레이어의 기보를 학습하여 점점 강해집니다.
+오목 AI와 대결하는 레트로 스타일의 웹 게임입니다. 대국 엔진은 NNUE 기반 Rapfi입니다.
 
 ## 소개
 
-현재 버전: **v3.2.2** (첫 화면 하단에 표시, `game.js`의 `APP_VERSION`)
+현재 버전: **v3.3.0** (첫 화면 하단에 표시, `game.js`의 `APP_VERSION`)
 
 | 버전 | 변경 내용 |
 |---|---|
+| v3.3.0 | 패턴 학습 제거: 기보·랭킹만 저장하고 예비 엔진(MiniMax)은 고정 가중치로 둠. DB를 Supabase(PostgreSQL)로 옮기고 대시보드를 `/dashboard`로 통합(게임 통계·리더보드·기보 재생) |
 | v3.2.2 | 차례 불빛을 돌 색으로: 흑 차례는 흰 테두리의 검정, 백 차례는 검정 테두리의 흰색(차례가 아닌 쪽은 꺼짐) |
 | v3.2.1 | 연습 모드 승률 막대를 없애고 상태 칸의 흑·백 차례 불빛 옆에 승률(%)만 표시, 차례 불빛을 AI·Jev 불빛과 같은 점 모양으로, 상태 칸 폭을 오목판에 맞춤 |
 | v3.2.0 | 챌린지 모드도 Rapfi로 대국(10단계, 단계별 탐색 깊이·시간·실수 확률 조정). 연습·챌린지 시작 시 흑/백 선택(백이면 AI가 먼저). 연습 모드 상태 칸은 글자 없이 흑·백 차례 불빛 + 수 번호 + AI·Jev 불빛, 챌린지는 기존 글자 상태에 AI·Jev 불빛만 추가 |
@@ -24,7 +25,7 @@
 | v2.0.0 | AI 전술 계층(띈 4·띈 3 인식, 모든 노드 위협 기반 후보 제한), 차례를 아는 말단 평가, 평가 캐시로 탐색 깊이 약 2배 |
 | v1.x | 최초 공개: MiniMax + 학습 가중치, 연습·챌린지·랭크 모드 |
 
-"주군의 한수"는 인공지능과 대결하는 오목 게임입니다. 연습 모드에서 실력을 키우고, 챌린지 모드에서 10단계의 AI를 상대로 점수를 기록하세요. AI는 매 게임 후 학습하여 시간이 지날수록 더 강해집니다.
+"주군의 한수"는 인공지능과 대결하는 오목 게임입니다. 연습 모드에서 실력을 키우고, 챌린지 모드에서 10단계의 AI를 상대로 점수를 기록하세요.
 
 ## 기능
 
@@ -75,46 +76,26 @@
 
 왼쪽부터 Rapfi로 대국, Rapfi 로딩 중(그동안 MiniMax가 둠), Rapfi 로딩 실패(기본 엔진 = MiniMax)입니다.
 
-> **AI 학습과의 관계:** 서버의 패턴 학습(`/api/game-record`), DB의 가중치 테이블, 학습 대시보드는 모두 **MiniMax의 평가 가중치**를 만듭니다. Rapfi는 자체 신경망으로 평가하므로 이 학습 결과를 쓰지 않습니다. 따라서 학습은 예비 엔진이 둘 때만 대국에 영향을 줍니다.
+> **학습 기능 제거(v3.3.0):** 예전에는 기보로 MiniMax의 패턴 가중치를 학습했지만, 대국은 거의 Rapfi가 두어 효과가 없어 없앴습니다. 기보와 랭킹은 계속 저장되고, 예비 엔진은 고정 가중치로 둡니다.
 
 ### 예비 엔진(MiniMax) 특징
 - **MiniMax + Alpha-Beta**: 최적의 수 탐색
-- **양방향 학습**: 공격(Attack)과 방어(Defense) 가중치 분리 학습
-- **1차원 패턴 학습**: 선형 패턴(열린3, 열린4 등) 학습
-- **2차원 군집 패턴 학습**: ㅗ, +, X, L자, T자 등 군집 형태 학습
-- **영향력 맵 기반 연결 학습**: 군집 간 연결 가능성 평가
+- **패턴 평가**: 1차원 선형 패턴, 2차원 군집 형태(ㅗ, +, X, L자, T자), 영향력 맵 기반 군집 연결을 고정 가중치로 평가
 - **복합 위협 감지**: 쌍삼, 사삼, 쌍사 패턴 인식 (띈 3·띈 4 포함)
 - **전술 계층**: 모든 탐색 노드에서 5목·4·열린3 위협에 따라 후보 수를 강제 제한
 - **평가 캐시**: 라인·군집·말단 평가를 해시로 캐싱해 깊은 탐색 가능
 
 ### 대시보드
-게임과 같은 서버의 `/dashboard`에서 AI 학습 현황을 보여줍니다.
+게임과 같은 서버의 `/dashboard`에서 저장된 기록을 보여줍니다.
 
 - **게임 통계**: 총 게임, 승률, 모드별 분포, 일별 게임 수
 
   <img src="docs/screenshots/dash-stats.png" width="700" alt="게임 통계">
 
-- **패턴 학습**: 1차원 선형 패턴의 Attack/Defense 가중치 변화 추적
+- **리더보드**: 챌린지 점수 기록
 
-  <img src="docs/screenshots/dash-patterns.png" width="700" alt="패턴 학습">
+  <img src="docs/screenshots/dash-leaderboard.png" width="700" alt="리더보드">
 
-- **복합 위협**: 쌍삼/사삼/쌍사 발생 통계
-
-  <img src="docs/screenshots/dash-composites.png" width="700" alt="복합 위협">
-
-- **군집 패턴**: 2차원 군집 형태(ㅗ, +, X, L자 등) 학습 현황
-
-  <img src="docs/screenshots/dash-clusters.png" width="700" alt="군집 패턴">
-
-- **군집 연결**: 영향력 맵 기반 연결 패턴 통계
-
-  <img src="docs/screenshots/dash-connections.png" width="700" alt="군집 연결">
-
-- **학습 진행**: 패턴별 학습 문턱 도달 현황
-
-  <img src="docs/screenshots/dash-progress.png" width="700" alt="학습 진행">
-
-- **리더보드**: 게임 화면의 랭킹과 같은 기록
 - **기보 재생**: 저장된 게임 재생
   - 돌 안에 수 순서 표시 (1, 2, 3...)
   - 흑돌: 흰색 숫자, 백돌: 검정 숫자
@@ -155,7 +136,7 @@ export DATABASE_URL='postgresql://postgres.<ref>:<비밀번호>@aws-0-ap-northea
 python3 tools/db_setup.py game.db   # 기존 SQLite 기록을 옮길 때. 빈 DB로 시작하면 인자 없이 실행
 ```
 
-`tools/db_setup.py`는 `schema.sql`을 적용하고, SQLite 파일을 주면 비어 있는 테이블에만 복사한 뒤, `weights_config.json`의 기본 패턴 중 빠진 것을 채웁니다. 여러 번 실행해도 행이 중복되지 않습니다. 모든 테이블은 RLS가 켜져 있고 정책이 없어서 Supabase 공개 API로는 읽거나 쓸 수 없고, 서버만 `DATABASE_URL`로 접근합니다.
+`tools/db_setup.py`는 `schema.sql`을 적용하고, SQLite 파일을 주면 랭킹과 기보를 비어 있는 테이블에만 복사합니다. 예전 학습 테이블이 남아 있으면 이때 지워집니다. 여러 번 실행해도 행이 중복되지 않습니다. 모든 테이블은 RLS가 켜져 있고 정책이 없어서 Supabase 공개 API로는 읽거나 쓸 수 없고, 서버만 `DATABASE_URL`로 접근합니다.
 
 ### 실행
 
@@ -171,7 +152,7 @@ DATABASE_URL='...' python3 server.py
 
 Vercel 프로젝트의 **Settings → Environment Variables**에 `DATABASE_URL`(Production, Preview)을 넣고 다시 배포합니다. `api/index.py`가 `server.py`를 함수로 실행하고, `/api/*`와 `/dashboard*` 요청이 그 함수로 갑니다. 정적 파일(게임 화면, Rapfi, 대시보드의 CSS·JS)은 Vercel이 바로 서비스합니다.
 
-> Supabase 무료 플랜은 1주일 동안 요청이 없으면 프로젝트가 일시정지됩니다. 그동안 랭킹·기보 저장과 대시보드는 오류를 내지만 대국은 그대로 됩니다(엔진은 브라우저에서 돌고, 예비 엔진은 기본 가중치로 둡니다).
+> Supabase 무료 플랜은 1주일 동안 요청이 없으면 프로젝트가 일시정지됩니다. 그동안 랭킹·기보 저장과 대시보드는 오류를 내지만 대국은 그대로 됩니다(엔진은 브라우저에서 돕니다).
 
 ## 프로젝트 구조
 
@@ -180,7 +161,7 @@ omok/
 ├── index.html           # 게임 메인 HTML
 ├── style.css            # 레트로 스타일 CSS
 ├── game.js              # 게임 로직
-├── ai.js                # AI 엔진 (MiniMax + 학습 + 군집 패턴)
+├── ai.js                # 예비 AI 엔진 (MiniMax + 고정 패턴 가중치)
 ├── board-renderer.js    # 공통 보드 렌더링 모듈
 ├── server.py            # 게임 백엔드 서버 (대시보드 포함)
 ├── db.py                # DB 접속 (DATABASE_URL)
@@ -188,7 +169,6 @@ omok/
 ├── tools/db_setup.py    # 테이블 생성, SQLite 기록 이전, 기본 패턴 채우기
 ├── tests/ai.test.js     # AI 전술 테스트 (node --test tests/ai.test.js)
 ├── tools/match/         # Gomoku-MiniMax 대국 하네스 (match.py, summary.py, bench.js)
-├── weights_config.json  # 패턴 가중치 설정 (단일 소스)
 ├── font.woff2           # 커스텀 한글 폰트
 ├── stone.wav            # 돌 놓기 효과음
 └── dashboard/
@@ -235,9 +215,7 @@ omok/
 |--------|----------|-------------|
 | GET | `/api/leaderboard` | 랭킹 목록 조회 (상위 10명) |
 | POST | `/api/leaderboard` | 점수 저장 |
-| POST | `/api/game-record` | 기보 저장 + AI 양방향 학습 |
-| GET | `/api/weights` | 패턴 가중치 조회 (attack/defense 분리) |
-| POST | `/api/weights/reset` | 가중치 초기화 |
+| POST | `/api/game-record` | 기보 저장 |
 | POST | `/api/jev-move` | Jev 직관 레이어 프록시 (아래 참고) |
 
 ### Jev 직관 레이어
@@ -288,13 +266,6 @@ omok/
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/dashboard/api/stats` | 게임 통계 |
-| GET | `/dashboard/api/patterns` | 패턴 학습 현황 (attack/defense) |
-| GET | `/dashboard/api/composite-stats` | 복합 위협 통계 |
-| GET | `/dashboard/api/cluster-stats` | 군집 패턴 통계 |
-| GET | `/dashboard/api/cluster-connection-stats` | 군집 연결 통계 |
-| GET | `/dashboard/api/cluster-weights` | 군집 패턴 가중치 (AI용) |
-| GET | `/dashboard/api/learning-progress` | 학습 진행률 |
-| GET | `/dashboard/api/weight-history` | 가중치 변화 이력 |
 | GET | `/dashboard/api/leaderboard` | 리더보드 |
 | GET | `/dashboard/api/games` | 게임 목록 |
 | GET | `/dashboard/api/game/<id>` | 특정 게임 기보 |
@@ -320,7 +291,7 @@ omok/
 - **차례를 아는 말단 평가**: 둘 차례가 5목 자리를 가지면 승리, 상대가 5목 자리 2개 이상이면 패배,
   둘 차례가 열린4·쌍사·사삼을 만들 수 있고 상대에게 4가 없으면 승리에 가까운 점수
 
-### 전술 계층 (학습 가중치와 무관)
+### 전술 계층 (패턴 가중치와 무관)
 `linePoints` / `classifyMove`가 한 수를 가정하고 4방향 9칸 창을 분석합니다.
 - **5목**: 5목 이상 완성 (장목 포함)
 - **열린 4**: 한 방향의 5목 자리가 2개 이상 (띈 모양 포함)
@@ -328,14 +299,14 @@ omok/
 - **열린 3**: 한 수 더 두면 열린 4가 되는 모양 (`_OOO_`, `_O_OO_`, `_OO_O_`)
 - **등급**: 5목 > 열린4·쌍사 > 사삼 > 쌍삼 > 4 > 열린3
 
-전술 판정은 고정 규칙이며 학습 가중치는 위치 평가(라인 + 군집)에만 쓰입니다.
+전술 판정은 고정 규칙이며 패턴 가중치는 위치 평가(라인 + 군집)에만 쓰입니다.
 
 ### 평가 함수
 
 #### 1차원 패턴 평가
 - **배타적 패턴 매칭**: 중복 카운팅 방지
 - **Attack/Defense 분리**: AI 돌은 공격, 플레이어 돌은 방어 관점 평가
-- **띈 4**: `OO_OO`, `O_OOO`, `OOO_O`는 패턴 키가 없으므로 빈칸마다 `OOOO_`(닫힌4)의 학습 가중치를 더함
+- **띈 4**: `OO_OO`, `O_OOO`, `OOO_O`는 패턴 키가 없으므로 빈칸마다 `OOOO_`(닫힌4)의 가중치를 더함
 
 | 패턴 | 기본 가중치 |
 |------|------------|
@@ -386,148 +357,21 @@ omok/
 - **군집 패턴**: 플레이어별 Zobrist 해시로 캐싱
 - **군집 연결**: 3·4를 만들 수 있는 칸은 항상 돌에서 2칸 이내이므로 후보 칸만 분류하고, 영향력은 그 칸에서만 계산
 - **말단 결과**: 국면 해시 + 둘 차례로 캐싱
-- 캐시는 매 `getAIMove()` 시작 시 비우므로 새로 불러온 학습 가중치가 바로 반영됨
 - 내부 노드는 평가하지 않고 직전 수의 5목 여부만 확인
 
 같은 국면 22개 기준(2200ms) 초당 평가 약 790회 → 약 6,700회, 도달 깊이 평균 2.7 → 5.3
 (`node tools/match/bench.js`).
 
-## AI 학습 시스템
+## 데이터베이스
 
-### 학습 구조
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    AI 평가 함수                          │
-├─────────────────────────────────────────────────────────┤
-│  evaluateLinearPatterns()     ← 1차원 선형 패턴         │
-│  evaluateClusterPatterns()    ← 2차원 군집 패턴         │
-│  evaluateClusterConnections() ← 영향력 맵 기반 연결     │
-└─────────────────────────────────────────────────────────┘
-```
-
-### 양방향 학습
-
-AI는 플레이어와 AI 양쪽의 기보를 학습합니다:
-
-| 결과 | 학습 내용 |
-|---|---|
-| 플레이어 승 | 플레이어 패턴 → 방어(Defense) 강화, AI 패턴 → 공격(Attack) 약화 |
-| AI 승 | AI 패턴 → 공격(Attack) 강화, 플레이어 패턴 → 방어(Defense) 약화 |
-
-### 학습 범위
-
-게임 종료 시 다음 패턴들을 자동 추출하여 학습:
-1. **1차원 패턴**: `_OOO_`, `OOOO` 등
-2. **복합 위협**: 쌍삼, 사삼, 쌍사
-3. **2차원 군집 패턴**: ㅗ, +, X, L자 등
-4. **군집 연결 패턴**: nearby_threes, bridge_threat 등
-
-### 학습 파라미터
-
-```json
-{
-  "min_games_threshold": 15,
-  "ema_old_weight": 0.85,
-  "ema_new_weight": 0.15,
-  "min_weight_ratio": 0.3,
-  "max_weight_ratio": 3.0,
-  "win_multiplier": 1.5
-}
-```
-
-| 파라미터 | 값 | 설명 |
-|---|---|---|
-| 학습 문턱 | 15회 | 패턴이 15회 이상 등장해야 학습 시작 |
-| EMA 비율 | 0.85/0.15 | 기존 85%, 새 데이터 15% 반영 |
-| 가중치 범위 | 0.3x ~ 3.0x | 기본값의 30% ~ 300%로 제한 |
-| 승리 가중 | 1.5x | 승리 시 가중치 1.5배 증가 |
-
-### DB 스키마
-
-전체 정의는 `schema.sql`(PostgreSQL)에 있습니다. 아래는 학습 관련 테이블 요약이고, 이 밖에 `leaderboard`(랭킹)와 `game_records`(기보)가 있습니다.
+전체 정의는 `schema.sql`(PostgreSQL)에 있습니다.
 
 ```sql
--- 1차원 패턴 통계 (attack/defense 분리)
-pattern_stats (
-    pattern TEXT PRIMARY KEY,
-    win_count, total_count, current_weight,
-    attack_weight, defense_weight,
-    attack_win_count, attack_total_count,
-    defense_win_count, defense_total_count
-)
+-- 챌린지 랭킹
+leaderboard (id, name, score, level, stones, date)
 
--- 가중치 이력
-weight_history (
-    id INTEGER PRIMARY KEY,
-    pattern, attack_weight, defense_weight, 
-    game_count, recorded_at
-)
-
--- 복합 위협 통계
-composite_pattern_stats (
-    id INTEGER PRIMARY KEY,
-    pattern_type, game_id, move_number, 
-    player, resulted_in_win
-)
-
--- 2차원 군집 패턴 통계
-cluster_pattern_stats (
-    pattern_id TEXT PRIMARY KEY,
-    win_count, total_count,
-    attack_weight, defense_weight,
-    attack_win_count, attack_total_count,
-    defense_win_count, defense_total_count
-)
-
--- 군집 연결 통계
-cluster_connection_stats (
-    connection_type TEXT PRIMARY KEY,
-    win_count, total_count,
-    attack_weight, defense_weight,
-    attack_win_count, attack_total_count,
-    defense_win_count, defense_total_count
-)
-```
-
-## 설정 파일 (weights_config.json)
-
-```json
-{
-  "patterns": {
-    "OOOOO": 100000,
-    "_OOOO_": 50000,
-    ...
-  },
-  "composite_patterns": {
-    "double_open_three": 30000,
-    "four_three": 40000,
-    "double_four": 90000
-  },
-  "cluster_patterns": {
-    "three_way_up": { "weight": 3000, "name": "ㅗ", "desc": "삼방향 위" },
-    "cross_plus": { "weight": 5000, "name": "+", "desc": "십자가" },
-    ...
-  },
-  "cluster_connection_patterns": {
-    "nearby_threes": { "weight": 4000, "desc": "두 열린3이 근접" },
-    "bridge_threat": { "weight": 8000, "desc": "한 수로 두 패턴 연결" },
-    ...
-  },
-  "learning": {
-    "min_games_threshold": 15,
-    "ema_old_weight": 0.85,
-    "ema_new_weight": 0.15,
-    "min_weight_ratio": 0.3,
-    "max_weight_ratio": 3.0,
-    "win_multiplier": 1.5
-  },
-  "phases": {
-    "opening": { "max_move": 10 },
-    "midgame": { "max_move": 30 },
-    "endgame": { "max_move": 225 }
-  }
-}
+-- 기보 (moves: [{row, col, player}, ...] JSON 문자열)
+game_records (id, moves, winner, game_mode, level, stone_count, date, time)
 ```
 
 ## 보안
