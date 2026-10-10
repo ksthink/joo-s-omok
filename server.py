@@ -1,5 +1,4 @@
 from flask import Flask, request, jsonify, send_from_directory
-import sqlite3
 import os
 import json
 import logging
@@ -9,6 +8,8 @@ import urllib.request
 from datetime import datetime, timezone
 from functools import wraps
 from zoneinfo import ZoneInfo
+
+from db import get_db
 
 # Configure logging
 LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
@@ -41,9 +42,11 @@ def get_kst_datetime():
 
 app = Flask(__name__, static_folder='.')
 
+# Learning dashboard: /dashboard (page) and /dashboard/api/* (its data)
+from dashboard.app import bp as dashboard_bp  # noqa: E402
+app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, 'game.db')
-WEIGHTS_PATH = os.path.join(BASE_DIR, 'weights.json')
 CONFIG_PATH = os.path.join(BASE_DIR, 'weights_config.json')
 
 # ─── Load BASE_WEIGHTS from single source ───────────────────────────────────────
@@ -79,532 +82,99 @@ PHASE_CONFIG = (_config or {}).get('phases', {
     "opening": {"max_move": 10}, "midgame": {"max_move": 30}, "endgame": {"max_move": 225}
 })
 
-# ─── Database ────────────────────────────────────────────────────────────────────
-def get_db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+# ─── Learning ────────────────────────────────────────────────────────────────────
+# Tables live in Postgres (schema.sql). Every learning function takes the open
+# connection of the request so one game is learned over a single connection.
 
-def init_db():
-    conn = get_db()
-    try:
-        conn.execute('''
-            CREATE TABLE IF NOT EXISTS leaderboard (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                score INTEGER NOT NULL,
-                level INTEGER NOT NULL,
-                stones INTEGER NOT NULL,
-                date TEXT NOT NULL
-            )
-        ''')
-        conn.execute('''
-            CREATE TABLE IF NOT EXISTS game_records (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                moves TEXT NOT NULL,
-                winner INTEGER NOT NULL,
-                game_mode TEXT,
-                level INTEGER,
-                stone_count INTEGER,
-                date TEXT
-            )
-        ''')
-        conn.execute('''
-            CREATE TABLE IF NOT EXISTS pattern_stats (
-                pattern TEXT PRIMARY KEY,
-                win_count INTEGER DEFAULT 0,
-                total_count INTEGER DEFAULT 0,
-                current_weight REAL,
-                attack_weight REAL,
-                defense_weight REAL,
-                attack_win_count INTEGER DEFAULT 0,
-                attack_total_count INTEGER DEFAULT 0,
-                defense_win_count INTEGER DEFAULT 0,
-                defense_total_count INTEGER DEFAULT 0
-            )
-        ''')
-        conn.execute('''
-            CREATE TABLE IF NOT EXISTS weight_history (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                pattern TEXT NOT NULL,
-                attack_weight REAL,
-                defense_weight REAL,
-                game_count INTEGER,
-                recorded_at TEXT
-            )
-        ''')
-        conn.execute('''
-            CREATE TABLE IF NOT EXISTS composite_pattern_stats (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                pattern_type TEXT NOT NULL,
-                game_id INTEGER,
-                move_number INTEGER,
-                player INTEGER,
-                resulted_in_win INTEGER DEFAULT 0
-            )
-        ''')
-        conn.execute('''
-            CREATE TABLE IF NOT EXISTS cluster_pattern_stats (
-                pattern_id TEXT PRIMARY KEY,
-                win_count INTEGER DEFAULT 0,
-                total_count INTEGER DEFAULT 0,
-                attack_weight REAL,
-                defense_weight REAL,
-                attack_win_count INTEGER DEFAULT 0,
-                attack_total_count INTEGER DEFAULT 0,
-                defense_win_count INTEGER DEFAULT 0,
-                defense_total_count INTEGER DEFAULT 0
-            )
-        ''')
-        conn.execute('''
-            CREATE TABLE IF NOT EXISTS cluster_connection_stats (
-                connection_type TEXT PRIMARY KEY,
-                win_count INTEGER DEFAULT 0,
-                total_count INTEGER DEFAULT 0,
-                attack_weight REAL,
-                defense_weight REAL,
-                attack_win_count INTEGER DEFAULT 0,
-                attack_total_count INTEGER DEFAULT 0,
-                defense_win_count INTEGER DEFAULT 0,
-                defense_total_count INTEGER DEFAULT 0
-            )
-        ''')
-
-        # Migrate old pattern_stats if columns are missing
-        _migrate_pattern_stats(conn)
-
-        # Insert base patterns
-        for pattern, weight in BASE_WEIGHTS.items():
-            conn.execute('''
-                INSERT OR IGNORE INTO pattern_stats
-                (pattern, win_count, total_count, current_weight, attack_weight, defense_weight,
-                 attack_win_count, attack_total_count, defense_win_count, defense_total_count)
-                VALUES (?, 0, 0, ?, ?, ?, 0, 0, 0, 0)
-            ''', (pattern, weight, weight, weight))
-
-        # Insert cluster patterns
-        for pattern_id, info in CLUSTER_PATTERNS.items():
-            weight = info.get('weight', 1000) if isinstance(info, dict) else info
-            conn.execute('''
-                INSERT OR IGNORE INTO cluster_pattern_stats
-                (pattern_id, win_count, total_count, attack_weight, defense_weight,
-                 attack_win_count, attack_total_count, defense_win_count, defense_total_count)
-                VALUES (?, 0, 0, ?, ?, 0, 0, 0, 0)
-            ''', (pattern_id, weight, weight))
-
-        # Insert cluster connection patterns
-        for conn_type, info in CLUSTER_CONNECTION_PATTERNS.items():
-            weight = info.get('weight', 1000) if isinstance(info, dict) else conn_type
-            conn.execute('''
-                INSERT OR IGNORE INTO cluster_connection_stats
-                (connection_type, win_count, total_count, attack_weight, defense_weight,
-                 attack_win_count, attack_total_count, defense_win_count, defense_total_count)
-                VALUES (?, 0, 0, ?, ?, 0, 0, 0, 0)
-            ''', (conn_type, weight, weight))
-
-        conn.commit()
-    finally:
-        conn.close()
-
-    if not os.path.exists(WEIGHTS_PATH):
-        save_weights_to_file()
-
-def reanalyze_all_games(force=False):
-    """Reanalyze all existing games for pattern extraction."""
-    conn = get_db()
-    try:
-        if force:
-            conn.execute('DELETE FROM composite_pattern_stats')
-            conn.execute('''
-                UPDATE cluster_pattern_stats SET
-                    win_count = 0, total_count = 0,
-                    attack_win_count = 0, attack_total_count = 0,
-                    defense_win_count = 0, defense_total_count = 0,
-                    attack_weight = (SELECT weight FROM (
-                        SELECT pattern_id, 
-                            CASE WHEN pattern_id LIKE 'cross%' THEN 5000
-                                 WHEN pattern_id LIKE 'three%' THEN 3000
-                                 WHEN pattern_id LIKE 'corner%' THEN 2000
-                                 WHEN pattern_id LIKE 't_shape%' THEN 2500
-                                 ELSE 1000 END as weight
-                    ) WHERE cluster_pattern_stats.pattern_id = pattern_id),
-                    defense_weight = attack_weight
-            ''')
-            conn.execute('''
-                UPDATE cluster_connection_stats SET
-                    win_count = 0, total_count = 0,
-                    attack_win_count = 0, attack_total_count = 0,
-                    defense_win_count = 0, defense_total_count = 0,
-                    attack_weight = (SELECT weight FROM (
-                        SELECT connection_type,
-                            CASE WHEN connection_type = 'bridge_threat' THEN 8000
-                                 WHEN connection_type = 'nearby_threes' THEN 4000
-                                 WHEN connection_type = 'supporting_threat' THEN 3000
-                                 WHEN connection_type = 'pincer_threat' THEN 3500
-                                 ELSE 1000 END as weight
-                    ) WHERE cluster_connection_stats.connection_type = connection_type),
-                    defense_weight = attack_weight
-            ''')
-            conn.execute('UPDATE game_records SET analyzed = 0')
-            conn.commit()
-        
-        cursor = conn.execute('SELECT id, moves, winner, analyzed FROM game_records WHERE analyzed = 0 OR analyzed IS NULL')
-        games = cursor.fetchall()
-        
-        if not games:
-            print("No games to analyze")
-            return
-        
-        analyzed_count = 0
-        for row in games:
-            game_id = row['id']
-            moves = json.loads(row['moves']) if row['moves'] else []
-            winner = row['winner']
-            
-            if len(moves) < 9 or len(moves) > 225:
-                conn.execute('UPDATE game_records SET analyzed = 1 WHERE id = ?', (game_id,))
-                continue
-            
-            try:
-                for p in (1, 2):
-                    is_win = (winner == p)
-                    perspective = 'defense' if p == 1 else 'attack'
-                    
-                    composites = extract_composite_patterns(moves, p)
-                    for c in composites:
-                        conn.execute('''
-                            INSERT INTO composite_pattern_stats 
-                            (pattern_type, game_id, move_number, player, resulted_in_win)
-                            VALUES (?, ?, ?, ?, ?)
-                        ''', (c['type'], game_id, c['move_number'], c['player'], 1 if is_win else 0))
-                    
-                    cluster_patterns = extract_cluster_patterns(moves, p)
-                    if cluster_patterns:
-                        pattern_types = list(set(c['type'] for c in cluster_patterns))
-                        _update_cluster_pattern_weights_with_conn(conn, pattern_types, perspective, is_win)
-                    
-                    connections = extract_cluster_connections(moves, p)
-                    if connections:
-                        conn_types = list(set(c['type'] for c in connections))
-                        _update_cluster_connection_weights_with_conn(conn, conn_types, perspective, is_win)
-                
-                conn.execute('UPDATE game_records SET analyzed = 1 WHERE id = ?', (game_id,))
-                conn.commit()
-                analyzed_count += 1
-            except Exception as e:
-                print(f"Error reanalyzing game {game_id}: {e}")
-                conn.rollback()
-        
-        if analyzed_count > 0:
-            print(f"Reanalyzed {analyzed_count} games")
-    finally:
-        conn.close()
-    
-    save_weights_to_file()
-
-def _update_cluster_pattern_weights_with_conn(conn, cluster_patterns, perspective, is_win):
-    """Update cluster pattern weights using existing connection."""
-    if not cluster_patterns:
-        return
-    
-    threshold = LEARNING_CONFIG['min_games_threshold']
-    ema_old = LEARNING_CONFIG['ema_old_weight']
-    ema_new = LEARNING_CONFIG['ema_new_weight']
+def _bounded_weight(current_w, win_rate, base_weight, att_weight, def_weight, perspective, penalty=1.0):
+    """EMA step toward the observed win rate, kept within the base-weight ratio
+    bounds and within max_weight_ratio of the other perspective's weight."""
     min_ratio = LEARNING_CONFIG['min_weight_ratio']
     max_ratio = LEARNING_CONFIG['max_weight_ratio']
-    win_mult = LEARNING_CONFIG['win_multiplier']
-    
+    raw_weight = win_rate * base_weight * LEARNING_CONFIG['win_multiplier'] * penalty
+    new_weight = current_w * LEARNING_CONFIG['ema_old_weight'] + raw_weight * LEARNING_CONFIG['ema_new_weight']
+    min_weight = base_weight * min_ratio
+    max_weight = base_weight * max_ratio
+
+    other_weight = def_weight if perspective == 'attack' else att_weight
+    if other_weight and other_weight > base_weight * min_ratio:
+        if perspective == 'attack':
+            max_weight = min(max_weight, other_weight * max_ratio)
+        else:
+            min_weight = max(min_weight, other_weight / max_ratio)
+
+    return max(min_weight, min(new_weight, max_weight))
+
+def _count_results(conn, table, key_col, keys, perspective, is_win):
     win_col = f'{perspective}_win_count'
     total_col = f'{perspective}_total_count'
-    weight_col = f'{perspective}_weight'
-    
-    for pattern in cluster_patterns:
+    for key in keys:
         conn.execute(f'''
-            UPDATE cluster_pattern_stats
-            SET {win_col} = {win_col} + ?,
+            UPDATE {table}
+            SET {win_col} = {win_col} + %s,
                 {total_col} = {total_col} + 1,
-                win_count = win_count + ?,
+                win_count = win_count + %s,
                 total_count = total_count + 1
-            WHERE pattern_id = ?
-        ''', (1 if is_win else 0, 1 if is_win else 0, pattern))
+            WHERE {key_col} = %s
+        ''', (1 if is_win else 0, 1 if is_win else 0, key))
 
-def _update_cluster_connection_weights_with_conn(conn, connections, perspective, is_win):
-    """Update cluster connection weights using existing connection."""
-    if not connections:
+def update_cluster_weights(conn, table, key_col, keys, base_info, perspective, is_win):
+    """Update cluster pattern or cluster connection weights with ratio bounds."""
+    if not keys:
         return
-    
-    threshold = LEARNING_CONFIG['min_games_threshold']
-    ema_old = LEARNING_CONFIG['ema_old_weight']
-    ema_new = LEARNING_CONFIG['ema_new_weight']
-    min_ratio = LEARNING_CONFIG['min_weight_ratio']
-    max_ratio = LEARNING_CONFIG['max_weight_ratio']
-    win_mult = LEARNING_CONFIG['win_multiplier']
-    
-    win_col = f'{perspective}_win_count'
-    total_col = f'{perspective}_total_count'
-    weight_col = f'{perspective}_weight'
-    
-    for conn_type in connections:
-        conn.execute(f'''
-            UPDATE cluster_connection_stats
-            SET {win_col} = {win_col} + ?,
-                {total_col} = {total_col} + 1,
-                win_count = win_count + ?,
-                total_count = total_count + 1
-            WHERE connection_type = ?
-        ''', (1 if is_win else 0, 1 if is_win else 0, conn_type))
 
-def update_cluster_pattern_weights(cluster_patterns, perspective, is_win):
-    """Update cluster pattern weights with ratio bounds."""
-    if not cluster_patterns:
-        return
-    
-    conn = get_db()
-    try:
-        threshold = LEARNING_CONFIG['min_games_threshold']
-        ema_old = LEARNING_CONFIG['ema_old_weight']
-        ema_new = LEARNING_CONFIG['ema_new_weight']
-        min_ratio = LEARNING_CONFIG['min_weight_ratio']
-        max_ratio = LEARNING_CONFIG['max_weight_ratio']
-        win_mult = LEARNING_CONFIG['win_multiplier']
-        
-        win_col = f'{perspective}_win_count'
-        total_col = f'{perspective}_total_count'
-        weight_col = f'{perspective}_weight'
-        
-        for pattern in cluster_patterns:
-            conn.execute(f'''
-                UPDATE cluster_pattern_stats
-                SET {win_col} = {win_col} + ?,
-                    {total_col} = {total_col} + 1,
-                    win_count = win_count + ?,
-                    total_count = total_count + 1
-                WHERE pattern_id = ?
-            ''', (1 if is_win else 0, 1 if is_win else 0, pattern))
-        
-        cursor = conn.execute('''
-            SELECT pattern_id, attack_total_count, defense_total_count,
-                   attack_weight, defense_weight
-            FROM cluster_pattern_stats
-        ''')
-        rows = cursor.fetchall()
-        
-        for row in rows:
-            pattern_id = row['pattern_id']
-            att_total = row['attack_total_count'] or 0
-            def_total = row['defense_total_count'] or 0
-            att_weight = row['attack_weight']
-            def_weight = row['defense_weight']
-            
-            info = CLUSTER_PATTERNS.get(pattern_id, {})
-            base_weight = info.get('weight', 1000) if isinstance(info, dict) else 1000
-            
-            if att_weight is None:
-                att_weight = base_weight
-            if def_weight is None:
-                def_weight = base_weight
-            
-            cursor2 = conn.execute(f'''
-                SELECT {win_col}, {total_col} FROM cluster_pattern_stats WHERE pattern_id = ?
-            ''', (pattern_id,))
-            row2 = cursor2.fetchone()
-            if not row2:
-                continue
-            
-            win_count = row2[0] or 0
-            total_count = row2[1] or 0
-            
-            if total_count < threshold:
-                continue
-            
-            win_rate = win_count / total_count
-            raw_weight = win_rate * base_weight * win_mult
-            current_w = att_weight if perspective == 'attack' else def_weight
-            new_weight = current_w * ema_old + raw_weight * ema_new
-            
-            min_weight = base_weight * min_ratio
-            max_weight = base_weight * max_ratio
-            
-            other_weight = def_weight if perspective == 'attack' else att_weight
-            ratio_limit = max_ratio
-            if other_weight and other_weight > base_weight * min_ratio:
-                if perspective == 'attack':
-                    max_weight = min(max_weight, other_weight * ratio_limit)
-                else:
-                    min_weight = max(min_weight, other_weight / ratio_limit)
-            
-            new_weight = max(min_weight, min(new_weight, max_weight))
-            
-            conn.execute(f'''
-                UPDATE cluster_pattern_stats SET {weight_col} = ? WHERE pattern_id = ?
-            ''', (new_weight, pattern_id))
-        
-        conn.commit()
-    finally:
-        conn.close()
+    _count_results(conn, table, key_col, keys, perspective, is_win)
 
-def update_cluster_connection_weights(connections, perspective, is_win):
-    """Update cluster connection pattern weights with ratio bounds."""
-    if not connections:
-        return
-    
-    conn = get_db()
-    try:
-        threshold = LEARNING_CONFIG['min_games_threshold']
-        ema_old = LEARNING_CONFIG['ema_old_weight']
-        ema_new = LEARNING_CONFIG['ema_new_weight']
-        min_ratio = LEARNING_CONFIG['min_weight_ratio']
-        max_ratio = LEARNING_CONFIG['max_weight_ratio']
-        win_mult = LEARNING_CONFIG['win_multiplier']
-        
-        win_col = f'{perspective}_win_count'
-        total_col = f'{perspective}_total_count'
-        weight_col = f'{perspective}_weight'
-        
-        for conn_type in connections:
-            conn.execute(f'''
-                UPDATE cluster_connection_stats
-                SET {win_col} = {win_col} + ?,
-                    {total_col} = {total_col} + 1,
-                    win_count = win_count + ?,
-                    total_count = total_count + 1
-                WHERE connection_type = ?
-            ''', (1 if is_win else 0, 1 if is_win else 0, conn_type))
-        
-        cursor = conn.execute('''
-            SELECT connection_type, attack_total_count, defense_total_count,
-                   attack_weight, defense_weight
-            FROM cluster_connection_stats
-        ''')
-        rows = cursor.fetchall()
-        
-        for row in rows:
-            conn_type = row['connection_type']
-            att_total = row['attack_total_count'] or 0
-            def_total = row['defense_total_count'] or 0
-            att_weight = row['attack_weight']
-            def_weight = row['defense_weight']
-            
-            info = CLUSTER_CONNECTION_PATTERNS.get(conn_type, {})
-            base_weight = info.get('weight', 1000) if isinstance(info, dict) else 1000
-            
-            if att_weight is None:
-                att_weight = base_weight
-            if def_weight is None:
-                def_weight = base_weight
-            
-            cursor2 = conn.execute(f'''
-                SELECT {win_col}, {total_col} FROM cluster_connection_stats WHERE connection_type = ?
-            ''', (conn_type,))
-            row2 = cursor2.fetchone()
-            if not row2:
-                continue
-            
-            win_count = row2[0] or 0
-            total_count = row2[1] or 0
-            
-            if total_count < threshold:
-                continue
-            
-            win_rate = win_count / total_count
-            raw_weight = win_rate * base_weight * win_mult
-            current_w = att_weight if perspective == 'attack' else def_weight
-            new_weight = current_w * ema_old + raw_weight * ema_new
-            
-            min_weight = base_weight * min_ratio
-            max_weight = base_weight * max_ratio
-            
-            other_weight = def_weight if perspective == 'attack' else att_weight
-            ratio_limit = max_ratio
-            if other_weight and other_weight > base_weight * min_ratio:
-                if perspective == 'attack':
-                    max_weight = min(max_weight, other_weight * ratio_limit)
-                else:
-                    min_weight = max(min_weight, other_weight / ratio_limit)
-            
-            new_weight = max(min_weight, min(new_weight, max_weight))
-            
-            conn.execute(f'''
-                UPDATE cluster_connection_stats SET {weight_col} = ? WHERE connection_type = ?
-            ''', (new_weight, conn_type))
-        
-        conn.commit()
-    finally:
-        conn.close()
-
-def _migrate_pattern_stats(conn):
-    """Add new columns to pattern_stats if they don't exist (migration)."""
-    cursor = conn.execute("PRAGMA table_info(pattern_stats)")
-    existing_cols = {row['name'] for row in cursor.fetchall()}
-    new_cols = {
-        'attack_weight': 'REAL',
-        'defense_weight': 'REAL',
-        'attack_win_count': 'INTEGER DEFAULT 0',
-        'attack_total_count': 'INTEGER DEFAULT 0',
-        'defense_win_count': 'INTEGER DEFAULT 0',
-        'defense_total_count': 'INTEGER DEFAULT 0',
-    }
-    for col, col_type in new_cols.items():
-        if col not in existing_cols:
-            conn.execute(f'ALTER TABLE pattern_stats ADD COLUMN {col} {col_type}')
-    conn.execute('''
-        UPDATE pattern_stats SET attack_weight = current_weight
-        WHERE attack_weight IS NULL
-    ''')
-    
-    cursor2 = conn.execute("PRAGMA table_info(game_records)")
-    game_cols = {row['name'] for row in cursor2.fetchall()}
-    if 'analyzed' not in game_cols:
-        conn.execute('ALTER TABLE game_records ADD COLUMN analyzed INTEGER DEFAULT 0')
-    conn.execute('''
-        UPDATE pattern_stats SET defense_weight = current_weight
-        WHERE defense_weight IS NULL
-    ''')
-    conn.commit()
-
-# ─── Weights File I/O ────────────────────────────────────────────────────────────
-def load_weights_from_file():
-    try:
-        with open(WEIGHTS_PATH, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError, OSError):
-        return {"version": 2, "last_updated": get_kst_datetime().isoformat(), "patterns": {}}
-
-def save_weights_to_file():
-    conn = get_db()
-    try:
-        cursor = conn.execute('''
-            SELECT pattern, current_weight, attack_weight, defense_weight,
-                   win_count, total_count, attack_win_count, attack_total_count,
-                   defense_win_count, defense_total_count
-            FROM pattern_stats
-        ''')
-        rows = cursor.fetchall()
-    finally:
-        conn.close()
-
-    weights_data = {
-        "version": 2,
-        "last_updated": get_kst_datetime().isoformat(),
-        "learning_config": LEARNING_CONFIG,
-        "patterns": {}
-    }
+    rows = conn.execute(f'''
+        SELECT {key_col} AS key, attack_weight, defense_weight,
+               {perspective}_win_count AS wins, {perspective}_total_count AS total
+        FROM {table}
+    ''').fetchall()
 
     for row in rows:
-        weights_data["patterns"][row['pattern']] = {
-            "weight": row['current_weight'],
-            "attack_weight": row['attack_weight'],
-            "defense_weight": row['defense_weight'],
-            "wins": row['win_count'],
-            "total": row['total_count'],
-            "attack_wins": row['attack_win_count'],
-            "attack_total": row['attack_total_count'],
-            "defense_wins": row['defense_win_count'],
-            "defense_total": row['defense_total_count']
-        }
+        info = base_info.get(row['key'], {})
+        base_weight = info.get('weight', 1000) if isinstance(info, dict) else 1000
+        att_weight = row['attack_weight'] if row['attack_weight'] is not None else base_weight
+        def_weight = row['defense_weight'] if row['defense_weight'] is not None else base_weight
 
-    with open(WEIGHTS_PATH, 'w', encoding='utf-8') as f:
-        json.dump(weights_data, f, indent=2, ensure_ascii=False)
+        total_count = row['total'] or 0
+        if total_count < LEARNING_CONFIG['min_games_threshold']:
+            continue
+
+        current_w = att_weight if perspective == 'attack' else def_weight
+        new_weight = _bounded_weight(current_w, (row['wins'] or 0) / total_count, base_weight,
+                                     att_weight, def_weight, perspective)
+        conn.execute(f'UPDATE {table} SET {perspective}_weight = %s WHERE {key_col} = %s',
+                     (new_weight, row['key']))
+
+def weights_payload(conn):
+    """Pattern weights in the shape ai.js loads (formerly weights.json)."""
+    rows = conn.execute('''
+        SELECT pattern, current_weight, attack_weight, defense_weight,
+               win_count, total_count, attack_win_count, attack_total_count,
+               defense_win_count, defense_total_count
+        FROM pattern_stats
+    ''').fetchall()
+    last = conn.execute('SELECT MAX(recorded_at) AS t FROM weight_history').fetchone()['t']
+
+    return {
+        "version": 2,
+        "last_updated": last or get_kst_datetime().isoformat(),
+        "learning_config": LEARNING_CONFIG,
+        "patterns": {
+            row['pattern']: {
+                "weight": row['current_weight'],
+                "attack_weight": row['attack_weight'],
+                "defense_weight": row['defense_weight'],
+                "wins": row['win_count'],
+                "total": row['total_count'],
+                "attack_wins": row['attack_win_count'],
+                "attack_total": row['attack_total_count'],
+                "defense_wins": row['defense_win_count'],
+                "defense_total": row['defense_total_count']
+            } for row in rows
+        }
+    }
 
 # ─── Pattern Extraction ──────────────────────────────────────────────────────────
 def get_game_phase(move_number):
@@ -1010,122 +580,49 @@ def extract_cluster_connections(moves, target_player):
     return unique
 
 # ─── Bidirectional Weight Updates ────────────────────────────────────────────────
-def update_pattern_weights(patterns, perspective, is_win):
+def update_pattern_weights(conn, patterns, perspective, is_win):
     """
     Update pattern weights bidirectionally with ratio bounds and bias correction.
     perspective: 'attack' or 'defense'
     is_win: True if this perspective's patterns contributed to a win
     """
     patterns = set(patterns) - WIN_CONDITION_PATTERNS
-    
+
     if not patterns:
         return
-    
-    conn = get_db()
-    try:
-        threshold = LEARNING_CONFIG['min_games_threshold']
-        ema_old = LEARNING_CONFIG['ema_old_weight']
-        ema_new = LEARNING_CONFIG['ema_new_weight']
-        min_ratio = LEARNING_CONFIG['min_weight_ratio']
-        max_ratio = LEARNING_CONFIG['max_weight_ratio']
-        win_mult = LEARNING_CONFIG['win_multiplier']
 
-        win_col = f'{perspective}_win_count'
-        total_col = f'{perspective}_total_count'
-        weight_col = f'{perspective}_weight'
+    _count_results(conn, 'pattern_stats', 'pattern', patterns, perspective, is_win)
 
-        for pattern in patterns:
-            conn.execute(f'''
-                UPDATE pattern_stats
-                SET {win_col} = {win_col} + ?,
-                    {total_col} = {total_col} + 1,
-                    win_count = win_count + ?,
-                    total_count = total_count + 1
-                WHERE pattern = ?
-            ''', (1 if is_win else 0, 1 if is_win else 0, pattern))
+    rows = conn.execute(f'''
+        SELECT pattern, attack_weight, defense_weight, current_weight,
+               {perspective}_win_count AS wins, {perspective}_total_count AS total
+        FROM pattern_stats
+    ''').fetchall()
 
-        cursor = conn.execute('''
-            SELECT pattern, attack_total_count, defense_total_count,
-                   attack_weight, defense_weight, current_weight
-            FROM pattern_stats
-        ''')
-        rows = cursor.fetchall()
+    for row in rows:
+        pattern = row['pattern']
+        base_weight = BASE_WEIGHTS.get(pattern, 1000)
+        att_weight = row['attack_weight'] if row['attack_weight'] is not None else base_weight
+        def_weight = row['defense_weight'] if row['defense_weight'] is not None else base_weight
+        current_w = row['current_weight'] if row['current_weight'] is not None else base_weight
 
-        for row in rows:
-            pattern = row['pattern']
-            att_total = row['attack_total_count'] or 0
-            def_total = row['defense_total_count'] or 0
-            att_weight = row['attack_weight']
-            def_weight = row['defense_weight']
-            current_w = row['current_weight']
-            base_weight = BASE_WEIGHTS.get(pattern, 1000)
+        total_count = row['total'] or 0
+        if total_count < LEARNING_CONFIG['min_games_threshold']:
+            continue
 
-            if att_weight is None:
-                att_weight = base_weight
-            if def_weight is None:
-                def_weight = base_weight
-            if current_w is None:
-                current_w = base_weight
+        # Patterns absent from this game count as losses for this update
+        win_count = (row['wins'] or 0) if pattern in patterns else 0
+        simple_pattern_penalty = 0.7 if pattern in SIMPLE_PATTERNS else 1.0
+        new_weight = _bounded_weight(current_w, win_count / total_count, base_weight,
+                                     att_weight, def_weight, perspective, simple_pattern_penalty)
+        conn.execute(f'UPDATE pattern_stats SET {perspective}_weight = %s, current_weight = %s WHERE pattern = %s',
+                     (new_weight, new_weight, pattern))
 
-            att_win = 0
-            def_win = 0
-            if pattern in patterns:
-                cursor2 = conn.execute(f'''
-                    SELECT attack_win_count, defense_win_count, attack_total_count, defense_total_count
-                    FROM pattern_stats WHERE pattern = ?
-                ''', (pattern,))
-                row2 = cursor2.fetchone()
-                if row2:
-                    att_win = row2['attack_win_count'] or 0
-                    def_win = row2['defense_win_count'] or 0
-                    att_total = row2['attack_total_count'] or 0
-                    def_total = row2['defense_total_count'] or 0
-
-            if perspective == 'attack':
-                win_count = att_win
-                total_count = att_total
-            else:
-                win_count = def_win
-                total_count = def_total
-
-            if total_count < threshold:
-                continue
-
-            win_rate = win_count / total_count
-            simple_pattern_penalty = 0.7 if pattern in SIMPLE_PATTERNS else 1.0
-            raw_weight = win_rate * base_weight * win_mult * simple_pattern_penalty
-            new_weight = current_w * ema_old + raw_weight * ema_new
-            min_weight = base_weight * min_ratio
-            max_weight = base_weight * max_ratio
-            
-            other_weight = def_weight if perspective == 'attack' else att_weight
-            ratio_limit = max_ratio
-            if other_weight and other_weight > base_weight * min_ratio:
-                if perspective == 'attack':
-                    max_weight = min(max_weight, other_weight * ratio_limit)
-                else:
-                    min_weight = max(min_weight, other_weight / ratio_limit)
-            
-            new_weight = max(min_weight, min(new_weight, max_weight))
-
-            conn.execute(f'''
-                UPDATE pattern_stats SET {weight_col} = ?, current_weight = ? WHERE pattern = ?
-            ''', (new_weight, new_weight, pattern))
-
-        game_count = conn.execute('SELECT COUNT(*) as c FROM game_records').fetchone()['c']
-        now = get_kst_datetime().isoformat()
-        cursor3 = conn.execute('SELECT pattern, attack_weight, defense_weight FROM pattern_stats')
-        for row in cursor3.fetchall():
-            conn.execute('''
-                INSERT INTO weight_history (pattern, attack_weight, defense_weight, game_count, recorded_at)
-                VALUES (?, ?, ?, ?, ?)
-            ''', (row['pattern'], row['attack_weight'], row['defense_weight'], game_count, now))
-
-        conn.commit()
-    finally:
-        conn.close()
-
-    save_weights_to_file()
+    game_count = conn.execute('SELECT COUNT(*) AS c FROM game_records').fetchone()['c']
+    conn.execute('''
+        INSERT INTO weight_history (pattern, attack_weight, defense_weight, game_count, recorded_at)
+        SELECT pattern, attack_weight, defense_weight, %s, %s FROM pattern_stats
+    ''', (game_count, get_kst_datetime().isoformat()))
 
 # ─── CORS Decorator ──────────────────────────────────────────────────────────────
 def cross_origin(f):
@@ -1167,14 +664,10 @@ def get_leaderboard():
     if request.method == 'OPTIONS':
         return jsonify({}), 200
 
-    conn = get_db()
-    try:
-        cursor = conn.execute(
-            'SELECT name, score, level, stones, date FROM leaderboard ORDER BY score DESC LIMIT 10'
-        )
-        rows = cursor.fetchall()
-    finally:
-        conn.close()
+    with get_db() as conn:
+        rows = conn.execute(
+            'SELECT name, score, level, stones, date FROM leaderboard ORDER BY score DESC, id LIMIT 10'
+        ).fetchall()
 
     return jsonify([{
         'name': row['name'], 'score': row['score'],
@@ -1199,15 +692,11 @@ def save_score():
     if not date or not isinstance(date, str) or len(date) > 20:
         date = get_kst_date()
 
-    conn = get_db()
-    try:
+    with get_db() as conn:
         conn.execute(
-            'INSERT INTO leaderboard (name, score, level, stones, date) VALUES (?, ?, ?, ?, ?)',
+            'INSERT INTO leaderboard (name, score, level, stones, date) VALUES (%s, %s, %s, %s, %s)',
             (name, score, level, stones, date)
         )
-        conn.commit()
-    finally:
-        conn.close()
 
     return jsonify({'success': True})
 
@@ -1253,88 +742,80 @@ def save_game_record():
             side = 'player' if winner == 1 else 'AI'
             return jsonify({'success': False, 'error': f'Invalid game: {side} win requires at least {min_stones} stones'}), 400
 
-    # Save game record
-    conn = get_db()
-    try:
-        cursor = conn.execute(
-            'INSERT INTO game_records (moves, winner, game_mode, level, stone_count, date, time) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    with get_db() as conn:
+        game_id = conn.execute(
+            'INSERT INTO game_records (moves, winner, game_mode, level, stone_count, date, time) '
+            'VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id',
             (json.dumps(moves), winner, game_mode, level, stone_count, date, get_kst_time())
-        )
-        game_id = cursor.lastrowid
+        ).fetchone()['id']
+        # Keep the record even if learning below fails
         conn.commit()
-    finally:
-        conn.close()
 
-    # Skip learning for outlier games or draws/incomplete games
-    if stone_count < 9 or stone_count > 225:
-        return jsonify({'success': True, 'learned': False, 'reason': 'outlier'})
-    
-    if winner == -1 or winner == 0:
-        return jsonify({'success': True, 'learned': False, 'reason': 'draw_or_incomplete'})
+        # Skip learning for outlier games or draws/incomplete games
+        if stone_count < 9 or stone_count > 225:
+            return jsonify({'success': True, 'learned': False, 'reason': 'outlier'})
 
-    learned_info = {'attack_patterns': 0, 'defense_patterns': 0, 'composites': 0, 'cluster_patterns': 0, 'cluster_connections': 0}
+        if winner == -1 or winner == 0:
+            return jsonify({'success': True, 'learned': False, 'reason': 'draw_or_incomplete'})
 
-    if winner == 1:
-        # Player won: strengthen defense weights for player decisive patterns,
-        # weaken attack weights for AI decisive patterns
-        player_patterns = extract_decisive_patterns(moves, target_player=1)
-        ai_patterns = extract_decisive_patterns(moves, target_player=2)
+        # One game learns at a time: concurrent requests would otherwise lock the
+        # stats rows in different orders (deadlock) or overwrite each other's EMA step
+        conn.execute('SELECT pg_advisory_xact_lock(1)')
 
-        if player_patterns:
-            update_pattern_weights(player_patterns, perspective='defense', is_win=True)
-            learned_info['defense_patterns'] = len(player_patterns)
-        if ai_patterns:
-            update_pattern_weights(ai_patterns, perspective='attack', is_win=False)
-            learned_info['attack_patterns'] = len(ai_patterns)
+        learned_info = {'attack_patterns': 0, 'defense_patterns': 0, 'composites': 0, 'cluster_patterns': 0, 'cluster_connections': 0}
 
-    elif winner == 2:
-        # AI won: strengthen attack weights for AI decisive patterns
-        ai_patterns = extract_decisive_patterns(moves, target_player=2)
-        if ai_patterns:
-            update_pattern_weights(ai_patterns, perspective='attack', is_win=True)
-            learned_info['attack_patterns'] = len(ai_patterns)
+        if winner == 1:
+            # Player won: strengthen defense weights for player decisive patterns,
+            # weaken attack weights for AI decisive patterns
+            player_patterns = extract_decisive_patterns(moves, target_player=1)
+            ai_patterns = extract_decisive_patterns(moves, target_player=2)
 
-        # Also record player defense failures (decisive patterns only)
-        player_patterns = extract_decisive_patterns(moves, target_player=1)
-        if player_patterns:
-            update_pattern_weights(player_patterns, perspective='defense', is_win=False)
-            learned_info['defense_patterns'] = len(player_patterns)
+            if player_patterns:
+                update_pattern_weights(conn, player_patterns, perspective='defense', is_win=True)
+                learned_info['defense_patterns'] = len(player_patterns)
+            if ai_patterns:
+                update_pattern_weights(conn, ai_patterns, perspective='attack', is_win=False)
+                learned_info['attack_patterns'] = len(ai_patterns)
 
-    # Extract and save composite patterns
-    for p in (1, 2):
-        composites = extract_composite_patterns(moves, target_player=p)
-        if composites:
-            conn2 = get_db()
-            try:
-                for c in composites:
-                    conn2.execute('''
-                        INSERT INTO composite_pattern_stats (pattern_type, game_id, move_number, player, resulted_in_win)
-                        VALUES (?, ?, ?, ?, ?)
-                    ''', (c['type'], game_id, c['move_number'], c['player'], 1 if winner == p else 0))
-                conn2.commit()
+        elif winner == 2:
+            # AI won: strengthen attack weights for AI decisive patterns
+            ai_patterns = extract_decisive_patterns(moves, target_player=2)
+            if ai_patterns:
+                update_pattern_weights(conn, ai_patterns, perspective='attack', is_win=True)
+                learned_info['attack_patterns'] = len(ai_patterns)
+
+            # Also record player defense failures (decisive patterns only)
+            player_patterns = extract_decisive_patterns(moves, target_player=1)
+            if player_patterns:
+                update_pattern_weights(conn, player_patterns, perspective='defense', is_win=False)
+                learned_info['defense_patterns'] = len(player_patterns)
+
+        # Extract and save composite patterns
+        for p in (1, 2):
+            composites = extract_composite_patterns(moves, target_player=p)
+            if composites:
+                conn.cursor().executemany('''
+                    INSERT INTO composite_pattern_stats (pattern_type, game_id, move_number, player, resulted_in_win)
+                    VALUES (%s, %s, %s, %s, %s)
+                ''', [(c['type'], game_id, c['move_number'], c['player'], 1 if winner == p else 0) for c in composites])
                 learned_info['composites'] += len(composites)
-            finally:
-                conn2.close()
 
-    # Extract and learn cluster patterns
-    for p in (1, 2):
-        cluster_patterns = extract_cluster_patterns(moves, target_player=p)
-        if cluster_patterns:
-            pattern_types = [c['type'] for c in cluster_patterns]
+        # Extract and learn cluster patterns and cluster connections
+        for p in (1, 2):
             perspective = 'defense' if p == 1 else 'attack'
             is_win = (winner == p)
-            update_cluster_pattern_weights(pattern_types, perspective, is_win)
-            learned_info['cluster_patterns'] += len(cluster_patterns)
 
-    # Extract and learn cluster connection patterns
-    for p in (1, 2):
-        connections = extract_cluster_connections(moves, target_player=p)
-        if connections:
-            conn_types = [c['type'] for c in connections]
-            perspective = 'defense' if p == 1 else 'attack'
-            is_win = (winner == p)
-            update_cluster_connection_weights(conn_types, perspective, is_win)
-            learned_info['cluster_connections'] += len(connections)
+            cluster_patterns = extract_cluster_patterns(moves, target_player=p)
+            if cluster_patterns:
+                update_cluster_weights(conn, 'cluster_pattern_stats', 'pattern_id',
+                                       [c['type'] for c in cluster_patterns], CLUSTER_PATTERNS, perspective, is_win)
+                learned_info['cluster_patterns'] += len(cluster_patterns)
+
+            connections = extract_cluster_connections(moves, target_player=p)
+            if connections:
+                update_cluster_weights(conn, 'cluster_connection_stats', 'connection_type',
+                                       [c['type'] for c in connections], CLUSTER_CONNECTION_PATTERNS, perspective, is_win)
+                learned_info['cluster_connections'] += len(connections)
 
     return jsonify({
         'success': True,
@@ -1352,25 +833,8 @@ def get_weights():
     if request.method == 'OPTIONS':
         return jsonify({}), 200
 
-    weights_data = load_weights_from_file()
-
-    if not weights_data.get('patterns'):
-        conn = get_db()
-        try:
-            cursor = conn.execute('SELECT pattern, current_weight, attack_weight, defense_weight FROM pattern_stats')
-            rows = cursor.fetchall()
-        finally:
-            conn.close()
-
-        weights_data['patterns'] = {}
-        for row in rows:
-            weights_data['patterns'][row['pattern']] = {
-                'weight': row['current_weight'],
-                'attack_weight': row['attack_weight'],
-                'defense_weight': row['defense_weight']
-            }
-
-    return jsonify(weights_data)
+    with get_db() as conn:
+        return jsonify(weights_payload(conn))
 
 @app.route('/api/weights/reset', methods=['POST', 'OPTIONS'])
 @cross_origin
@@ -1378,22 +842,17 @@ def reset_weights():
     if request.method == 'OPTIONS':
         return jsonify({}), 200
 
-    conn = get_db()
-    try:
+    with get_db() as conn:
         for pattern, weight in BASE_WEIGHTS.items():
             conn.execute('''
                 UPDATE pattern_stats
-                SET win_count = 0, total_count = 0, current_weight = ?,
-                    attack_weight = ?, defense_weight = ?,
+                SET win_count = 0, total_count = 0, current_weight = %s,
+                    attack_weight = %s, defense_weight = %s,
                     attack_win_count = 0, attack_total_count = 0,
                     defense_win_count = 0, defense_total_count = 0
-                WHERE pattern = ?
+                WHERE pattern = %s
             ''', (weight, weight, weight, pattern))
-        conn.commit()
-    finally:
-        conn.close()
 
-    save_weights_to_file()
     return jsonify({'success': True, 'message': 'Weights reset to defaults'})
 
 # ─── Jev Intuition Layer (TypeSafe System One) ───────────────────────────────────
@@ -1585,9 +1044,6 @@ def handle_exception(error):
 
 if __name__ == '__main__':
     try:
-        logger.info('Initializing database...')
-        init_db()
-        logger.info('Database initialized successfully')
         logger.info('Starting Omok server on port 8081...')
         app.run(host='0.0.0.0', port=8081, debug=False, threaded=True)
     except Exception as e:

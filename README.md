@@ -75,7 +75,7 @@
 
 왼쪽부터 Rapfi로 대국, Rapfi 로딩 중(그동안 MiniMax가 둠), Rapfi 로딩 실패(기본 엔진 = MiniMax)입니다.
 
-> **AI 학습과의 관계:** 서버의 패턴 학습(`/api/game-record`), `weights.json`, 학습 대시보드는 모두 **MiniMax의 평가 가중치**를 만듭니다. Rapfi는 자체 신경망으로 평가하므로 이 학습 결과를 쓰지 않습니다. 따라서 학습은 예비 엔진이 둘 때만 대국에 영향을 줍니다.
+> **AI 학습과의 관계:** 서버의 패턴 학습(`/api/game-record`), DB의 가중치 테이블, 학습 대시보드는 모두 **MiniMax의 평가 가중치**를 만듭니다. Rapfi는 자체 신경망으로 평가하므로 이 학습 결과를 쓰지 않습니다. 따라서 학습은 예비 엔진이 둘 때만 대국에 영향을 줍니다.
 
 ### 예비 엔진(MiniMax) 특징
 - **MiniMax + Alpha-Beta**: 최적의 수 탐색
@@ -88,7 +88,7 @@
 - **평가 캐시**: 라인·군집·말단 평가를 해시로 캐싱해 깊은 탐색 가능
 
 ### 대시보드
-별도 서버(8082)에서 AI 학습 현황을 보여줍니다.
+게임과 같은 서버의 `/dashboard`에서 AI 학습 현황을 보여줍니다.
 
 - **게임 통계**: 총 게임, 승률, 모드별 분포, 일별 게임 수
 
@@ -127,45 +127,51 @@
 
 - **Frontend**: HTML5, CSS3, JavaScript (Vanilla)
 - **Backend**: Python Flask
-- **Database**: SQLite
+- **Database**: PostgreSQL (Supabase), 접속 정보는 환경변수 `DATABASE_URL`
 - **AI**: MiniMax + Alpha-Beta + Zobrist Hashing + Transposition Table
 
 ## 설치 및 실행
 
 ### 요구사항
-- Python 3.8+
-- Flask
+- Python 3.9+
+- PostgreSQL 데이터베이스 (Supabase 권장)
 
 ### 설치
 
 ```bash
 git clone <repository-url>
 cd omok
-pip install flask
+pip install -r requirements.txt
 ```
+
+### 데이터베이스 준비
+
+1. Supabase에서 프로젝트를 만듭니다. Vercel 함수 리전(`vercel.json`의 `icn1`, 서울)과 가깝게 **Seoul (ap-northeast-2)** 리전을 고릅니다.
+2. Supabase 대시보드의 **Connect** 버튼에서 **Transaction pooler** 연결 문자열(포트 6543)을 복사해 `DATABASE_URL` 환경변수로 둡니다. 비밀번호가 들어 있으니 저장소에 커밋하지 않습니다.
+3. 테이블을 만들고 기존 데이터를 옮깁니다.
+
+```bash
+export DATABASE_URL='postgresql://postgres.<ref>:<비밀번호>@aws-0-ap-northeast-2.pooler.supabase.com:6543/postgres'
+python3 tools/db_setup.py game.db   # 기존 SQLite 기록을 옮길 때. 빈 DB로 시작하면 인자 없이 실행
+```
+
+`tools/db_setup.py`는 `schema.sql`을 적용하고, SQLite 파일을 주면 비어 있는 테이블에만 복사한 뒤, `weights_config.json`의 기본 패턴 중 빠진 것을 채웁니다. 여러 번 실행해도 행이 중복되지 않습니다. 모든 테이블은 RLS가 켜져 있고 정책이 없어서 Supabase 공개 API로는 읽거나 쓸 수 없고, 서버만 `DATABASE_URL`로 접근합니다.
 
 ### 실행
 
-**게임 서버** (포트 8081):
 ```bash
-python3 server.py
-```
-
-**대시보드 서버** (포트 8082):
-```bash
-python3 dashboard/app.py
+DATABASE_URL='...' python3 server.py
 ```
 
 접속:
 - 게임: http://localhost:8081
-- 대시보드: http://localhost:8082
+- 대시보드: http://localhost:8081/dashboard
 
-### 초기화
+### Vercel 배포
 
-서버 최초 실행 시:
-1. 데이터베이스 테이블 자동 생성
-2. 기본 패턴 가중치 초기화
-3. **기존 저장된 게임 자동 재분석** (복합위협, 군집 패턴, 군집 연결)
+Vercel 프로젝트의 **Settings → Environment Variables**에 `DATABASE_URL`(Production, Preview)을 넣고 다시 배포합니다. `api/index.py`가 `server.py`를 함수로 실행하고, `/api/*`와 `/dashboard*` 요청이 그 함수로 갑니다. 정적 파일(게임 화면, Rapfi, 대시보드의 CSS·JS)은 Vercel이 바로 서비스합니다.
+
+> Supabase 무료 플랜은 1주일 동안 요청이 없으면 프로젝트가 일시정지됩니다. 그동안 랭킹·기보 저장과 대시보드는 오류를 내지만 대국은 그대로 됩니다(엔진은 브라우저에서 돌고, 예비 엔진은 기본 가중치로 둡니다).
 
 ## 프로젝트 구조
 
@@ -176,16 +182,18 @@ omok/
 ├── game.js              # 게임 로직
 ├── ai.js                # AI 엔진 (MiniMax + 학습 + 군집 패턴)
 ├── board-renderer.js    # 공통 보드 렌더링 모듈
-├── server.py            # 게임 백엔드 서버
+├── server.py            # 게임 백엔드 서버 (대시보드 포함)
+├── db.py                # DB 접속 (DATABASE_URL)
+├── schema.sql           # PostgreSQL 테이블 정의
+├── tools/db_setup.py    # 테이블 생성, SQLite 기록 이전, 기본 패턴 채우기
 ├── tests/ai.test.js     # AI 전술 테스트 (node --test tests/ai.test.js)
 ├── tools/match/         # Gomoku-MiniMax 대국 하네스 (match.py, summary.py, bench.js)
 ├── weights_config.json  # 패턴 가중치 설정 (단일 소스)
-├── weights.json         # 동적 학습 가중치
-├── game.db              # SQLite 데이터베이스
+├── game.db              # 이전 SQLite 데이터 (Supabase로 옮긴 뒤에는 불필요)
 ├── font.woff2           # 커스텀 한글 폰트
 ├── stone.wav            # 돌 놓기 효과음
 └── dashboard/
-    ├── app.py           # 대시보드 백엔드
+    ├── app.py           # 대시보드 백엔드 (server.py가 /dashboard에 연결)
     ├── templates/
     │   └── index.html   # 대시보드 HTML
     └── static/
@@ -274,22 +282,24 @@ omok/
 \* 자체 대국 측정(단계당 20국, 첫 두 수 무작위). 사람 체감과는 다를 수 있습니다. 10단계 대 8단계: 10단계가 흑이면 20전 20승, 백이면 20전 6승(흑 선공 이점이 큼).
 † 1초 설정으로 측정. 현재는 2초(최대 강도)라 그 이상입니다.
 
-### 대시보드 서버 (8082)
+### 대시보드 (`/dashboard`)
+
+페이지는 `/dashboard/`, 데이터 API는 모두 `/dashboard/api/` 아래에 있습니다.
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/stats` | 게임 통계 |
-| GET | `/api/patterns` | 패턴 학습 현황 (attack/defense) |
-| GET | `/api/composite-stats` | 복합 위협 통계 |
-| GET | `/api/cluster-stats` | 군집 패턴 통계 |
-| GET | `/api/cluster-connection-stats` | 군집 연결 통계 |
-| GET | `/api/cluster-weights` | 군집 패턴 가중치 (AI용) |
-| GET | `/api/learning-progress` | 학습 진행률 |
-| GET | `/api/weight-history` | 가중치 변화 이력 |
-| GET | `/api/leaderboard` | 리더보드 |
-| GET | `/api/games` | 게임 목록 |
-| GET | `/api/game/<id>` | 특정 게임 기보 |
-| GET | `/api/game/<id>/patterns` | 게임 내 패턴 (일반+복합위협) |
+| GET | `/dashboard/api/stats` | 게임 통계 |
+| GET | `/dashboard/api/patterns` | 패턴 학습 현황 (attack/defense) |
+| GET | `/dashboard/api/composite-stats` | 복합 위협 통계 |
+| GET | `/dashboard/api/cluster-stats` | 군집 패턴 통계 |
+| GET | `/dashboard/api/cluster-connection-stats` | 군집 연결 통계 |
+| GET | `/dashboard/api/cluster-weights` | 군집 패턴 가중치 (AI용) |
+| GET | `/dashboard/api/learning-progress` | 학습 진행률 |
+| GET | `/dashboard/api/weight-history` | 가중치 변화 이력 |
+| GET | `/dashboard/api/leaderboard` | 리더보드 |
+| GET | `/dashboard/api/games` | 게임 목록 |
+| GET | `/dashboard/api/game/<id>` | 특정 게임 기보 |
+| GET | `/dashboard/api/game/<id>/patterns` | 게임 내 패턴 (일반+복합위협) |
 
 ## AI 알고리즘
 
@@ -436,6 +446,8 @@ AI는 플레이어와 AI 양쪽의 기보를 학습합니다:
 
 ### DB 스키마
 
+전체 정의는 `schema.sql`(PostgreSQL)에 있습니다. 아래는 학습 관련 테이블 요약이고, 이 밖에 `leaderboard`(랭킹)와 `game_records`(기보)가 있습니다.
+
 ```sql
 -- 1차원 패턴 통계 (attack/defense 분리)
 pattern_stats (
@@ -523,6 +535,7 @@ cluster_connection_stats (
 
 - **입력 검증**: name 길이 제한, score/level/stones 범위 검사
 - **파일 접근 제한**: `.db`, `.py` 파일 직접 접근 차단
+- **DB 접근**: 접속 정보는 서버 환경변수(`DATABASE_URL`)에만 두고, 모든 테이블에 RLS를 켜 Supabase 공개 API를 막음
 - **XSS 방지**: 모든 사용자 입력 이스케이프 처리
 
 ## 브라우저 지원

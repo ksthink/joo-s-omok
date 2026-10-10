@@ -1,15 +1,14 @@
-from flask import Flask, render_template, jsonify
-import sqlite3
+from flask import Blueprint, render_template, jsonify
 import os
 import json
 
-app = Flask(__name__,
-            template_folder='templates',
-            static_folder='static')
+from db import get_db
+
+# Served by server.py under /dashboard (pages, static files and /dashboard/api/*)
+bp = Blueprint('dashboard', __name__, template_folder='templates',
+               static_folder='static', static_url_path='/static')
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DB_PATH = os.path.join(BASE_DIR, 'game.db')
-WEIGHTS_PATH = os.path.join(BASE_DIR, 'weights.json')
 CONFIG_PATH = os.path.join(BASE_DIR, 'weights_config.json')
 
 # ─── Load BASE_WEIGHTS from single source ────────────────────────────────────────
@@ -52,30 +51,18 @@ LEARNING_CONFIG = (_config or {}).get('learning', {
     "min_games_threshold": 15
 })
 
-def get_db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
-
 def safe_query(query, params=(), fetchone=False):
-    """Execute a query with proper connection cleanup."""
-    conn = get_db()
-    try:
+    with get_db() as conn:
         cursor = conn.execute(query, params)
-        if fetchone:
-            return cursor.fetchone()
-        return cursor.fetchall()
-    finally:
-        conn.close()
+        return cursor.fetchone() if fetchone else cursor.fetchall()
 
-@app.route('/')
+@bp.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/api/stats')
+@bp.route('/api/stats')
 def get_stats():
-    conn = get_db()
-    try:
+    with get_db() as conn:
         total_games = conn.execute('SELECT COUNT(*) as count FROM game_records').fetchone()['count']
         player_wins = conn.execute('SELECT COUNT(*) as count FROM game_records WHERE winner = 1').fetchone()['count']
         ai_wins = conn.execute('SELECT COUNT(*) as count FROM game_records WHERE winner = 2').fetchone()['count']
@@ -92,8 +79,6 @@ def get_stats():
             ORDER BY date DESC
             LIMIT 7
         ''').fetchall()
-    finally:
-        conn.close()
 
     win_rate = round((player_wins / total_games * 100), 1) if total_games > 0 else 0
 
@@ -108,32 +93,17 @@ def get_stats():
         'daily_stats': [dict(row) for row in daily_stats]
     })
 
-@app.route('/api/patterns')
+@bp.route('/api/patterns')
 def get_patterns():
-    conn = get_db()
-    try:
-        # Check if new columns exist
-        cols = {r['name'] for r in conn.execute("PRAGMA table_info(pattern_stats)").fetchall()}
-        has_new_cols = 'attack_weight' in cols
-
-        if has_new_cols:
-            cursor = conn.execute('''
-                SELECT pattern, win_count, total_count, current_weight,
-                       attack_weight, defense_weight,
-                       attack_win_count, attack_total_count,
-                       defense_win_count, defense_total_count
-                FROM pattern_stats
-                ORDER BY total_count DESC
-            ''')
-        else:
-            cursor = conn.execute('''
-                SELECT pattern, win_count, total_count, current_weight
-                FROM pattern_stats
-                ORDER BY total_count DESC
-            ''')
-        rows = cursor.fetchall()
-    finally:
-        conn.close()
+    with get_db() as conn:
+        rows = conn.execute('''
+            SELECT pattern, win_count, total_count, current_weight,
+                   attack_weight, defense_weight,
+                   attack_win_count, attack_total_count,
+                   defense_win_count, defense_total_count
+            FROM pattern_stats
+            ORDER BY total_count DESC, pattern
+        ''').fetchall()
 
     threshold = LEARNING_CONFIG.get('min_games_threshold', 15)
     patterns = []
@@ -158,37 +128,36 @@ def get_patterns():
             'threshold': threshold
         }
 
-        if has_new_cols:
-            atk_w = row['attack_weight'] or base_weight
-            def_w = row['defense_weight'] or base_weight
-            atk_total = row['attack_total_count'] or 0
-            def_total = row['defense_total_count'] or 0
-            atk_wins = row['attack_win_count'] or 0
-            def_wins = row['defense_win_count'] or 0
-            entry.update({
-                'attack_weight': atk_w,
-                'defense_weight': def_w,
-                'attack_change': round(((atk_w - base_weight) / base_weight * 100), 1) if base_weight > 0 else 0,
-                'defense_change': round(((def_w - base_weight) / base_weight * 100), 1) if base_weight > 0 else 0,
-                'attack_total': atk_total,
-                'defense_total': def_total,
-                'attack_win_rate': round((atk_wins / atk_total * 100), 1) if atk_total > 0 else 0,
-                'defense_win_rate': round((def_wins / def_total * 100), 1) if def_total > 0 else 0,
-            })
+        atk_w = row['attack_weight'] or base_weight
+        def_w = row['defense_weight'] or base_weight
+        atk_total = row['attack_total_count'] or 0
+        def_total = row['defense_total_count'] or 0
+        atk_wins = row['attack_win_count'] or 0
+        def_wins = row['defense_win_count'] or 0
+        entry.update({
+            'attack_weight': atk_w,
+            'defense_weight': def_w,
+            'attack_change': round(((atk_w - base_weight) / base_weight * 100), 1) if base_weight > 0 else 0,
+            'defense_change': round(((def_w - base_weight) / base_weight * 100), 1) if base_weight > 0 else 0,
+            'attack_total': atk_total,
+            'defense_total': def_total,
+            'attack_win_rate': round((atk_wins / atk_total * 100), 1) if atk_total > 0 else 0,
+            'defense_win_rate': round((def_wins / def_total * 100), 1) if def_total > 0 else 0,
+        })
 
         patterns.append(entry)
 
     return jsonify(patterns)
 
-@app.route('/api/leaderboard')
+@bp.route('/api/leaderboard')
 def get_leaderboard():
     rows = safe_query('''
         SELECT name, score, level, stones, date
-        FROM leaderboard ORDER BY score DESC LIMIT 20
+        FROM leaderboard ORDER BY score DESC, id LIMIT 20
     ''')
     return jsonify([dict(row) for row in rows])
 
-@app.route('/api/games')
+@bp.route('/api/games')
 def get_games():
     rows = safe_query('''
         SELECT id, winner, game_mode, level, stone_count, date, time
@@ -211,11 +180,11 @@ def get_games():
         })
     return jsonify(games)
 
-@app.route('/api/game/<int:game_id>')
+@bp.route('/api/game/<int:game_id>')
 def get_game(game_id):
     row = safe_query('''
         SELECT id, moves, winner, game_mode, level, stone_count, date, time
-        FROM game_records WHERE id = ?
+        FROM game_records WHERE id = %s
     ''', (game_id,), fetchone=True)
 
     if not row:
@@ -346,9 +315,9 @@ def find_composite_threat_lines(board, row, col, player):
 
     return composite_type, composite_lines
 
-@app.route('/api/game/<int:game_id>/patterns')
+@bp.route('/api/game/<int:game_id>/patterns')
 def get_game_patterns(game_id):
-    row = safe_query('SELECT moves FROM game_records WHERE id = ?', (game_id,), fetchone=True)
+    row = safe_query('SELECT moves FROM game_records WHERE id = %s', (game_id,), fetchone=True)
     if not row:
         return jsonify({'error': 'Game not found'}), 404
 
@@ -389,15 +358,10 @@ def get_game_patterns(game_id):
 
     return jsonify({'patterns': unique_patterns})
 
-@app.route('/api/weight-history')
+@bp.route('/api/weight-history')
 def get_weight_history():
     """Return weight change history for visualization."""
-    conn = get_db()
-    try:
-        # Check if table exists
-        tables = {r['name'] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
-        if 'weight_history' not in tables:
-            return jsonify([])
+    with get_db() as conn:
 
         rows = conn.execute('''
             SELECT pattern, attack_weight, defense_weight, game_count, recorded_at
@@ -405,19 +369,13 @@ def get_weight_history():
             ORDER BY id DESC
             LIMIT 500
         ''').fetchall()
-    finally:
-        conn.close()
 
     return jsonify([dict(row) for row in rows])
 
-@app.route('/api/composite-stats')
+@bp.route('/api/composite-stats')
 def get_composite_stats():
     """Return composite threat pattern statistics."""
-    conn = get_db()
-    try:
-        tables = {r['name'] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
-        if 'composite_pattern_stats' not in tables:
-            return jsonify([])
+    with get_db() as conn:
 
         rows = conn.execute('''
             SELECT pattern_type,
@@ -429,8 +387,6 @@ def get_composite_stats():
             GROUP BY pattern_type
             ORDER BY total DESC
         ''').fetchall()
-    finally:
-        conn.close()
 
     result = []
     for row in rows:
@@ -444,25 +400,14 @@ def get_composite_stats():
         })
     return jsonify(result)
 
-@app.route('/api/learning-progress')
+@bp.route('/api/learning-progress')
 def get_learning_progress():
     """Return learning progress for each pattern."""
-    conn = get_db()
-    try:
-        cols = {r['name'] for r in conn.execute("PRAGMA table_info(pattern_stats)").fetchall()}
-        has_new = 'attack_total_count' in cols
-
-        if has_new:
-            rows = conn.execute('''
-                SELECT pattern, total_count, attack_total_count, defense_total_count
-                FROM pattern_stats ORDER BY total_count DESC
-            ''').fetchall()
-        else:
-            rows = conn.execute('''
-                SELECT pattern, total_count FROM pattern_stats ORDER BY total_count DESC
-            ''').fetchall()
-    finally:
-        conn.close()
+    with get_db() as conn:
+        rows = conn.execute('''
+            SELECT pattern, total_count, attack_total_count, defense_total_count
+            FROM pattern_stats ORDER BY total_count DESC, pattern
+        ''').fetchall()
 
     threshold = LEARNING_CONFIG.get('min_games_threshold', 15)
     result = []
@@ -475,66 +420,53 @@ def get_learning_progress():
             'progress': min(100, round(total / threshold * 100)) if threshold > 0 else 0,
             'is_active': total >= threshold
         }
-        if has_new:
-            atk = row['attack_total_count'] or 0
-            dfn = row['defense_total_count'] or 0
-            entry['attack_progress'] = min(100, round(atk / threshold * 100)) if threshold > 0 else 0
-            entry['defense_progress'] = min(100, round(dfn / threshold * 100)) if threshold > 0 else 0
+        atk = row['attack_total_count'] or 0
+        dfn = row['defense_total_count'] or 0
+        entry['attack_progress'] = min(100, round(atk / threshold * 100)) if threshold > 0 else 0
+        entry['defense_progress'] = min(100, round(dfn / threshold * 100)) if threshold > 0 else 0
         result.append(entry)
 
     return jsonify(result)
 
-@app.route('/api/cluster-weights')
+@bp.route('/api/cluster-weights')
 def get_cluster_weights():
     """Return cluster pattern weights for AI."""
-    conn = get_db()
-    try:
-        tables = {r['name'] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
+    cluster_patterns = {}
+    cluster_connections = {}
+    with get_db() as conn:
+        rows = conn.execute('''
+            SELECT pattern_id, attack_weight, defense_weight, win_count, total_count
+            FROM cluster_pattern_stats
+        ''').fetchall()
+        for row in rows:
+            cluster_patterns[row['pattern_id']] = {
+                'attack_weight': row['attack_weight'],
+                'defense_weight': row['defense_weight'],
+                'wins': row['win_count'],
+                'total': row['total_count']
+            }
         
-        cluster_patterns = {}
-        cluster_connections = {}
-        
-        if 'cluster_pattern_stats' in tables:
-            rows = conn.execute('''
-                SELECT pattern_id, attack_weight, defense_weight, win_count, total_count
-                FROM cluster_pattern_stats
-            ''').fetchall()
-            for row in rows:
-                cluster_patterns[row['pattern_id']] = {
-                    'attack_weight': row['attack_weight'],
-                    'defense_weight': row['defense_weight'],
-                    'wins': row['win_count'],
-                    'total': row['total_count']
-                }
-        
-        if 'cluster_connection_stats' in tables:
-            rows = conn.execute('''
-                SELECT connection_type, attack_weight, defense_weight, win_count, total_count
-                FROM cluster_connection_stats
-            ''').fetchall()
-            for row in rows:
-                cluster_connections[row['connection_type']] = {
-                    'attack_weight': row['attack_weight'],
-                    'defense_weight': row['defense_weight'],
-                    'wins': row['win_count'],
-                    'total': row['total_count']
-                }
-    finally:
-        conn.close()
+        rows = conn.execute('''
+            SELECT connection_type, attack_weight, defense_weight, win_count, total_count
+            FROM cluster_connection_stats
+        ''').fetchall()
+        for row in rows:
+            cluster_connections[row['connection_type']] = {
+                'attack_weight': row['attack_weight'],
+                'defense_weight': row['defense_weight'],
+                'wins': row['win_count'],
+                'total': row['total_count']
+            }
     
     return jsonify({
         'cluster_patterns': cluster_patterns,
         'cluster_connections': cluster_connections
     })
 
-@app.route('/api/cluster-stats')
+@bp.route('/api/cluster-stats')
 def get_cluster_stats():
     """Return cluster pattern statistics."""
-    conn = get_db()
-    try:
-        tables = {r['name'] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
-        if 'cluster_pattern_stats' not in tables:
-            return jsonify([])
+    with get_db() as conn:
         
         rows = conn.execute('''
             SELECT pattern_id,
@@ -543,10 +475,8 @@ def get_cluster_stats():
                    attack_win_count, attack_total_count,
                    defense_win_count, defense_total_count
             FROM cluster_pattern_stats
-            ORDER BY total_count DESC
+            ORDER BY total_count DESC, pattern_id
         ''').fetchall()
-    finally:
-        conn.close()
     
     result = []
     for row in rows:
@@ -569,14 +499,10 @@ def get_cluster_stats():
     
     return jsonify(result)
 
-@app.route('/api/cluster-connection-stats')
+@bp.route('/api/cluster-connection-stats')
 def get_cluster_connection_stats():
     """Return cluster connection pattern statistics."""
-    conn = get_db()
-    try:
-        tables = {r['name'] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
-        if 'cluster_connection_stats' not in tables:
-            return jsonify([])
+    with get_db() as conn:
         
         rows = conn.execute('''
             SELECT connection_type,
@@ -585,10 +511,8 @@ def get_cluster_connection_stats():
                    attack_win_count, attack_total_count,
                    defense_win_count, defense_total_count
             FROM cluster_connection_stats
-            ORDER BY total_count DESC
+            ORDER BY total_count DESC, connection_type
         ''').fetchall()
-    finally:
-        conn.close()
     
     result = []
     for row in rows:
@@ -609,6 +533,3 @@ def get_cluster_connection_stats():
         result.append(entry)
     
     return jsonify(result)
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8082, debug=False)

@@ -62,7 +62,7 @@ function initTabs() {
 
 // ─── Stats Tab ──────────────────────────────────────────────────────────────────
 function loadStats() {
-    safeFetch('/api/stats')
+    safeFetch('/dashboard/api/stats')
         .then(data => {
             document.getElementById('totalGames').textContent = data.total_games;
             document.getElementById('winRate').textContent = data.win_rate + '%';
@@ -97,7 +97,7 @@ function renderDailyStats(dailyStats) {
 
 // ─── Patterns Tab (Attack/Defense Split) ────────────────────────────────────────
 function loadPatterns() {
-    safeFetch('/api/patterns')
+    safeFetch('/dashboard/api/patterns')
         .then(data => {
             renderPatterns(data);
         })
@@ -163,7 +163,7 @@ function renderPatterns(patterns) {
 
 // ─── Composite Threats Tab ──────────────────────────────────────────────────────
 function loadCompositeStats() {
-    safeFetch('/api/composite-stats')
+    safeFetch('/dashboard/api/composite-stats')
         .then(data => {
             renderCompositeStats(data);
         })
@@ -221,7 +221,7 @@ function renderCompositeStats(stats) {
 
 // ─── Cluster Patterns Tab ────────────────────────────────────────────────────────
 function loadClusterStats() {
-    safeFetch('/api/cluster-stats')
+    safeFetch('/dashboard/api/cluster-stats')
         .then(data => {
             renderClusterStats(data);
         })
@@ -258,7 +258,7 @@ function renderClusterStats(stats) {
 
 // ─── Cluster Connections Tab ─────────────────────────────────────────────────────
 function loadConnectionStats() {
-    safeFetch('/api/cluster-connection-stats')
+    safeFetch('/dashboard/api/cluster-connection-stats')
         .then(data => {
             renderConnectionStats(data);
         })
@@ -294,7 +294,7 @@ function renderConnectionStats(stats) {
 
 // ─── Learning Progress Tab ──────────────────────────────────────────────────────
 function loadLearningProgress() {
-    safeFetch('/api/learning-progress')
+    safeFetch('/dashboard/api/learning-progress')
         .then(data => {
             renderLearningProgress(data);
         })
@@ -359,7 +359,7 @@ function renderLearningProgress(progressData) {
 
 // ─── Leaderboard Tab ────────────────────────────────────────────────────────────
 function loadLeaderboard() {
-    safeFetch('/api/leaderboard')
+    safeFetch('/dashboard/api/leaderboard')
         .then(data => {
             renderLeaderboard(data);
         })
@@ -392,7 +392,7 @@ function renderLeaderboard(leaderboard) {
 
 // ─── Games / Replay Tab ─────────────────────────────────────────────────────────
 function loadGames() {
-    safeFetch('/api/games')
+    safeFetch('/dashboard/api/games')
         .then(data => {
             gamesData = data;
             renderGameSelect(data);
@@ -435,8 +435,8 @@ function initReplayControls() {
 
 function loadGameReplay(gameId) {
     Promise.all([
-        safeFetch(`/api/game/${gameId}`),
-        safeFetch(`/api/game/${gameId}/patterns`)
+        safeFetch(`/dashboard/api/game/${gameId}`),
+        safeFetch(`/dashboard/api/game/${gameId}/patterns`)
     ]).then(([gameData, patternsData]) => {
         currentMoves = gameData.moves || [];
         currentMoveIndex = 0;
