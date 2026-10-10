@@ -189,7 +189,6 @@ omok/
 ├── tests/ai.test.js     # AI 전술 테스트 (node --test tests/ai.test.js)
 ├── tools/match/         # Gomoku-MiniMax 대국 하네스 (match.py, summary.py, bench.js)
 ├── weights_config.json  # 패턴 가중치 설정 (단일 소스)
-├── game.db              # 이전 SQLite 데이터 (Supabase로 옮긴 뒤에는 불필요)
 ├── font.woff2           # 커스텀 한글 폰트
 ├── stone.wav            # 돌 놓기 효과음
 └── dashboard/
