@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from functools import wraps
 from zoneinfo import ZoneInfo
 
-from db import get_db
+import db
 
 # Configure logging
 LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
@@ -83,15 +83,8 @@ def get_leaderboard():
     if request.method == 'OPTIONS':
         return jsonify({}), 200
 
-    with get_db() as conn:
-        rows = conn.execute(
-            'SELECT name, score, level, stones, date FROM leaderboard ORDER BY score DESC, id LIMIT 10'
-        ).fetchall()
-
-    return jsonify([{
-        'name': row['name'], 'score': row['score'],
-        'level': row['level'], 'stones': row['stones'], 'date': row['date']
-    } for row in rows])
+    return jsonify(db.select('leaderboard', select='name,score,level,stones,date',
+                             order='score.desc,id', limit=10))
 
 @app.route('/api/leaderboard', methods=['POST', 'OPTIONS'])
 @cross_origin
@@ -111,11 +104,7 @@ def save_score():
     if not date or not isinstance(date, str) or len(date) > 20:
         date = get_kst_date()
 
-    with get_db() as conn:
-        conn.execute(
-            'INSERT INTO leaderboard (name, score, level, stones, date) VALUES (%s, %s, %s, %s, %s)',
-            (name, score, level, stones, date)
-        )
+    db.insert('leaderboard', {'name': name, 'score': score, 'level': level, 'stones': stones, 'date': date})
 
     return jsonify({'success': True})
 
@@ -161,12 +150,10 @@ def save_game_record():
             side = 'player' if winner == 1 else 'AI'
             return jsonify({'success': False, 'error': f'Invalid game: {side} win requires at least {min_stones} stones'}), 400
 
-    with get_db() as conn:
-        conn.execute(
-            'INSERT INTO game_records (moves, winner, game_mode, level, stone_count, date, time) '
-            'VALUES (%s, %s, %s, %s, %s, %s, %s)',
-            (json.dumps(moves), winner, game_mode, level, stone_count, date, get_kst_time())
-        )
+    db.insert('game_records', {
+        'moves': json.dumps(moves), 'winner': winner, 'game_mode': game_mode, 'level': level,
+        'stone_count': stone_count, 'date': date, 'time': get_kst_time(),
+    })
 
     return jsonify({'success': True})
 

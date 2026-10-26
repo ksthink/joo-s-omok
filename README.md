@@ -4,10 +4,11 @@
 
 ## 소개
 
-현재 버전: **v3.3.0** (첫 화면 하단에 표시, `game.js`의 `APP_VERSION`)
+현재 버전: **v3.3.1** (첫 화면 하단에 표시, `game.js`의 `APP_VERSION`)
 
 | 버전 | 변경 내용 |
 |---|---|
+| v3.3.1 | DB를 자체 서버 Supabase로 옮기고, 서버가 Postgres에 직접 붙는 대신 Supabase REST API(`SUPABASE_URL`, `SUPABASE_SECRET_KEY`)로 읽고 쓰도록 변경 |
 | v3.3.0 | 패턴 학습 제거: 기보·랭킹만 저장하고 예비 엔진(MiniMax)은 고정 가중치로 둠. DB를 Supabase(PostgreSQL)로 옮기고 대시보드를 `/dashboard`로 통합(게임 통계·리더보드·기보 재생) |
 | v3.2.2 | 차례 불빛을 돌 색으로: 흑 차례는 흰 테두리의 검정, 백 차례는 검정 테두리의 흰색(차례가 아닌 쪽은 꺼짐) |
 | v3.2.1 | 연습 모드 승률 막대를 없애고 상태 칸의 흑·백 차례 불빛 옆에 승률(%)만 표시, 차례 불빛을 AI·Jev 불빛과 같은 점 모양으로, 상태 칸 폭을 오목판에 맞춤 |
@@ -108,14 +109,14 @@
 
 - **Frontend**: HTML5, CSS3, JavaScript (Vanilla)
 - **Backend**: Python Flask
-- **Database**: PostgreSQL (Supabase), 접속 정보는 환경변수 `DATABASE_URL`
+- **Database**: Supabase(자체 서버), 서버가 REST API로 접근(환경변수 `SUPABASE_URL`, `SUPABASE_SECRET_KEY`)
 - **AI**: MiniMax + Alpha-Beta + Zobrist Hashing + Transposition Table
 
 ## 설치 및 실행
 
 ### 요구사항
 - Python 3.9+
-- PostgreSQL 데이터베이스 (Supabase 권장)
+- Supabase 프로젝트 (클라우드 또는 자체 서버)
 
 ### 설치
 
@@ -127,21 +128,15 @@ pip install -r requirements.txt
 
 ### 데이터베이스 준비
 
-1. Supabase에서 프로젝트를 만듭니다. Vercel 함수 리전(`vercel.json`의 `icn1`, 서울)과 가깝게 **Seoul (ap-northeast-2)** 리전을 고릅니다.
-2. Supabase 대시보드의 **Connect** 버튼에서 **Transaction pooler** 연결 문자열(포트 6543)을 복사해 `DATABASE_URL` 환경변수로 둡니다. 비밀번호가 들어 있으니 저장소에 커밋하지 않습니다.
-3. 테이블을 만들고 기존 데이터를 옮깁니다.
+1. Supabase **SQL Editor**에서 `schema.sql` 내용을 실행합니다. 테이블, 대시보드 통계 함수(`game_stats`)를 만들고, 예전 학습 테이블이 남아 있으면 지웁니다. 여러 번 실행해도 됩니다.
+2. Supabase의 프로젝트 URL과 **secret 키**(`sb_secret_...`, 자체 서버는 `SERVICE_ROLE_KEY`)를 환경변수 `SUPABASE_URL`, `SUPABASE_SECRET_KEY`로 둡니다. secret 키는 RLS를 우회하므로 서버에만 두고 저장소에 커밋하지 않습니다.
 
-```bash
-export DATABASE_URL='postgresql://postgres.<ref>:<비밀번호>@aws-0-ap-northeast-2.pooler.supabase.com:6543/postgres'
-python3 tools/db_setup.py game.db   # 기존 SQLite 기록을 옮길 때. 빈 DB로 시작하면 인자 없이 실행
-```
-
-`tools/db_setup.py`는 `schema.sql`을 적용하고, SQLite 파일을 주면 랭킹과 기보를 비어 있는 테이블에만 복사합니다. 예전 학습 테이블이 남아 있으면 이때 지워집니다. 여러 번 실행해도 행이 중복되지 않습니다. 모든 테이블은 RLS가 켜져 있고 정책이 없어서 Supabase 공개 API로는 읽거나 쓸 수 없고, 서버만 `DATABASE_URL`로 접근합니다.
+모든 테이블은 RLS가 켜져 있고 정책이 없어서 publishable(공개) 키로는 읽거나 쓸 수 없고, `game_stats` 함수도 서버 역할만 실행할 수 있습니다.
 
 ### 실행
 
 ```bash
-DATABASE_URL='...' python3 server.py
+SUPABASE_URL='https://supa.metaphr.dev' SUPABASE_SECRET_KEY='...' python3 server.py
 ```
 
 접속:
@@ -150,9 +145,9 @@ DATABASE_URL='...' python3 server.py
 
 ### Vercel 배포
 
-Vercel 프로젝트의 **Settings → Environment Variables**에 `DATABASE_URL`(Production, Preview)을 넣고 다시 배포합니다. `api/index.py`가 `server.py`를 함수로 실행하고, `/api/*`와 `/dashboard*` 요청이 그 함수로 갑니다. 정적 파일(게임 화면, Rapfi, 대시보드의 CSS·JS)은 Vercel이 바로 서비스합니다.
+Vercel 프로젝트의 **Settings → Environment Variables**에 `SUPABASE_URL`, `SUPABASE_SECRET_KEY`(Production, Preview)를 넣고 다시 배포합니다. `api/index.py`가 `server.py`를 함수로 실행하고, `/api/*`와 `/dashboard*` 요청이 그 함수로 갑니다. 정적 파일(게임 화면, Rapfi, 대시보드의 CSS·JS)은 Vercel이 바로 서비스합니다.
 
-> Supabase 무료 플랜은 1주일 동안 요청이 없으면 프로젝트가 일시정지됩니다. 그동안 랭킹·기보 저장과 대시보드는 오류를 내지만 대국은 그대로 됩니다(엔진은 브라우저에서 돕니다).
+> Supabase 서버에 접속할 수 없으면 랭킹·기보 저장과 대시보드는 오류를 내지만 대국은 그대로 됩니다(엔진은 브라우저에서 돕니다).
 
 ## 프로젝트 구조
 
@@ -164,9 +159,8 @@ omok/
 ├── ai.js                # 예비 AI 엔진 (MiniMax + 고정 패턴 가중치)
 ├── board-renderer.js    # 공통 보드 렌더링 모듈
 ├── server.py            # 게임 백엔드 서버 (대시보드 포함)
-├── db.py                # DB 접속 (DATABASE_URL)
-├── schema.sql           # PostgreSQL 테이블 정의
-├── tools/db_setup.py    # 테이블 생성, SQLite 기록 이전, 기본 패턴 채우기
+├── db.py                # Supabase REST API 접근 (SUPABASE_URL, SUPABASE_SECRET_KEY)
+├── schema.sql           # 테이블·통계 함수 정의 (SQL Editor에서 실행)
 ├── tests/ai.test.js     # AI 전술 테스트 (node --test tests/ai.test.js)
 ├── tools/match/         # Gomoku-MiniMax 대국 하네스 (match.py, summary.py, bench.js)
 ├── font.woff2           # 커스텀 한글 폰트
@@ -378,7 +372,7 @@ game_records (id, moves, winner, game_mode, level, stone_count, date, time)
 
 - **입력 검증**: name 길이 제한, score/level/stones 범위 검사
 - **파일 접근 제한**: `.db`, `.py` 파일 직접 접근 차단
-- **DB 접근**: 접속 정보는 서버 환경변수(`DATABASE_URL`)에만 두고, 모든 테이블에 RLS를 켜 Supabase 공개 API를 막음
+- **DB 접근**: secret 키는 서버 환경변수(`SUPABASE_SECRET_KEY`)에만 두고, 모든 테이블에 RLS를 켜 공개 키로는 접근할 수 없음
 - **XSS 방지**: 모든 사용자 입력 이스케이프 처리
 
 ## 브라우저 지원

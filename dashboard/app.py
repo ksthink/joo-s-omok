@@ -1,16 +1,17 @@
 from flask import Blueprint, render_template, jsonify
 import json
 
-from db import get_db
+import db
 
 # Served by server.py under /dashboard (pages, static files and /dashboard/api/*)
 bp = Blueprint('dashboard', __name__, template_folder='templates',
                static_folder='static', static_url_path='/static')
 
-def safe_query(query, params=(), fetchone=False):
-    with get_db() as conn:
-        cursor = conn.execute(query, params)
-        return cursor.fetchone() if fetchone else cursor.fetchall()
+GAME_COLUMNS = 'id,winner,game_mode,level,stone_count,date,time'
+
+def get_game_row(game_id, columns):
+    rows = db.select('game_records', select=columns, id=f'eq.{game_id}')
+    return rows[0] if rows else None
 
 @bp.route('/')
 def index():
@@ -18,51 +19,20 @@ def index():
 
 @bp.route('/api/stats')
 def get_stats():
-    with get_db() as conn:
-        total_games = conn.execute('SELECT COUNT(*) as count FROM game_records').fetchone()['count']
-        player_wins = conn.execute('SELECT COUNT(*) as count FROM game_records WHERE winner = 1').fetchone()['count']
-        ai_wins = conn.execute('SELECT COUNT(*) as count FROM game_records WHERE winner = 2').fetchone()['count']
-        draws = conn.execute('SELECT COUNT(*) as count FROM game_records WHERE winner = 0').fetchone()['count']
-
-        practice_games = conn.execute("SELECT COUNT(*) as count FROM game_records WHERE game_mode = 'practice'").fetchone()['count']
-        challenge_games = conn.execute("SELECT COUNT(*) as count FROM game_records WHERE game_mode = 'challenge'").fetchone()['count']
-
-        daily_stats = conn.execute('''
-            SELECT date, COUNT(*) as count,
-                   SUM(CASE WHEN winner = 1 THEN 1 ELSE 0 END) as player_wins
-            FROM game_records
-            GROUP BY date
-            ORDER BY date DESC
-            LIMIT 7
-        ''').fetchall()
-
-    win_rate = round((player_wins / total_games * 100), 1) if total_games > 0 else 0
-
-    return jsonify({
-        'total_games': total_games,
-        'player_wins': player_wins,
-        'ai_wins': ai_wins,
-        'draws': draws,
-        'win_rate': win_rate,
-        'practice_games': practice_games,
-        'challenge_games': challenge_games,
-        'daily_stats': [dict(row) for row in daily_stats]
-    })
+    # Counts and the last 7 days are computed in the database (game_stats() in schema.sql)
+    stats = db.rpc('game_stats')
+    total_games = stats['total_games']
+    stats['win_rate'] = round((stats['player_wins'] / total_games * 100), 1) if total_games > 0 else 0
+    return jsonify(stats)
 
 @bp.route('/api/leaderboard')
 def get_leaderboard():
-    rows = safe_query('''
-        SELECT name, score, level, stones, date
-        FROM leaderboard ORDER BY score DESC, id LIMIT 20
-    ''')
-    return jsonify([dict(row) for row in rows])
+    return jsonify(db.select('leaderboard', select='name,score,level,stones,date',
+                             order='score.desc,id', limit=20))
 
 @bp.route('/api/games')
 def get_games():
-    rows = safe_query('''
-        SELECT id, winner, game_mode, level, stone_count, date, time
-        FROM game_records ORDER BY id DESC LIMIT 50
-    ''')
+    rows = db.select('game_records', select=GAME_COLUMNS, order='id.desc', limit=50)
     games = []
     mode_map = {'practice': '연습게임', 'challenge': '챌린지', 'tested': 'AI테스트'}
     for row in rows:
@@ -82,10 +52,7 @@ def get_games():
 
 @bp.route('/api/game/<int:game_id>')
 def get_game(game_id):
-    row = safe_query('''
-        SELECT id, moves, winner, game_mode, level, stone_count, date, time
-        FROM game_records WHERE id = %s
-    ''', (game_id,), fetchone=True)
+    row = get_game_row(game_id, GAME_COLUMNS + ',moves')
 
     if not row:
         return jsonify({'error': 'Game not found'}), 404
@@ -217,7 +184,7 @@ def find_composite_threat_lines(board, row, col, player):
 
 @bp.route('/api/game/<int:game_id>/patterns')
 def get_game_patterns(game_id):
-    row = safe_query('SELECT moves FROM game_records WHERE id = %s', (game_id,), fetchone=True)
+    row = get_game_row(game_id, 'moves')
     if not row:
         return jsonify({'error': 'Game not found'}), 404
 
